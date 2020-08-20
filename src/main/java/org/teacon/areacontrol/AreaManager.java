@@ -63,7 +63,7 @@ public final class AreaManager {
         }
         Path wildnessArea = dataDirRoot.resolve("wildness.json");
         if (Files.isRegularFile(wildnessArea)) {
-            try (Reader reader = Files.newBufferedReader(userDefinedAreas)) {
+            try (Reader reader = Files.newBufferedReader(wildnessArea)) {
                 Area a = GSON.fromJson(reader, Area.class);
                 this.wildness.properties.putAll(a.properties);
             }
