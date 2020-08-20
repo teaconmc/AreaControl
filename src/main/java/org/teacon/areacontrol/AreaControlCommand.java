@@ -1,6 +1,7 @@
 package org.teacon.areacontrol;
 
 import java.util.ArrayDeque;
+import java.util.function.Predicate;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -15,6 +16,7 @@ import net.minecraft.command.Commands;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.server.permission.PermissionAPI;
 
 public final class AreaControlCommand {
 
@@ -25,7 +27,7 @@ public final class AreaControlCommand {
                         .then(Commands.literal("admin").executes(AreaControlCommand::admin))
                         .then(Commands.literal("claim").executes(AreaControlCommand::claim))
                         .then(Commands.literal("list").executes(AreaControlCommand::list))
-                        .then(Commands.literal("set").then(
+                        .then(Commands.literal("set").requires(check("area_control.command.set_property")).then(
                             Commands.argument("property", StringArgumentType.string()).then(
                                 Commands.argument("value", StringArgumentType.greedyString())
                                     .executes(AreaControlCommand::setProperty)
@@ -33,6 +35,16 @@ public final class AreaControlCommand {
                         )
                 )
         );
+    }
+
+    private Predicate<CommandSource> check(String permission) {
+        return source -> {
+            try {
+                return PermissionAPI.hasPermission(source.asPlayer(), permission);
+            } catch (CommandSyntaxException e) {
+                return false;
+            }
+        };
     }
 
     private static int about(CommandContext<CommandSource> context) {

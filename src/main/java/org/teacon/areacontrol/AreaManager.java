@@ -83,7 +83,7 @@ public final class AreaManager {
      */
     public boolean add(Area area) {
         // First we filter out cases where at least one defining coordinate falls in an existing area
-        if (findBy(new BlockPos(area.minX, 0, area.minZ)) == this.wildness && findBy(new BlockPos(area.maxX, 0, area.maxZ)) == this.wildness) {
+        if (findBy(new BlockPos(area.minX, area.minY, area.minZ)) == this.wildness && findBy(new BlockPos(area.maxX, area.maxY, area.maxZ)) == this.wildness) {
             // Second we filter out cases where the area to define is enclosing another area.
             boolean noEnclosing = true;
             for (Area a : areasByName.values()) {
@@ -99,6 +99,8 @@ public final class AreaManager {
             if (noEnclosing) {
                 areasByName.computeIfAbsent(area.name, name -> area);
                 this.buildCacheFor(area);
+                // Copy default settings over
+                area.properties.putAll(wildness.properties);
                 return true;
             }
         }
