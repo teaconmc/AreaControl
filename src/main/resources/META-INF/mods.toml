@@ -1,0 +1,15 @@
+modLoader="javafml"
+
+loaderVersion="[31,)"
+
+[[mods]]
+modId="area_control"
+version="${file.jarVersion}"
+displayName="Area Control"
+
+# We will come back later.
+credits=""
+
+authors="3TUSK"
+
+description="A comprehensive (maybe) plot management mod under Forge framework."

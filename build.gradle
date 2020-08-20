@@ -1,0 +1,149 @@
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+
+buildscript {
+    repositories {
+        maven { url = 'https://files.minecraftforge.net/maven' }
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+    }
+}
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+
+version = '0.1.0'
+group = 'org.teacon'
+archivesBaseName = 'AreaControl-Forge-1.15'
+
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+
+minecraft {
+    mappings channel: 'snapshot', version: '20200513-1.15.1'
+    
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.console.level', 'info'
+            mods {
+                area_control {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run_server')
+            property 'forge.logging.console.level', 'info'
+            mods {
+                area_control {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+            property 'forge.logging.console.level', 'info'
+            args '--mod', 'area_control', '--all', '--output', file('src/generated/resources/')
+            mods {
+                area_control {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.15.2-31.2.4'
+}
+
+jar {
+    manifest {
+        attributes([
+            "Specification-Title": "Area-Control",
+            "Specification-Vendor": "TeaConMC",
+            "Specification-Version": "1",
+            "Implementation-Title": project.name,
+            "Implementation-Version": "${version}",
+            "Implementation-Vendor": "TeaConMC",
+            "Implementation-Timestamp": DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS))
+        ])
+    }
+}
+
+def reobfFile = file("$buildDir/reobfJar/output.jar")
+def reobfArtifact = artifacts.add('default', reobfFile) {
+    type 'jar'
+    builtBy 'reobfJar'
+}
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = "org.teacon"
+            artifactId = "AreaControl-Forge-1.15"
+
+            artifact reobfArtifact
+            pom {
+                name = 'AreaControl for Minecraft 1.15'
+                description = 'Comprehensive (maybe) plot management mod'
+                url = 'https://github.com/teaconmc/AreaControl'
+                licenses {
+                    license {
+                        name = 'BSD-3-Clause'
+                        url = 'https://github.com/teaconmc/AreaControl/blob/1.15-forge/LICENSE'
+                    }
+                }
+                developers {
+                    developer {
+                        id = '3TUSK'
+                        name = '3TUSK'
+                    }
+                }
+                issueManagement {
+                    system = 'GitHub Issues'
+                    url = 'https://github.com/teaconmc/AreaControl/issues'
+                }
+                scm {
+                    url = 'https://github.com/teaconmc/AreaControl'
+                    connection = 'scm:git:git://github.com/teaconmc/AreaControl.git'
+                    developerConnection = 'scm:git:git@github.com:teaconmc/AreaControl.git'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "archive"
+            url = "https://maven.hub.tritusk.info/releases"
+            credentials {
+                username = System.env.MAVEN_USERNAME
+                password = System.env.MAVEN_PASSWORD
+            }
+        }
+    }
+}
+
+tasks.withType(PublishToMavenRepository) {
+    onlyIf {
+        System.env.MAVEN_USERNAME && System.env.MAVEN_PASSWORD
+    }
+}
+
+/**
+ * A simple task to pass down the artifact name and path to other GitHub actions.
+ */
+task("githubActionOutput") {
+    onlyIf {
+        System.env.GITHUB_ACTIONS
+    }
+    doLast {
+        println "::set-output name=artifact_path::$buildDir/reobfJar/output.jar"
+        println "::set-output name=artifact_name::$archivesBaseName-${version}.jar"
+    }
+}
