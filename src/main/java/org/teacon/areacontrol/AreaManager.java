@@ -65,16 +65,15 @@ public final class AreaManager {
         if (Files.isRegularFile(wildnessArea)) {
             try (Reader reader = Files.newBufferedReader(wildnessArea)) {
                 Area a = GSON.fromJson(reader, Area.class);
+                this.wildness.properties.clear();
                 this.wildness.properties.putAll(a.properties);
             }
         }
     }
 
     void saveTo(Path dataDirRoot) throws Exception {
-        Path userDefinedAreas = dataDirRoot.resolve("claims.json");
-        Files.write(userDefinedAreas, GSON.toJson(this.areasByName.values()).getBytes(StandardCharsets.UTF_8));
-        Path wildnessArea = dataDirRoot.resolve("wildness.json");
-        Files.write(wildnessArea, GSON.toJson(this.wildness).getBytes(StandardCharsets.UTF_8));
+        Files.write(dataDirRoot.resolve("claims.json"), GSON.toJson(this.areasByName.values()).getBytes(StandardCharsets.UTF_8));
+        Files.write(dataDirRoot.resolve("wildness.json"), GSON.toJson(this.wildness).getBytes(StandardCharsets.UTF_8));
     }
 
     /**

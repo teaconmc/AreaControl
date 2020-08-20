@@ -15,6 +15,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
+import net.minecraftforge.server.permission.DefaultPermissionLevel;
+import net.minecraftforge.server.permission.PermissionAPI;
 
 @Mod("area_control")
 @Mod.EventBusSubscriber(modid = "area_control")
@@ -34,9 +36,17 @@ public final class AreaControl {
         // PR-ed by jaredlll08
         new AreaControlCommand(event.getCommandDispatcher());
 
+        PermissionAPI.registerNode("area_control.command.set_property", DefaultPermissionLevel.OP, "Allow user to set properties of a claimed area.");
+
+        PermissionAPI.registerNode("area_control.bypass.break_block", DefaultPermissionLevel.OP, "Bypass restrictions on breaking blocks");
+        PermissionAPI.registerNode("area_control.bypass.place_block", DefaultPermissionLevel.OP, "Bypass restrictions on placing blocks");
+
+        PermissionAPI.registerNode("area_control.bypass.click_block", DefaultPermissionLevel.ALL, "Bypass restrictions on clicking blocks");
+        PermissionAPI.registerNode("area_control.bypass.activate_block", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting blocks using right-click");
+        PermissionAPI.registerNode("area_control.bypass.use_item", DefaultPermissionLevel.ALL, "Bypass restrictions on using items");
+
         final MinecraftServer server = event.getServer();
-        final Path dataDir = server.getActiveAnvilConverter().getFile(server.getFolderName(), "serverconfig").toPath()
-                .resolve("area_control");
+        final Path dataDir = server.getActiveAnvilConverter().getFile(server.getFolderName(), "serverconfig").toPath().resolve("area_control");
         if (Files.isDirectory(dataDir)) {
             try {
                 AreaManager.INSTANCE.loadFrom(dataDir);

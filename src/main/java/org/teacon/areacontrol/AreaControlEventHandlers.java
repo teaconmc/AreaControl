@@ -3,6 +3,8 @@ package org.teacon.areacontrol;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -12,6 +14,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.server.permission.PermissionAPI;
 
 @Mod.EventBusSubscriber(modid = "area_control")
 public final class AreaControlEventHandlers {
@@ -36,15 +39,17 @@ public final class AreaControlEventHandlers {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onBreakBlock(BlockEvent.BreakEvent event) {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
-        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_break_block")) {
-            event.setCanceled(true);
+        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_break_block")
+            && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.break_block")) {
+                event.setCanceled(true);
         }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onClickBlock(PlayerInteractEvent.LeftClickBlock event) {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
-        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_click_block")) {
+        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_click_block")
+            && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.click_block")) {
             event.setCanceled(true);
         }
     }
@@ -52,7 +57,8 @@ public final class AreaControlEventHandlers {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onActivateBlock(PlayerInteractEvent.RightClickBlock event) {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
-        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_activate_block")) {
+        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_activate_block")
+            && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.activate_block")) {
             event.setCanceled(true);
         }
     }
@@ -60,7 +66,8 @@ public final class AreaControlEventHandlers {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onUseItem(PlayerInteractEvent.RightClickItem event) {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
-        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_use_item")) {
+        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_use_item")
+            && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.use_item")) {
             event.setCanceled(true);
         }
     }
@@ -69,8 +76,11 @@ public final class AreaControlEventHandlers {
     public static void onPlaceBlock(BlockEvent.EntityPlaceEvent event) {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_place_block")) {
-            // TODO Does this consume the item?
-            event.setCanceled(true);
+            final Entity e = event.getEntity();
+            if (e instanceof PlayerEntity && !PermissionAPI.hasPermission((PlayerEntity) e, "area_control.bypass.place_block")) {
+                // TODO Does this consume the item?
+                event.setCanceled(true);
+            }
         }
     }
 

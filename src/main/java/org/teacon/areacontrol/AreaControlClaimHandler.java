@@ -18,6 +18,7 @@ import net.minecraftforge.server.permission.PermissionAPI;
 @Mod.EventBusSubscriber(modid = "area_control")
 public final class AreaControlClaimHandler {
 
+    // TODO Configurable
     static Item userClaimTool = Items.STICK;
     static Item adminTool = Items.TRIDENT;
 
