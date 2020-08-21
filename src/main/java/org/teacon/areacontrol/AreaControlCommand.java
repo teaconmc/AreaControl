@@ -50,7 +50,7 @@ public final class AreaControlCommand {
     }
 
     private static int about(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent("AreaControl 0.1.0"), false);
+        context.getSource().sendFeedback(new StringTextComponent("AreaControl 0.1.3"), false);
         return Command.SINGLE_SUCCESS;
     }
 
