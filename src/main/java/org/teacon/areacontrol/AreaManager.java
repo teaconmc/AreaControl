@@ -41,9 +41,11 @@ public final class AreaManager {
         wildness.maxX = Integer.MAX_VALUE;
         wildness.maxY = Integer.MAX_VALUE;
         wildness.maxZ = Integer.MAX_VALUE;
-        wildness.properties.put("area.allow_click_block", true);
-        wildness.properties.put("area.allow_activate_block", true);
-        wildness.properties.put("area.allow_use_item", true);
+        wildness.properties.put("area.allow_click_block", Boolean.TRUE);
+        wildness.properties.put("area.allow_activate_block", Boolean.TRUE);
+        wildness.properties.put("area.allow_use_item", Boolean.TRUE);
+        wildness.properties.put("area.allow_interact_entity", Boolean.TRUE);
+        wildness.properties.put("area.allow_interact_entity_specific", Boolean.TRUE);
     }
 
     private void buildCacheFor(Area area) {

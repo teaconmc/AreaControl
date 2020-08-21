@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
@@ -33,6 +34,33 @@ public final class AreaControlEventHandlers {
         final Area targetArea = AreaManager.INSTANCE.findBy(spawnPos);
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_special_spawn")) {
             event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent(priority =  EventPriority.HIGHEST)
+    public static void onAttackEntity(AttackEntityEvent event) {
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getTarget().getPosition());
+        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_attack")
+            && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.attack")) {
+                event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onInteractEntitySpecific(PlayerInteractEvent.EntityInteractSpecific event) {
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
+        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_interact_entity_specific")
+            && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.interact_entity_specific")) {
+                event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onInteractEntity(PlayerInteractEvent.EntityInteract event) {
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
+        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_interact_entity")
+            && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.interact_entity")) {
+                event.setCanceled(true);
         }
     }
 
