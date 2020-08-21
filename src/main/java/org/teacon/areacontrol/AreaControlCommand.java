@@ -10,6 +10,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import org.teacon.areacontrol.api.Area;
+import org.teacon.areacontrol.api.AreaProperties;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
@@ -25,7 +26,8 @@ public final class AreaControlCommand {
                 .redirect(dispatcher.register(Commands.literal("areacontrol")
                         .then(Commands.literal("about").executes(AreaControlCommand::about))
                         .then(Commands.literal("admin").executes(AreaControlCommand::admin))
-                        .then(Commands.literal("claim").executes(AreaControlCommand::claim))
+                        .then(Commands.literal("claim").requires(check("area_control.command.claim")).executes(AreaControlCommand::claim))
+                        .then(Commands.literal("current").executes(AreaControlCommand::displayCurrent))
                         .then(Commands.literal("list").executes(AreaControlCommand::list))
                         .then(Commands.literal("set").requires(check("area_control.command.set_property")).then(
                             Commands.argument("property", StringArgumentType.string()).then(
@@ -61,7 +63,7 @@ public final class AreaControlCommand {
         final CommandSource src = context.getSource();
         final ArrayDeque<BlockPos> recordPos = AreaControlClaimHandler.recordPos.get(src.asPlayer());
         if (recordPos != null && recordPos.size() >= 2) {
-            final Area area = Util.createArea("Unnamed area " + Util.nextRandomString(), new AxisAlignedBB(recordPos.pop(), recordPos.pop()));
+            final Area area = Util.createArea("Area " + Util.nextRandomString(), new AxisAlignedBB(recordPos.pop(), recordPos.pop()));
             recordPos.clear();
             if (AreaManager.INSTANCE.add(area)) {
                 src.sendFeedback(new StringTextComponent(String.format("Claim '%s' has been created from [%d, %d, %d] to [%d, %d, %d]", area.name, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ)), true);
@@ -75,6 +77,18 @@ public final class AreaControlCommand {
             return -1;
         }
         
+    }
+
+    private static int displayCurrent(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        final Area area = AreaManager.INSTANCE.findBy(new BlockPos(context.getSource().getPos()));
+        if (area != AreaManager.INSTANCE.wildness) {
+            final String name = AreaProperties.getString(area, "area.display_name", area.name);
+            context.getSource().sendFeedback(new StringTextComponent(String.format("You are in an area named '%s'", name)), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            context.getSource().sendFeedback(new StringTextComponent("You are in the wildness."), false);
+        }
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int list(CommandContext<CommandSource> context) throws CommandSyntaxException {

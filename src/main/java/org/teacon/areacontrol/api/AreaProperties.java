@@ -39,6 +39,10 @@ public final class AreaProperties {
     }
     
     public static String getString(Area area, String key) {
-        return area.properties.getOrDefault(key, "").toString();
+        return getString(area, key, "");
+    }
+
+    public static String getString(Area area, String key, String fallback) {
+        return area.properties.getOrDefault(key, fallback).toString();
     }
 }
