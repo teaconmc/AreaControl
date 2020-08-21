@@ -67,7 +67,6 @@ public final class AreaManager {
         if (Files.isRegularFile(wildnessArea)) {
             try (Reader reader = Files.newBufferedReader(wildnessArea)) {
                 Area a = GSON.fromJson(reader, Area.class);
-                this.wildness.properties.clear();
                 this.wildness.properties.putAll(a.properties);
             }
         }

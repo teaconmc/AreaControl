@@ -37,6 +37,8 @@ public final class AreaControl {
         new AreaControlCommand(event.getCommandDispatcher());
 
         PermissionAPI.registerNode("area_control.command.set_property", DefaultPermissionLevel.OP, "Allow user to set properties of a claimed area.");
+        // TODO Once we have properly set up the management system, this can be changed to DefaultPermissionLevel.ALL
+        PermissionAPI.registerNode("area_control.command.claim", DefaultPermissionLevel.OP, "Allow user to claim an area in the wildness.");
 
         PermissionAPI.registerNode("area_control.bypass.break_block", DefaultPermissionLevel.OP, "Bypass restrictions on breaking blocks");
         PermissionAPI.registerNode("area_control.bypass.place_block", DefaultPermissionLevel.OP, "Bypass restrictions on placing blocks");
@@ -44,6 +46,9 @@ public final class AreaControl {
         PermissionAPI.registerNode("area_control.bypass.click_block", DefaultPermissionLevel.ALL, "Bypass restrictions on clicking blocks");
         PermissionAPI.registerNode("area_control.bypass.activate_block", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting blocks using right-click");
         PermissionAPI.registerNode("area_control.bypass.use_item", DefaultPermissionLevel.ALL, "Bypass restrictions on using items");
+        PermissionAPI.registerNode("area_control.allow_interact_entity", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting with entities.");
+        PermissionAPI.registerNode("area_control.bypass.interact_entity_specific", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting with specific parts of entities.");
+
 
         final MinecraftServer server = event.getServer();
         final Path dataDir = server.getActiveAnvilConverter().getFile(server.getFolderName(), "serverconfig").toPath().resolve("area_control");
@@ -54,6 +59,7 @@ public final class AreaControl {
                 LOGGER.error("Failed to read claims data, details: {}", e);
             }
         } else {
+            LOGGER.info("Did not found AreaControl data directory, assuming first use/resetting data. Creating new one instead.");
             try {
                 Files.createDirectories(dataDir);
             } catch (Exception e) {
