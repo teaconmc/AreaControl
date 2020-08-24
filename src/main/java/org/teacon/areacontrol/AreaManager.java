@@ -8,19 +8,30 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.teacon.areacontrol.api.Area;
 
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.GlobalPos;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.dimension.DimensionType;
 
 public final class AreaManager {
 
     public static final AreaManager INSTANCE = new AreaManager();
+
+    private static final Logger LOGGER = LogManager.getLogger("AreaControl");
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     
@@ -28,10 +39,10 @@ public final class AreaManager {
 
     private final HashMap<String, Area> areasByName = new HashMap<>();
     /**
-     * All known instances of {@link Area}, indexed by chunk positions covered by this area. 
+     * All known instances of {@link Area}, indexed by dimensions and chunk positions covered by this area. 
      * Used for faster lookup of {@link Area}.
      */
-    private final HashMap<ChunkPos, List<Area>> areasByChunk = new HashMap<>();
+    private final IdentityHashMap<DimensionType, Map<ChunkPos, List<Area>>> areasByChunk = new IdentityHashMap<>();
 
     {
         wildness.name = "wildness";
@@ -48,9 +59,10 @@ public final class AreaManager {
         wildness.properties.put("area.allow_interact_entity_specific", Boolean.TRUE);
     }
 
-    private void buildCacheFor(Area area) {
+    private void buildCacheFor(Area area, DimensionType dimType) {
+        final Map<ChunkPos, List<Area>> areasInDim = areasByChunk.computeIfAbsent(dimType, id -> new HashMap<>());
         ChunkPos.getAllInBox(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))
-                .map(cp -> this.areasByChunk.computeIfAbsent(cp, _cp -> new ArrayList<>()))
+                .map(cp -> areasInDim.computeIfAbsent(cp, _cp -> new ArrayList<>()))
                 .forEach(list -> list.add(area));
     }
 
@@ -59,7 +71,18 @@ public final class AreaManager {
         if (Files.isRegularFile(userDefinedAreas)) {
             try (Reader reader = Files.newBufferedReader(userDefinedAreas)) {
                 for (Area a : GSON.fromJson(reader, Area[].class)) {
-                    areasByName.put(a.name, a);
+                    this.areasByName.put(a.name, a);
+                    // We have to use this registry because dimension may be no longer here
+                    // which DimensionType.byName cannot tell us.
+                    final Optional<DimensionType> maybeDimType = Registry.DIMENSION_TYPE.getValue(new ResourceLocation(a.dimension));
+                    if (maybeDimType.isPresent()) {
+                        final DimensionType dimType = maybeDimType.get();
+                        //a.dimId = dimType.getId();
+                        this.buildCacheFor(a, dimType);
+                    } else {
+                        LOGGER.warn("GG, area '{}' locates in an unknown dimension '{}', skipping", a.name, a.dimension);
+                        LOGGER.warn("We will keep the data for this area, tho - in case you still need the data.");
+                    }
                 }
             }
         }
@@ -79,11 +102,13 @@ public final class AreaManager {
 
     /**
      * @param area The Area instance to be recorded
+     * @param dimType The {@link DimensionType} to which the area belongs
      * @return true if and only if the area is successfully recorded by this AreaManager; false otherwise.
      */
-    public boolean add(Area area) {
+    public boolean add(Area area, DimensionType dimType) {
         // First we filter out cases where at least one defining coordinate falls in an existing area
-        if (findBy(new BlockPos(area.minX, area.minY, area.minZ)) == this.wildness && findBy(new BlockPos(area.maxX, area.maxY, area.maxZ)) == this.wildness) {
+        if (findBy(dimType, new BlockPos(area.minX, area.minY, area.minZ)) == this.wildness 
+            && findBy(dimType, new BlockPos(area.maxX, area.maxY, area.maxZ)) == this.wildness) {
             // Second we filter out cases where the area to define is enclosing another area.
             boolean noEnclosing = true;
             for (Area a : areasByName.values()) {
@@ -98,7 +123,7 @@ public final class AreaManager {
             }
             if (noEnclosing) {
                 areasByName.computeIfAbsent(area.name, name -> area);
-                this.buildCacheFor(area);
+                this.buildCacheFor(area, dimType);
                 // Copy default settings over
                 area.properties.putAll(wildness.properties);
                 return true;
@@ -107,8 +132,33 @@ public final class AreaManager {
         return false;
     }
 
-    public Area findBy(BlockPos pos) {
-        for (Area area : this.areasByChunk.getOrDefault(new ChunkPos(pos), Collections.emptyList())) {
+    /**
+     * Convenient overload of {@link #findBy(DimensionType, BlockPos)} that unpacks 
+     * the {@link GlobalPos} instance for you, in case you have one.
+     * @param pos The globally qualified coordiante
+     * @return The area instance
+     * @see #findBy(DimensionType, BlockPos)
+     */
+    public Area findBy(GlobalPos pos) {
+        return findBy(pos.getDimension(), pos.getPos());
+    }
+
+    /**
+     * @deprecated Using integral id is NOT reliable, use {@link #findBy(DimensionType, BlockPos)} instead.
+     *             This method is subject to removal at any time point without notification.
+     * 
+     * @param dimId The integral id of the dimension
+     * @param pos The 3D coordinate
+     * @return The area instance
+     */
+    @Deprecated
+    public Area findBy(int dimId, BlockPos pos) {
+        final DimensionType dimType = Registry.DIMENSION_TYPE.getByValue(dimId);
+        return dimType == null ? this.wildness : findBy(dimType, pos);
+    }
+
+    public Area findBy(DimensionType dimType, BlockPos pos) {
+        for (Area area : this.areasByChunk.getOrDefault(dimType, Collections.emptyMap()).getOrDefault(pos, Collections.emptyList())) {
             if (area.minX <= pos.getX() && pos.getX() <= area.maxX) {
                 if (area.minY <= pos.getY() && pos.getY() <= area.maxY) {
                     if (area.minZ <= pos.getZ() && pos.getZ() <= area.maxZ) {
@@ -117,7 +167,7 @@ public final class AreaManager {
                 }
             }
         }
-        return wildness;
+        return this.wildness;
     }
 
     public Area findBy(String name) {

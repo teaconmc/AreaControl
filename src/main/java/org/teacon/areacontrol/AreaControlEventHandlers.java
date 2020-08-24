@@ -22,7 +22,7 @@ public final class AreaControlEventHandlers {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onCheckSpawn(LivingSpawnEvent.CheckSpawn event) {
         final BlockPos spawnPos = new BlockPos(event.getX(), event.getY(), event.getZ());
-        final Area targetArea = AreaManager.INSTANCE.findBy(spawnPos);
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), spawnPos);
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_spawn")) {
             event.setResult(Event.Result.DENY);
         }
@@ -31,7 +31,7 @@ public final class AreaControlEventHandlers {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onSpecialSpawn(LivingSpawnEvent.SpecialSpawn event) {
         final BlockPos spawnPos = new BlockPos(event.getX(), event.getY(), event.getZ());
-        final Area targetArea = AreaManager.INSTANCE.findBy(spawnPos);
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), spawnPos);
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_special_spawn")) {
             event.setCanceled(true);
         }
@@ -39,7 +39,8 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority =  EventPriority.HIGHEST)
     public static void onAttackEntity(AttackEntityEvent event) {
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getTarget().getPosition());
+        final Entity target = event.getTarget();
+        final Area targetArea = AreaManager.INSTANCE.findBy(target.getEntityWorld().getDimension().getType(), target.getPosition());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_attack")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.attack")) {
                 event.setCanceled(true);
@@ -48,7 +49,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onInteractEntitySpecific(PlayerInteractEvent.EntityInteractSpecific event) {
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_interact_entity_specific")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.interact_entity_specific")) {
                 event.setCanceled(true);
@@ -57,7 +58,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onInteractEntity(PlayerInteractEvent.EntityInteract event) {
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_interact_entity")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.interact_entity")) {
                 event.setCanceled(true);
@@ -66,7 +67,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onBreakBlock(BlockEvent.BreakEvent event) {
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_break_block")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.break_block")) {
                 event.setCanceled(true);
@@ -75,7 +76,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onClickBlock(PlayerInteractEvent.LeftClickBlock event) {
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_click_block")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.click_block")) {
             event.setCanceled(true);
@@ -84,7 +85,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onActivateBlock(PlayerInteractEvent.RightClickBlock event) {
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_activate_block")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.activate_block")) {
             event.setCanceled(true);
@@ -93,7 +94,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onUseItem(PlayerInteractEvent.RightClickItem event) {
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_use_item")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.use_item")) {
             event.setCanceled(true);
@@ -102,11 +103,11 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onPlaceBlock(BlockEvent.EntityPlaceEvent event) {
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getPos());
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_place_block")) {
             final Entity e = event.getEntity();
             if (e instanceof PlayerEntity && !PermissionAPI.hasPermission((PlayerEntity) e, "area_control.bypass.place_block")) {
-                // TODO Does this consume the item?
+                // TODO This one does consume the item. Ideas?
                 event.setCanceled(true);
             }
         }
@@ -114,7 +115,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void beforeExplosion(ExplosionEvent.Start event) {
-        final Area targetArea = AreaManager.INSTANCE.findBy(new BlockPos(event.getExplosion().getPosition()));
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), new BlockPos(event.getExplosion().getPosition()));
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_explosion")) {
             event.setCanceled(true);
         }
@@ -122,7 +123,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void afterExplosion(ExplosionEvent.Detonate event) {
-        final Area targetArea = AreaManager.INSTANCE.findBy(new BlockPos(event.getExplosion().getPosition()));
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), new BlockPos(event.getExplosion().getPosition()));
         if (targetArea != null) {
             if (!AreaProperties.getBool(targetArea, "area.allow_explosion_affect_blocks")) {
                 event.getAffectedBlocks().clear();
