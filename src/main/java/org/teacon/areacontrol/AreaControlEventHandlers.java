@@ -6,6 +6,7 @@ import org.teacon.areacontrol.api.AreaProperties;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -37,13 +38,45 @@ public final class AreaControlEventHandlers {
         }
     }
 
-    @SubscribeEvent(priority =  EventPriority.HIGHEST)
+    // This one is fired when player directly attacks something else
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onAttackEntity(AttackEntityEvent event) {
+        // We use the location of target entity to find the area.
         final Entity target = event.getTarget();
         final Area targetArea = AreaManager.INSTANCE.findBy(target.getEntityWorld().getDimension().getType(), target.getPosition());
-        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_attack")
-            && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.attack")) {
-                event.setCanceled(true);
+        if (targetArea != null) {
+            if (target instanceof PlayerEntity) {
+                if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.pvp")) {
+                    event.setCanceled(true);
+                }
+            } else {
+                if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.attack")) {
+                    event.setCanceled(true);
+                }
+            }
+        }
+    }
+
+    // This one is fired when player is using "indirect" tools, e.g. ranged weapons such as bows
+    // and crossbows, to attack something else. 
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onAttackEntity(LivingAttackEvent event) {
+        final Entity src = event.getSource().getTrueSource();
+        if (src instanceof PlayerEntity) {
+            // Same above, we use the location of target entity to find the area.
+            final Entity target = event.getEntity();
+            final Area targetArea = AreaManager.INSTANCE.findBy(target.getEntityWorld().getDimension().getType(), target.getPosition());
+            if (targetArea != null) {
+                if (target instanceof PlayerEntity) {
+                    if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.hasPermission((PlayerEntity) src, "area_control.bypass.pvp")) {
+                        event.setCanceled(true);
+                    }
+                } else {
+                    if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.hasPermission((PlayerEntity) src, "area_control.bypass.attack")) {
+                        event.setCanceled(true);
+                    }
+                }
+            }
         }
     }
 

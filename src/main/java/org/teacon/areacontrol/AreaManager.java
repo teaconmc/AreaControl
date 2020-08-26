@@ -4,14 +4,13 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -42,7 +41,7 @@ public final class AreaManager {
      * All known instances of {@link Area}, indexed by dimensions and chunk positions covered by this area. 
      * Used for faster lookup of {@link Area}.
      */
-    private final IdentityHashMap<DimensionType, Map<ChunkPos, List<Area>>> areasByChunk = new IdentityHashMap<>();
+    private final IdentityHashMap<DimensionType, Map<ChunkPos, Set<Area>>> areasByChunk = new IdentityHashMap<>();
 
     {
         wildness.name = "wildness";
@@ -60,9 +59,9 @@ public final class AreaManager {
     }
 
     private void buildCacheFor(Area area, DimensionType dimType) {
-        final Map<ChunkPos, List<Area>> areasInDim = areasByChunk.computeIfAbsent(dimType, id -> new HashMap<>());
+        final Map<ChunkPos, Set<Area>> areasInDim = areasByChunk.computeIfAbsent(dimType, id -> new HashMap<>());
         ChunkPos.getAllInBox(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))
-                .map(cp -> areasInDim.computeIfAbsent(cp, _cp -> new ArrayList<>()))
+                .map(cp -> areasInDim.computeIfAbsent(cp, _cp -> Collections.newSetFromMap(new IdentityHashMap<>())))
                 .forEach(list -> list.add(area));
     }
 
@@ -132,6 +131,11 @@ public final class AreaManager {
         return false;
     }
 
+    public void remove(Area area, DimensionType dimType) {
+        areasByName.remove(area.name, area);
+        areasByChunk.values().forEach(m -> m.values().forEach(l -> l.removeIf(a -> a == area)));
+	}
+
     /**
      * Convenient overload of {@link #findBy(DimensionType, BlockPos)} that unpacks 
      * the {@link GlobalPos} instance for you, in case you have one.
@@ -158,7 +162,7 @@ public final class AreaManager {
     }
 
     public Area findBy(DimensionType dimType, BlockPos pos) {
-        for (Area area : this.areasByChunk.getOrDefault(dimType, Collections.emptyMap()).getOrDefault(pos, Collections.emptyList())) {
+        for (Area area : this.areasByChunk.getOrDefault(dimType, Collections.emptyMap()).getOrDefault(new ChunkPos(pos), Collections.emptySet())) {
             if (area.minX <= pos.getX() && pos.getX() <= area.maxX) {
                 if (area.minY <= pos.getY() && pos.getY() <= area.maxY) {
                     if (area.minZ <= pos.getZ() && pos.getZ() <= area.maxZ) {

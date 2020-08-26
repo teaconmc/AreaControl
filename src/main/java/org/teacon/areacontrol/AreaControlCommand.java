@@ -35,6 +35,7 @@ public final class AreaControlCommand {
                                 Commands.argument("value", StringArgumentType.greedyString())
                                     .executes(AreaControlCommand::setProperty)
                             )))
+                        .then(Commands.literal("unclaim").requires(check("area_control.command.unclaim")).executes(AreaControlCommand::unclaim))
                         )
                 )
         );
@@ -72,11 +73,11 @@ public final class AreaControlCommand {
                 src.sendFeedback(new StringTextComponent(String.format("Claim '%s' has been created from [%d, %d, %d] to [%d, %d, %d]", area.name, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ)), true);
                 return Command.SINGLE_SUCCESS;
             } else {
-                src.sendFeedback(new StringTextComponent("Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?"), false);
+                src.sendErrorMessage(new StringTextComponent("Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?"));
                 return -2;
             }
         } else {
-            src.sendFeedback(new StringTextComponent("Cannot determine what area you want to claim. Did you forget to select an area?"), false);
+            src.sendErrorMessage(new StringTextComponent("Cannot determine what area you want to claim. Did you forget to select an area?"));
             return -1;
         }
         
@@ -88,7 +89,6 @@ public final class AreaControlCommand {
         if (area != AreaManager.INSTANCE.wildness) {
             final String name = AreaProperties.getString(area, "area.display_name", area.name);
             src.sendFeedback(new StringTextComponent(String.format("You are in an area named '%s'", name)), false);
-            return Command.SINGLE_SUCCESS;
         } else {
             src.sendFeedback(new StringTextComponent("You are in the wildness."), false);
         }
@@ -115,6 +115,20 @@ public final class AreaControlCommand {
             return Command.SINGLE_SUCCESS;
         } else {
             context.getSource().sendErrorMessage(new StringTextComponent("You are in the wildness. What were you thinking?"));
+            return -1;
+        }
+    }
+
+    private static int unclaim(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        final CommandSource src = context.getSource();
+        final DimensionType dimType = src.getWorld().getDimension().getType();
+        final Area area = AreaManager.INSTANCE.findBy(dimType, new BlockPos(src.getPos()));
+        if (area != AreaManager.INSTANCE.wildness) {
+            AreaManager.INSTANCE.remove(area, dimType);
+            src.sendFeedback(new StringTextComponent(String.format("Claim '%s' (internal name %s, ranged from [%d, %d, %d] to [%d, %d, %d]) has been abandoned", AreaProperties.getString(area, "area.display_name", area.name), area.name, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ)), true);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            context.getSource().sendErrorMessage(new StringTextComponent("You are in the wildness. Are you returning the wild nature to the nature itself?"));
             return -1;
         }
     }
