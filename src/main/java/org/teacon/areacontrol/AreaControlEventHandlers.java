@@ -135,6 +135,15 @@ public final class AreaControlEventHandlers {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onTramplingFarmland(BlockEvent.FarmlandTrampleEvent event) {
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), event.getPos());
+        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_trample_farmland")) {
+            // TODO area_control.bypass.trample_farmland?
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onPlaceBlock(BlockEvent.EntityPlaceEvent event) {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimension().getType(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_place_block")) {
