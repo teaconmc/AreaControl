@@ -2,6 +2,8 @@ modLoader="javafml"
 
 loaderVersion="[31,)"
 
+license="BSD-3-Clause"
+
 [[mods]]
 modId="area_control"
 version="${file.jarVersion}"
