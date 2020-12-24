@@ -75,9 +75,7 @@ public final class AreaManager {
                     // which DimensionType.byName cannot tell us.
                     final Optional<DimensionType> maybeDimType = Registry.DIMENSION_TYPE.getValue(new ResourceLocation(a.dimension));
                     if (maybeDimType.isPresent()) {
-                        final DimensionType dimType = maybeDimType.get();
-                        //a.dimId = dimType.getId();
-                        this.buildCacheFor(a, dimType);
+                        this.buildCacheFor(a, maybeDimType.get());
                     } else {
                         LOGGER.warn("GG, area '{}' locates in an unknown dimension '{}', skipping", a.name, a.dimension);
                         LOGGER.warn("We will keep the data for this area, tho - in case you still need the data.");
