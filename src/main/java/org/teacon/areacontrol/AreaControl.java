@@ -3,6 +3,8 @@ package org.teacon.areacontrol;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import net.minecraft.world.storage.FolderName;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,6 +26,8 @@ public final class AreaControl {
 
     private static final Logger LOGGER = LogManager.getLogger("AreaControl");
 
+    private static final FolderName SERVER_CONFIG = new FolderName("serverconfig");
+
     public AreaControl() {
         ModLoadingContext context = ModLoadingContext.get();
         context.registerExtensionPoint(ExtensionPoint.DISPLAYTEST,
@@ -31,11 +35,12 @@ public final class AreaControl {
     }
 
     @SubscribeEvent
-    public static void onServerStart(FMLServerStartingEvent event) {
-        // Remember, when update Forge, make sure to use the command register event
-        // PR-ed by jaredlll08
-        new AreaControlCommand(event.getCommandDispatcher());
+    public static void regCommand(RegisterCommandsEvent event) {
+        new AreaControlCommand(event.getDispatcher());
+    }
 
+    @SubscribeEvent
+    public static void onServerStart(FMLServerStartingEvent event) {
         PermissionAPI.registerNode("area_control.command.set_property", DefaultPermissionLevel.OP, "Allow user to set properties of a claimed area.");
         // TODO Once we have properly set up the management system, this can be changed to DefaultPermissionLevel.ALL
         PermissionAPI.registerNode("area_control.command.claim", DefaultPermissionLevel.OP, "Allow user to claim an area in the wildness.");
@@ -53,19 +58,19 @@ public final class AreaControl {
 
 
         final MinecraftServer server = event.getServer();
-        final Path dataDir = server.getActiveAnvilConverter().getFile(server.getFolderName(), "serverconfig").toPath().resolve("area_control");
+        final Path dataDir = server.func_240776_a_(SERVER_CONFIG).resolve("area_control");
         if (Files.isDirectory(dataDir)) {
             try {
-                AreaManager.INSTANCE.loadFrom(dataDir);
+                AreaManager.INSTANCE.loadFrom(server, dataDir);
             } catch (Exception e) {
-                LOGGER.error("Failed to read claims data, details: {}", e);
+                LOGGER.error("Failed to read claims data.", e);
             }
         } else {
             LOGGER.info("Did not found AreaControl data directory, assuming first use/resetting data. Creating new one instead.");
             try {
                 Files.createDirectories(dataDir);
             } catch (Exception e) {
-                LOGGER.warn("Failed to create data directory. Details: {}", e);
+                LOGGER.warn("Failed to create data directory.", e);
             }
         }
     }
@@ -73,13 +78,12 @@ public final class AreaControl {
     @SubscribeEvent
     public static void onServerStop(FMLServerStoppingEvent event) {
         final MinecraftServer server = event.getServer();
-        final Path dataDir = server.getActiveAnvilConverter().getFile(server.getFolderName(), "serverconfig").toPath()
-                .resolve("area_control");
+        final Path dataDir = server.func_240776_a_(SERVER_CONFIG).resolve("area_control");
         if (Files.isDirectory(dataDir)) {
             try {
                 AreaManager.INSTANCE.saveTo(dataDir);
             } catch (Exception e) {
-                LOGGER.warn("Failed to create data directory. Details: {}", e);
+                LOGGER.warn("Failed to create data directory.", e);
             }
         } 
     }

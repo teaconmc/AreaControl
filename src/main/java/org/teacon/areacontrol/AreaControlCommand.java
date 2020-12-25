@@ -17,7 +17,8 @@ import net.minecraft.command.Commands;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.world.World;
 import net.minecraftforge.server.permission.PermissionAPI;
 
 public final class AreaControlCommand {
@@ -66,10 +67,9 @@ public final class AreaControlCommand {
         final ArrayDeque<BlockPos> recordPos = AreaControlClaimHandler.recordPos.get(src.asPlayer());
         if (recordPos != null && recordPos.size() >= 2) {
             final Area area = Util.createArea("Area " + Util.nextRandomString(), new AxisAlignedBB(recordPos.pop(), recordPos.pop()));
-            final DimensionType dimType;
-            area.dimension = (dimType = src.getWorld().getDimension().getType()).getRegistryName().toString();
+            final RegistryKey<World> worldIndex = src.getWorld().getDimensionKey();
             recordPos.clear();
-            if (AreaManager.INSTANCE.add(area, dimType)) {
+            if (AreaManager.INSTANCE.add(area, worldIndex)) {
                 src.sendFeedback(new StringTextComponent(String.format("Claim '%s' has been created from [%d, %d, %d] to [%d, %d, %d]", area.name, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ)), true);
                 return Command.SINGLE_SUCCESS;
             } else {
@@ -85,7 +85,7 @@ public final class AreaControlCommand {
 
     private static int displayCurrent(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getWorld().getDimension().getType(), new BlockPos(src.getPos()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getWorld().getDimensionKey(), new BlockPos(src.getPos()));
         if (area != AreaManager.INSTANCE.wildness) {
             final String name = AreaProperties.getString(area, "area.display_name", area.name);
             src.sendFeedback(new StringTextComponent(String.format("You are in an area named '%s'", name)), false);
@@ -106,7 +106,7 @@ public final class AreaControlCommand {
 
     private static int setProperty(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getWorld().getDimension().getType(), new BlockPos(src.getPos()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getWorld().getDimensionKey(), new BlockPos(src.getPos()));
         if (area != AreaManager.INSTANCE.wildness) {
             final String prop = context.getArgument("property", String.class);
             final String value = context.getArgument("value", String.class);
@@ -121,10 +121,10 @@ public final class AreaControlCommand {
 
     private static int unclaim(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
-        final DimensionType dimType = src.getWorld().getDimension().getType();
-        final Area area = AreaManager.INSTANCE.findBy(dimType, new BlockPos(src.getPos()));
+        final RegistryKey<World> worldIndex = src.getWorld().getDimensionKey();
+        final Area area = AreaManager.INSTANCE.findBy(worldIndex, new BlockPos(src.getPos()));
         if (area != AreaManager.INSTANCE.wildness) {
-            AreaManager.INSTANCE.remove(area, dimType);
+            AreaManager.INSTANCE.remove(area, worldIndex);
             src.sendFeedback(new StringTextComponent(String.format("Claim '%s' (internal name %s, ranged from [%d, %d, %d] to [%d, %d, %d]) has been abandoned", AreaProperties.getString(area, "area.display_name", area.name), area.name, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ)), true);
             return Command.SINGLE_SUCCESS;
         } else {
