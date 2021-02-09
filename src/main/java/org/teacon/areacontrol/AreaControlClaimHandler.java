@@ -7,18 +7,13 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.permission.PermissionAPI;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 @Mod.EventBusSubscriber(modid = "area_control")
@@ -40,21 +35,6 @@ public final class AreaControlClaimHandler {
                 final BlockPos clicked  = event.getPos();
                 pushRecord(player, clicked.toImmutable());
                 player.sendStatusMessage(new StringTextComponent("AreaControl: Marked position ").append(Util.toGreenText(clicked)), true);
-            }
-        }
-    }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onItemTooltip(ItemTooltipEvent event) {
-        if (event.getItemStack().getItem() == userClaimTool) {
-            final PlayerEntity player = event.getPlayer();
-            if (player != null && PermissionAPI.hasPermission(player, "area_control.command.mark")) {
-                final Pair<BlockPos, BlockPos> record = records.getOrDefault(player, ImmutablePair.nullPair());
-                final BlockPos left = record.getLeft(), right = record.getRight();
-                final ITextComponent undefined = new StringTextComponent("undefined").mergeStyle(TextFormatting.YELLOW);
-                final ITextComponent leftString = left == null ? undefined : Util.toGreenText(left);
-                final ITextComponent rightString = right == null ? undefined : Util.toGreenText(right);
-                event.getToolTip().add(new StringTextComponent("AreaControl: Marked positions from ").append(leftString).appendString(" to ").append(rightString));
             }
         }
     }
