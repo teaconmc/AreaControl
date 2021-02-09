@@ -7,6 +7,11 @@ import org.teacon.areacontrol.api.Area;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
 
 public final class Util {
 
@@ -20,6 +25,17 @@ public final class Util {
 
     public static boolean isOpInServer(PlayerEntity player, MinecraftServer server) {
         return server.getPlayerList().getOppedPlayers().getEntry(player.getGameProfile()) != null;
+    }
+
+    public static IFormattableTextComponent toGreenText(BlockPos pos) {
+        final String base = String.format("[%s]", pos.getCoordinatesAsString());
+        return new StringTextComponent(base).mergeStyle(TextFormatting.GREEN);
+    }
+
+    public static IFormattableTextComponent toGreenText(Area area) {
+        ITextComponent min = new StringTextComponent(String.format("[%d, %d, %d]", area.minX, area.minY, area.minZ)).mergeStyle(TextFormatting.GREEN);
+        ITextComponent max = new StringTextComponent(String.format("[%d, %d, %d]", area.maxX, area.maxY, area.maxZ)).mergeStyle(TextFormatting.GREEN);
+        return new StringTextComponent("from ").append(min).appendString(" to ").append(max);
     }
 
 	public static Area createArea(String name, AxisAlignedBB box) {

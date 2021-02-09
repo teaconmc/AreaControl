@@ -71,7 +71,7 @@ public final class AreaControlCommand {
             final Area area = Util.createArea("Area " + Util.nextRandomString(), new AxisAlignedBB(recordPos.getLeft(), recordPos.getRight()));
             final RegistryKey<World> worldIndex = src.getWorld().getDimensionKey();
             if (AreaManager.INSTANCE.add(area, worldIndex)) {
-                src.sendFeedback(new StringTextComponent(String.format("Claim '%s' has been created from [%d, %d, %d] to [%d, %d, %d]", area.name, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ)), true);
+                src.sendFeedback(new StringTextComponent(String.format("Claim '%s' has been created ", area.name)).append(Util.toGreenText(area)), true);
                 return Command.SINGLE_SUCCESS;
             } else {
                 src.sendErrorMessage(new StringTextComponent("Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?"));
@@ -100,7 +100,7 @@ public final class AreaControlCommand {
         final CommandSource src = context.getSource();
         src.sendFeedback(new StringTextComponent("Currently known areas: "), false);
         for (Area a : AreaManager.INSTANCE.getKnownAreas()) {
-            src.sendFeedback(new StringTextComponent(String.format("  - %s (from [%d, %d, %d] to [%d, %d, %d])", a.name, a.minX, a.minY, a.minZ, a.maxX, a.maxY, a.maxZ)), false);
+            src.sendFeedback(new StringTextComponent(String.format("  - %s (", a.name)).append(Util.toGreenText(a)).appendString(")"), false);
         }
         return Command.SINGLE_SUCCESS;
     }
@@ -108,7 +108,7 @@ public final class AreaControlCommand {
     private static int mark(CommandContext<CommandSource> context) throws CommandSyntaxException {
         BlockPos marked = new BlockPos(Vec3Argument.getVec3(context, "pos"));
         AreaControlClaimHandler.pushRecord(context.getSource().asPlayer(), marked);
-        context.getSource().sendFeedback(new StringTextComponent(String.format("AreaControl: Marked position [%s]", marked.getCoordinatesAsString())), true);
+        context.getSource().sendFeedback(new StringTextComponent("AreaControl: Marked position ").append(Util.toGreenText(marked)), true);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -133,7 +133,9 @@ public final class AreaControlCommand {
         final Area area = AreaManager.INSTANCE.findBy(worldIndex, new BlockPos(src.getPos()));
         if (area != AreaManager.INSTANCE.wildness) {
             AreaManager.INSTANCE.remove(area, worldIndex);
-            src.sendFeedback(new StringTextComponent(String.format("Claim '%s' (internal name %s, ranged from [%d, %d, %d] to [%d, %d, %d]) has been abandoned", AreaProperties.getString(area, "area.display_name", area.name), area.name, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ)), true);
+            src.sendFeedback(new StringTextComponent(String.format("Claim '%s' (internal name %s, ranged ",
+                    AreaProperties.getString(area, "area.display_name", area.name), area.name))
+                    .append(Util.toGreenText(area)).appendString(") has been abandoned"), true);
             return Command.SINGLE_SUCCESS;
         } else {
             context.getSource().sendErrorMessage(new StringTextComponent("You are in the wildness. Are you returning the wild nature to the nature itself?"));

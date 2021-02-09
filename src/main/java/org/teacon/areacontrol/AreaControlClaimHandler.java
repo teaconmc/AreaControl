@@ -7,7 +7,10 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -36,7 +39,7 @@ public final class AreaControlClaimHandler {
             } else if (event.getItemStack().getItem() == userClaimTool && PermissionAPI.hasPermission(player, "area_control.command.mark")) {
                 final BlockPos clicked  = event.getPos();
                 pushRecord(player, clicked.toImmutable());
-                player.sendStatusMessage(new StringTextComponent(String.format("AreaControl: Marked position [%s]", clicked.getCoordinatesAsString())), true);
+                player.sendStatusMessage(new StringTextComponent("AreaControl: Marked position ").append(Util.toGreenText(clicked)), true);
             }
         }
     }
@@ -48,10 +51,10 @@ public final class AreaControlClaimHandler {
             if (player != null && PermissionAPI.hasPermission(player, "area_control.command.mark")) {
                 final Pair<BlockPos, BlockPos> record = records.getOrDefault(player, ImmutablePair.nullPair());
                 final BlockPos left = record.getLeft(), right = record.getRight();
-                final String leftString = left == null ? "undefined" : String.format("[%s]", left.getCoordinatesAsString());
-                final String rightString = right == null ? "undefined" : String.format("[%s]", right.getCoordinatesAsString());
-                event.getToolTip().add(new StringTextComponent("AreaControl: Marked positions"));
-                event.getToolTip().add(new StringTextComponent(String.format("From: %s, To: %s", leftString, rightString)));
+                final ITextComponent undefined = new StringTextComponent("undefined").mergeStyle(TextFormatting.YELLOW);
+                final ITextComponent leftString = left == null ? undefined : Util.toGreenText(left);
+                final ITextComponent rightString = right == null ? undefined : Util.toGreenText(right);
+                event.getToolTip().add(new StringTextComponent("AreaControl: Marked positions from ").append(leftString).appendString(" to ").append(rightString));
             }
         }
     }
