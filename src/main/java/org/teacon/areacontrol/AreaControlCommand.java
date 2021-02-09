@@ -9,6 +9,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import net.minecraft.entity.player.ServerPlayerEntity;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 
@@ -44,11 +45,10 @@ public final class AreaControlCommand {
 
     private Predicate<CommandSource> check(String permission) {
         return source -> {
-            try {
-                return PermissionAPI.hasPermission(source.asPlayer(), permission);
-            } catch (CommandSyntaxException e) {
-                return false;
+            if (source.source instanceof ServerPlayerEntity) {
+                return PermissionAPI.hasPermission((ServerPlayerEntity) source.source, permission);
             }
+            return source.hasPermissionLevel(2);
         };
     }
 
