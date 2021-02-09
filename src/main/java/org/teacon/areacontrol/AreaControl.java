@@ -44,6 +44,7 @@ public final class AreaControl {
         PermissionAPI.registerNode("area_control.command.set_property", DefaultPermissionLevel.OP, "Allow user to set properties of a claimed area.");
         // TODO Once we have properly set up the management system, this can be changed to DefaultPermissionLevel.ALL
         PermissionAPI.registerNode("area_control.command.claim", DefaultPermissionLevel.OP, "Allow user to claim an area in the wildness.");
+        PermissionAPI.registerNode("area_control.command.mark", DefaultPermissionLevel.OP, "Allow user to mark a location for claiming areas.");
         PermissionAPI.registerNode("area_control.command.unclaim", DefaultPermissionLevel.OP, "Allow user to unclaim an area in the wildness.");
 
         PermissionAPI.registerNode("area_control.bypass.break_block", DefaultPermissionLevel.OP, "Bypass restrictions on breaking blocks");

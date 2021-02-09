@@ -1,26 +1,25 @@
 package org.teacon.areacontrol;
 
-import java.util.ArrayDeque;
-import java.util.function.Predicate;
-
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-
-import net.minecraft.entity.player.ServerPlayerEntity;
-import org.teacon.areacontrol.api.Area;
-import org.teacon.areacontrol.api.AreaProperties;
-
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
+import net.minecraft.command.arguments.Vec3Argument;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraftforge.server.permission.PermissionAPI;
+import org.apache.commons.lang3.tuple.Pair;
+import org.teacon.areacontrol.api.Area;
+import org.teacon.areacontrol.api.AreaProperties;
+
+import java.util.function.Predicate;
 
 public final class AreaControlCommand {
 
@@ -32,6 +31,9 @@ public final class AreaControlCommand {
                         .then(Commands.literal("claim").requires(check("area_control.command.claim")).executes(AreaControlCommand::claim))
                         .then(Commands.literal("current").executes(AreaControlCommand::displayCurrent))
                         .then(Commands.literal("list").executes(AreaControlCommand::list))
+                        .then(Commands.literal("mark").requires(check("area_control.command.mark")).then(
+                                Commands.argument("pos", Vec3Argument.vec3())
+                                        .executes(AreaControlCommand::mark)))
                         .then(Commands.literal("set").requires(check("area_control.command.set_property")).then(
                             Commands.argument("property", StringArgumentType.string()).then(
                                 Commands.argument("value", StringArgumentType.greedyString())
@@ -64,11 +66,10 @@ public final class AreaControlCommand {
 
     private static int claim(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
-        final ArrayDeque<BlockPos> recordPos = AreaControlClaimHandler.recordPos.get(src.asPlayer());
-        if (recordPos != null && recordPos.size() >= 2) {
-            final Area area = Util.createArea("Area " + Util.nextRandomString(), new AxisAlignedBB(recordPos.pop(), recordPos.pop()));
+        final Pair<BlockPos, BlockPos> recordPos = AreaControlClaimHandler.popRecord(src.asPlayer());
+        if (recordPos != null) {
+            final Area area = Util.createArea("Area " + Util.nextRandomString(), new AxisAlignedBB(recordPos.getLeft(), recordPos.getRight()));
             final RegistryKey<World> worldIndex = src.getWorld().getDimensionKey();
-            recordPos.clear();
             if (AreaManager.INSTANCE.add(area, worldIndex)) {
                 src.sendFeedback(new StringTextComponent(String.format("Claim '%s' has been created from [%d, %d, %d] to [%d, %d, %d]", area.name, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ)), true);
                 return Command.SINGLE_SUCCESS;
@@ -101,6 +102,13 @@ public final class AreaControlCommand {
         for (Area a : AreaManager.INSTANCE.getKnownAreas()) {
             src.sendFeedback(new StringTextComponent(String.format("  - %s (from [%d, %d, %d] to [%d, %d, %d])", a.name, a.minX, a.minY, a.minZ, a.maxX, a.maxY, a.maxZ)), false);
         }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int mark(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        BlockPos marked = new BlockPos(Vec3Argument.getVec3(context, "pos"));
+        AreaControlClaimHandler.pushRecord(context.getSource().asPlayer(), marked);
+        context.getSource().sendFeedback(new StringTextComponent(String.format("AreaControl: Marked position [%s]", marked.getCoordinatesAsString())), true);
         return Command.SINGLE_SUCCESS;
     }
 
