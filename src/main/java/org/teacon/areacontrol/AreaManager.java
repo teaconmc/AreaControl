@@ -14,6 +14,7 @@ import java.util.Set;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import net.minecraft.world.IServerWorld;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.teacon.areacontrol.api.Area;
@@ -149,22 +150,24 @@ public final class AreaManager {
     }
 
     public Area findBy(IWorld worldInstance, BlockPos pos) {
-        try {
-            // Remember that neither Dimension nor DimensionType are for
-            // distinguishing a world - they are information for world
-            // generation. Mojang is most likely to allow duplicated
-            // overworld in unforeseeable future and at that time neither
-            // of them would ever be able to fully qualify a specific
-            // world/dimension.
-            // The only reliable information is the World.getDimensionKey
-            // (func_234923_W_). Yes, this downcast is cursed, but
-            // there is no other ways around.
-            // We will see how Mojang proceeds. Specifically, the exact
-            // meaning of Dimension objects. For now, they seems to be
-            // able to fully qualify a world/dimension.
-            return this.findBy(((World)worldInstance).getDimensionKey(), pos);
-        } catch (Exception e) {
-            LOGGER.warn("Non-world instances of IWorld passed in for area querying", e);
+        // Remember that neither Dimension nor DimensionType are for
+        // distinguishing a world - they are information for world
+        // generation. Mojang is most likely to allow duplicated
+        // overworld in unforeseeable future and at that time neither
+        // of them would ever be able to fully qualify a specific
+        // world/dimension.
+        // The only reliable information is the World.getDimensionKey
+        // (func_234923_W_). Yes, this downcast is cursed, but
+        // there is no other ways around.
+        // We will see how Mojang proceeds. Specifically, the exact
+        // meaning of Dimension objects. For now, they seems to be
+        // able to fully qualify a world/dimension.
+        if (worldInstance instanceof World) {
+            return this.findBy(((World) worldInstance).getDimensionKey(), pos);
+        } else if (worldInstance instanceof IServerWorld) {
+            return this.findBy(((IServerWorld) worldInstance).getWorld().getDimensionKey(), pos);
+        } else {
+            LOGGER.warn("Unrecognized world instance of IWorld passed in for area querying");
             return AreaManager.INSTANCE.wildness;
         }
     }
