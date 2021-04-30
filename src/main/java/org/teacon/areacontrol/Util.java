@@ -24,18 +24,18 @@ public final class Util {
     }
 
     public static boolean isOpInServer(PlayerEntity player, MinecraftServer server) {
-        return server.getPlayerList().getOppedPlayers().getEntry(player.getGameProfile()) != null;
+        return server.getPlayerList().getOps().get(player.getGameProfile()) != null;
     }
 
     public static IFormattableTextComponent toGreenText(BlockPos pos) {
-        final String base = String.format("[%s]", pos.getCoordinatesAsString());
-        return new StringTextComponent(base).mergeStyle(TextFormatting.GREEN);
+        final String base = String.format("[%s]", pos.toShortString());
+        return new StringTextComponent(base).withStyle(TextFormatting.GREEN);
     }
 
     public static IFormattableTextComponent toGreenText(Area area) {
-        ITextComponent min = new StringTextComponent(String.format("[%d, %d, %d]", area.minX, area.minY, area.minZ)).mergeStyle(TextFormatting.GREEN);
-        ITextComponent max = new StringTextComponent(String.format("[%d, %d, %d]", area.maxX, area.maxY, area.maxZ)).mergeStyle(TextFormatting.GREEN);
-        return new StringTextComponent("from ").append(min).appendString(" to ").append(max);
+        ITextComponent min = new StringTextComponent(String.format("[%d, %d, %d]", area.minX, area.minY, area.minZ)).withStyle(TextFormatting.GREEN);
+        ITextComponent max = new StringTextComponent(String.format("[%d, %d, %d]", area.maxX, area.maxY, area.maxZ)).withStyle(TextFormatting.GREEN);
+        return new StringTextComponent("from ").append(min).append(" to ").append(max);
     }
 
 	public static Area createArea(String name, AxisAlignedBB box) {

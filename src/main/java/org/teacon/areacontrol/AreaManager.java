@@ -66,7 +66,7 @@ public final class AreaManager {
 
     private void buildCacheFor(Area area, RegistryKey<World> worldIndex) {
         final Map<ChunkPos, Set<Area>> areasInDim = perWorldAreaCache.computeIfAbsent(worldIndex, id -> new HashMap<>());
-        ChunkPos.getAllInBox(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))
+        ChunkPos.rangeClosed(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))
                 .map(cp -> areasInDim.computeIfAbsent(cp, _cp -> Collections.newSetFromMap(new IdentityHashMap<>())))
                 .forEach(list -> list.add(area));
     }
@@ -77,7 +77,7 @@ public final class AreaManager {
             try (Reader reader = Files.newBufferedReader(userDefinedAreas)) {
                 for (Area a : GSON.fromJson(reader, Area[].class)) {
                     this.areasByName.put(a.name, a);
-                    this.buildCacheFor(a, RegistryKey.getOrCreateKey(Registry.WORLD_KEY, new ResourceLocation(a.dimension)));
+                    this.buildCacheFor(a, RegistryKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
                     /*if (maybeDimType.isPresent()) {
                         this.buildCacheFor(a, maybeDimType.get());
                     } else {
@@ -146,7 +146,7 @@ public final class AreaManager {
      * @see #findBy(RegistryKey, BlockPos)
      */
     public Area findBy(GlobalPos pos) {
-        return this.findBy(pos.getDimension(), pos.getPos());
+        return this.findBy(pos.dimension(), pos.pos());
     }
 
     public Area findBy(IWorld worldInstance, BlockPos pos) {
@@ -163,9 +163,9 @@ public final class AreaManager {
         // meaning of Dimension objects. For now, they seems to be
         // able to fully qualify a world/dimension.
         if (worldInstance instanceof World) {
-            return this.findBy(((World) worldInstance).getDimensionKey(), pos);
+            return this.findBy(((World) worldInstance).dimension(), pos);
         } else if (worldInstance instanceof IServerWorld) {
-            return this.findBy(((IServerWorld) worldInstance).getWorld().getDimensionKey(), pos);
+            return this.findBy(((IServerWorld) worldInstance).getLevel().dimension(), pos);
         } else {
             LOGGER.warn("Unrecognized world instance of IWorld passed in for area querying");
             return AreaManager.INSTANCE.wildness;

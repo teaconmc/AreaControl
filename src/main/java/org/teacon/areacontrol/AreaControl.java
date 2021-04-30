@@ -59,7 +59,7 @@ public final class AreaControl {
 
 
         final MinecraftServer server = event.getServer();
-        final Path dataDir = server.func_240776_a_(SERVER_CONFIG).resolve("area_control");
+        final Path dataDir = server.getWorldPath(SERVER_CONFIG).resolve("area_control");
         if (Files.isDirectory(dataDir)) {
             try {
                 AreaManager.INSTANCE.loadFrom(server, dataDir);
@@ -79,7 +79,7 @@ public final class AreaControl {
     @SubscribeEvent
     public static void onServerStop(FMLServerStoppingEvent event) {
         final MinecraftServer server = event.getServer();
-        final Path dataDir = server.func_240776_a_(SERVER_CONFIG).resolve("area_control");
+        final Path dataDir = server.getWorldPath(SERVER_CONFIG).resolve("area_control");
         if (Files.isDirectory(dataDir)) {
             try {
                 AreaManager.INSTANCE.saveTo(dataDir);

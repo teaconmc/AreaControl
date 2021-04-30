@@ -30,11 +30,11 @@ public final class AreaControlClaimHandler {
         if (event.getSide() == LogicalSide.SERVER) {
             final PlayerEntity player = event.getPlayer();
             if (event.getItemStack().getItem() == adminTool && PermissionAPI.hasPermission(player, "area_control.admin.inspect")) {
-                player.sendStatusMessage(new StringTextComponent("AreaControl: Welcome back, administrator"), true);
+                player.displayClientMessage(new StringTextComponent("AreaControl: Welcome back, administrator"), true);
             } else if (event.getItemStack().getItem() == userClaimTool && PermissionAPI.hasPermission(player, "area_control.command.mark")) {
                 final BlockPos clicked  = event.getPos();
-                pushRecord(player, clicked.toImmutable());
-                player.sendStatusMessage(new StringTextComponent("AreaControl: Marked position ").append(Util.toGreenText(clicked)), true);
+                pushRecord(player, clicked.immutable());
+                player.displayClientMessage(new StringTextComponent("AreaControl: Marked position ").append(Util.toGreenText(clicked)), true);
             }
         }
     }

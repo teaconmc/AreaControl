@@ -50,35 +50,35 @@ public final class AreaControlCommand {
             if (source.source instanceof ServerPlayerEntity) {
                 return PermissionAPI.hasPermission((ServerPlayerEntity) source.source, permission);
             }
-            return source.hasPermissionLevel(2);
+            return source.hasPermission(2);
         };
     }
 
     private static int about(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent("AreaControl 0.1.4"), false);
+        context.getSource().sendSuccess(new StringTextComponent("AreaControl 0.1.4"), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int admin(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent("WIP"), false);
+        context.getSource().sendSuccess(new StringTextComponent("WIP"), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int claim(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
-        final Pair<BlockPos, BlockPos> recordPos = AreaControlClaimHandler.popRecord(src.asPlayer());
+        final Pair<BlockPos, BlockPos> recordPos = AreaControlClaimHandler.popRecord(src.getPlayerOrException());
         if (recordPos != null) {
             final Area area = Util.createArea("Area " + Util.nextRandomString(), new AxisAlignedBB(recordPos.getLeft(), recordPos.getRight()));
-            final RegistryKey<World> worldIndex = src.getWorld().getDimensionKey();
+            final RegistryKey<World> worldIndex = src.getLevel().dimension();
             if (AreaManager.INSTANCE.add(area, worldIndex)) {
-                src.sendFeedback(new StringTextComponent(String.format("Claim '%s' has been created ", area.name)).append(Util.toGreenText(area)), true);
+                src.sendSuccess(new StringTextComponent(String.format("Claim '%s' has been created ", area.name)).append(Util.toGreenText(area)), true);
                 return Command.SINGLE_SUCCESS;
             } else {
-                src.sendErrorMessage(new StringTextComponent("Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?"));
+                src.sendFailure(new StringTextComponent("Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?"));
                 return -2;
             }
         } else {
-            src.sendErrorMessage(new StringTextComponent("Cannot determine what area you want to claim. Did you forget to select an area?"));
+            src.sendFailure(new StringTextComponent("Cannot determine what area you want to claim. Did you forget to select an area?"));
             return -1;
         }
         
@@ -86,59 +86,59 @@ public final class AreaControlCommand {
 
     private static int displayCurrent(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getWorld().getDimensionKey(), new BlockPos(src.getPos()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
         if (area != AreaManager.INSTANCE.wildness) {
             final String name = AreaProperties.getString(area, "area.display_name", area.name);
-            src.sendFeedback(new StringTextComponent(String.format("You are in an area named '%s'", name)), false);
+            src.sendSuccess(new StringTextComponent(String.format("You are in an area named '%s'", name)), false);
         } else {
-            src.sendFeedback(new StringTextComponent("You are in the wildness."), false);
+            src.sendSuccess(new StringTextComponent("You are in the wildness."), false);
         }
         return Command.SINGLE_SUCCESS;
     }
 
     private static int list(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
-        src.sendFeedback(new StringTextComponent("Currently known areas: "), false);
+        src.sendSuccess(new StringTextComponent("Currently known areas: "), false);
         for (Area a : AreaManager.INSTANCE.getKnownAreas()) {
-            src.sendFeedback(new StringTextComponent(String.format("  - %s (", a.name)).append(Util.toGreenText(a)).appendString(")"), false);
+            src.sendSuccess(new StringTextComponent(String.format("  - %s (", a.name)).append(Util.toGreenText(a)).append(")"), false);
         }
         return Command.SINGLE_SUCCESS;
     }
 
     private static int mark(CommandContext<CommandSource> context) throws CommandSyntaxException {
         BlockPos marked = new BlockPos(Vec3Argument.getVec3(context, "pos"));
-        AreaControlClaimHandler.pushRecord(context.getSource().asPlayer(), marked);
-        context.getSource().sendFeedback(new StringTextComponent("AreaControl: Marked position ").append(Util.toGreenText(marked)), true);
+        AreaControlClaimHandler.pushRecord(context.getSource().getPlayerOrException(), marked);
+        context.getSource().sendSuccess(new StringTextComponent("AreaControl: Marked position ").append(Util.toGreenText(marked)), true);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int setProperty(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getWorld().getDimensionKey(), new BlockPos(src.getPos()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
         if (area != AreaManager.INSTANCE.wildness) {
             final String prop = context.getArgument("property", String.class);
             final String value = context.getArgument("value", String.class);
             area.properties.put(prop, value);
-            context.getSource().sendFeedback(new StringTextComponent(String.format("Area '%s''s property '%s' has been updated to '%s'", area.name, prop, value)), true);
+            context.getSource().sendSuccess(new StringTextComponent(String.format("Area '%s''s property '%s' has been updated to '%s'", area.name, prop, value)), true);
             return Command.SINGLE_SUCCESS;
         } else {
-            context.getSource().sendErrorMessage(new StringTextComponent("You are in the wildness. What were you thinking?"));
+            context.getSource().sendFailure(new StringTextComponent("You are in the wildness. What were you thinking?"));
             return -1;
         }
     }
 
     private static int unclaim(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
-        final RegistryKey<World> worldIndex = src.getWorld().getDimensionKey();
-        final Area area = AreaManager.INSTANCE.findBy(worldIndex, new BlockPos(src.getPos()));
+        final RegistryKey<World> worldIndex = src.getLevel().dimension();
+        final Area area = AreaManager.INSTANCE.findBy(worldIndex, new BlockPos(src.getPosition()));
         if (area != AreaManager.INSTANCE.wildness) {
             AreaManager.INSTANCE.remove(area, worldIndex);
-            src.sendFeedback(new StringTextComponent(String.format("Claim '%s' (internal name %s, ranged ",
+            src.sendSuccess(new StringTextComponent(String.format("Claim '%s' (internal name %s, ranged ",
                     AreaProperties.getString(area, "area.display_name", area.name), area.name))
-                    .append(Util.toGreenText(area)).appendString(") has been abandoned"), true);
+                    .append(Util.toGreenText(area)).append(") has been abandoned"), true);
             return Command.SINGLE_SUCCESS;
         } else {
-            context.getSource().sendErrorMessage(new StringTextComponent("You are in the wildness. Are you returning the wild nature to the nature itself?"));
+            context.getSource().sendFailure(new StringTextComponent("You are in the wildness. Are you returning the wild nature to the nature itself?"));
             return -1;
         }
     }

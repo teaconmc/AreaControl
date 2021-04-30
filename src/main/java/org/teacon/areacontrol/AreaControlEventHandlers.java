@@ -41,9 +41,12 @@ public final class AreaControlEventHandlers {
     // This one is fired when player directly attacks something else
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onAttackEntity(AttackEntityEvent event) {
+        if (event.getPlayer().level.isClientSide) {
+            return;
+        }
         // We use the location of target entity to find the area.
         final Entity target = event.getTarget();
-        final Area targetArea = AreaManager.INSTANCE.findBy(target.getEntityWorld().getDimensionKey(), target.getPosition());
+        final Area targetArea = AreaManager.INSTANCE.findBy(target.getCommandSenderWorld().dimension(), target.blockPosition());
         if (targetArea != null) {
             if (target instanceof PlayerEntity) {
                 if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.pvp")) {
@@ -61,11 +64,14 @@ public final class AreaControlEventHandlers {
     // and crossbows, to attack something else.
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onAttackEntity(LivingAttackEvent event) {
-        final Entity src = event.getSource().getTrueSource();
+        final Entity src = event.getSource().getEntity();
         if (src instanceof PlayerEntity) {
+            if (src.level.isClientSide) {
+                return;
+            }
             // Same above, we use the location of target entity to find the area.
             final Entity target = event.getEntity();
-            final Area targetArea = AreaManager.INSTANCE.findBy(target.getEntityWorld().getDimensionKey(), target.getPosition());
+            final Area targetArea = AreaManager.INSTANCE.findBy(target.getCommandSenderWorld().dimension(), target.blockPosition());
             if (targetArea != null) {
                 if (target instanceof PlayerEntity) {
                     if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.hasPermission((PlayerEntity) src, "area_control.bypass.pvp")) {
@@ -82,6 +88,9 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onInteractEntitySpecific(PlayerInteractEvent.EntityInteractSpecific event) {
+        if (event.getPlayer().level.isClientSide) {
+            return;
+        }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_interact_entity_specific")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.interact_entity_specific")) {
@@ -91,6 +100,9 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onInteractEntity(PlayerInteractEvent.EntityInteract event) {
+        if (event.getWorld().isClientSide) {
+            return;
+        }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_interact_entity")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.interact_entity")) {
@@ -100,6 +112,9 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onBreakBlock(BlockEvent.BreakEvent event) {
+        if (event.getWorld().isClientSide()) {
+            return;
+        }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_break_block")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.break_block")) {
@@ -109,6 +124,9 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onClickBlock(PlayerInteractEvent.LeftClickBlock event) {
+        if (event.getWorld().isClientSide) {
+            return;
+        }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_click_block")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.click_block")) {
@@ -118,6 +136,9 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onActivateBlock(PlayerInteractEvent.RightClickBlock event) {
+        if (event.getWorld().isClientSide) {
+            return;
+        }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_activate_block")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.activate_block")) {
@@ -127,6 +148,9 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onUseItem(PlayerInteractEvent.RightClickItem event) {
+        if (event.getWorld().isClientSide) {
+            return;
+        }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_use_item")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.use_item")) {
@@ -136,6 +160,9 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onTramplingFarmland(BlockEvent.FarmlandTrampleEvent event) {
+        if (event.getWorld().isClientSide()) {
+            return;
+        }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_trample_farmland")) {
             // TODO area_control.bypass.trample_farmland?
@@ -145,6 +172,9 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onPlaceBlock(BlockEvent.EntityPlaceEvent event) {
+        if (event.getWorld().isClientSide()) {
+            return;
+        }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_place_block")) {
             final Entity e = event.getEntity();
@@ -157,7 +187,10 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void beforeExplosion(ExplosionEvent.Start event) {
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimensionKey(), new BlockPos(event.getExplosion().getPosition()));
+        if (event.getWorld().isClientSide()) {
+            return;
+        }
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().dimension(), new BlockPos(event.getExplosion().getPosition()));
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_explosion")) {
             event.setCanceled(true);
         }
@@ -165,7 +198,10 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void afterExplosion(ExplosionEvent.Detonate event) {
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().getDimensionKey(), new BlockPos(event.getExplosion().getPosition()));
+        if (event.getWorld().isClientSide()) {
+            return;
+        }
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().dimension(), new BlockPos(event.getExplosion().getPosition()));
         if (targetArea != null) {
             if (!AreaProperties.getBool(targetArea, "area.allow_explosion_affect_blocks")) {
                 event.getAffectedBlocks().clear();
