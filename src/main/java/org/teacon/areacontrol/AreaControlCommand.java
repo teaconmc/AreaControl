@@ -115,14 +115,14 @@ public final class AreaControlCommand {
     private static int setProperty(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
-        if (area != AreaManager.INSTANCE.wildness) {
+        if (area != null) {
             final String prop = context.getArgument("property", String.class);
             final String value = context.getArgument("value", String.class);
             area.properties.put(prop, value);
             context.getSource().sendSuccess(new StringTextComponent(String.format("Area '%s''s property '%s' has been updated to '%s'", area.name, prop, value)), true);
             return Command.SINGLE_SUCCESS;
         } else {
-            context.getSource().sendFailure(new StringTextComponent("You are in the wildness. What were you thinking?"));
+            context.getSource().sendFailure(new StringTextComponent("You are not even in an designated area?! This can be a bug; consider reporting it."));
             return -1;
         }
     }

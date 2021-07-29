@@ -54,7 +54,7 @@ public final class AreaControlEventHandlers {
                 }
             } else {
                 if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.attack")) {
-                    event.setCanceled(true);
+                    event.setCanceled(true); // TODO Show notice when this action is blocked
                 }
             }
         }
