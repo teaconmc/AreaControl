@@ -5,6 +5,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+
+import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.Vec3Argument;
@@ -13,12 +15,14 @@ import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.server.permission.PermissionAPI;
 import org.apache.commons.lang3.tuple.Pair;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 
+import java.util.Objects;
 import java.util.function.Predicate;
 
 public final class AreaControlCommand {
@@ -71,7 +75,7 @@ public final class AreaControlCommand {
             final Area area = Util.createArea("Area " + Util.nextRandomString(), new AxisAlignedBB(recordPos.getLeft(), recordPos.getRight()));
             final RegistryKey<World> worldIndex = src.getLevel().dimension();
             if (AreaManager.INSTANCE.add(area, worldIndex)) {
-                src.sendSuccess(new StringTextComponent(String.format("Claim '%s' has been created ", area.name)).append(Util.toGreenText(area)), true);
+                src.sendSuccess(new TranslationTextComponent("area_control.claim.created", area.name, Util.toGreenText(area)), true);
                 return Command.SINGLE_SUCCESS;
             } else {
                 src.sendFailure(new StringTextComponent("Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?"));
@@ -89,18 +93,18 @@ public final class AreaControlCommand {
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
         if (area != AreaManager.INSTANCE.wildness) {
             final String name = AreaProperties.getString(area, "area.display_name", area.name);
-            src.sendSuccess(new StringTextComponent(String.format("You are in an area named '%s'", name)), false);
+            src.sendSuccess(new TranslationTextComponent("area_control.claim.current", name), true);
         } else {
-            src.sendSuccess(new StringTextComponent("You are in the wildness."), false);
+            src.sendSuccess(new TranslationTextComponent("area_control.claim.current.wildness"), true);
         }
         return Command.SINGLE_SUCCESS;
     }
 
     private static int list(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
-        src.sendSuccess(new StringTextComponent("Currently known areas: "), false);
+        src.sendSuccess(new TranslationTextComponent("area_control.claim.list", ObjectArrays.EMPTY_ARRAY), false);
         for (Area a : AreaManager.INSTANCE.getKnownAreas()) {
-            src.sendSuccess(new StringTextComponent(String.format("  - %s (", a.name)).append(Util.toGreenText(a)).append(")"), false);
+        	src.sendSuccess(new TranslationTextComponent("area_control.claim.list.element", a.name, Util.toGreenText(a)), false);
         }
         return Command.SINGLE_SUCCESS;
     }
@@ -108,7 +112,7 @@ public final class AreaControlCommand {
     private static int mark(CommandContext<CommandSource> context) throws CommandSyntaxException {
         BlockPos marked = new BlockPos(Vec3Argument.getVec3(context, "pos"));
         AreaControlClaimHandler.pushRecord(context.getSource().getPlayerOrException(), marked);
-        context.getSource().sendSuccess(new StringTextComponent("AreaControl: Marked position ").append(Util.toGreenText(marked)), true);
+        context.getSource().sendSuccess(new TranslationTextComponent("area_control.claim.marked", Util.toGreenText(marked)), true);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -118,8 +122,9 @@ public final class AreaControlCommand {
         if (area != null) {
             final String prop = context.getArgument("property", String.class);
             final String value = context.getArgument("value", String.class);
-            area.properties.put(prop, value);
-            context.getSource().sendSuccess(new StringTextComponent(String.format("Area '%s''s property '%s' has been updated to '%s'", area.name, prop, value)), true);
+            final Object oldValue = area.properties.put(prop, value);
+            context.getSource().sendSuccess(new TranslationTextComponent("area_control.claim.property.update",
+            		area.name, prop, value, Objects.toString(oldValue)), false);
             return Command.SINGLE_SUCCESS;
         } else {
             context.getSource().sendFailure(new StringTextComponent("You are not even in an designated area?! This can be a bug; consider reporting it."));
@@ -133,9 +138,9 @@ public final class AreaControlCommand {
         final Area area = AreaManager.INSTANCE.findBy(worldIndex, new BlockPos(src.getPosition()));
         if (area != AreaManager.INSTANCE.wildness) {
             AreaManager.INSTANCE.remove(area, worldIndex);
-            src.sendSuccess(new StringTextComponent(String.format("Claim '%s' (internal name %s, ranged ",
-                    AreaProperties.getString(area, "area.display_name", area.name), area.name))
-                    .append(Util.toGreenText(area)).append(") has been abandoned"), true);
+            src.sendSuccess(new TranslationTextComponent("area_control.claim.abandoned", 
+            		AreaProperties.getString(area, "area.display_name", area.name),
+            		area.name, Util.toGreenText(area)), false);
             return Command.SINGLE_SUCCESS;
         } else {
             context.getSource().sendFailure(new StringTextComponent("You are in the wildness. Are you returning the wild nature to the nature itself?"));

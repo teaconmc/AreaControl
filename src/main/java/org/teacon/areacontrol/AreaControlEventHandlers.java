@@ -3,12 +3,15 @@ package org.teacon.areacontrol;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
@@ -50,10 +53,12 @@ public final class AreaControlEventHandlers {
         if (targetArea != null) {
             if (target instanceof PlayerEntity) {
                 if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.pvp")) {
+                	event.getPlayer().displayClientMessage(new TranslationTextComponent("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY), true);
                     event.setCanceled(true);
                 }
             } else {
                 if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.attack")) {
+                	event.getPlayer().displayClientMessage(new TranslationTextComponent("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY), true);
                     event.setCanceled(true); // TODO Show notice when this action is blocked
                 }
             }
@@ -75,10 +80,12 @@ public final class AreaControlEventHandlers {
             if (targetArea != null) {
                 if (target instanceof PlayerEntity) {
                     if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.hasPermission((PlayerEntity) src, "area_control.bypass.pvp")) {
+                    	((PlayerEntity) src).displayClientMessage(new TranslationTextComponent("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY), true);
                         event.setCanceled(true);
                     }
                 } else {
                     if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.hasPermission((PlayerEntity) src, "area_control.bypass.attack")) {
+                    	((PlayerEntity) src).displayClientMessage(new TranslationTextComponent("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY), true);
                         event.setCanceled(true);
                     }
                 }

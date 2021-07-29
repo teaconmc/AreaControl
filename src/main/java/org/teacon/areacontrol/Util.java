@@ -12,6 +12,7 @@ import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 
 public final class Util {
 
@@ -28,14 +29,14 @@ public final class Util {
     }
 
     public static IFormattableTextComponent toGreenText(BlockPos pos) {
-        final String base = String.format("[%s]", pos.toShortString());
-        return new StringTextComponent(base).withStyle(TextFormatting.GREEN);
+        return new TranslationTextComponent("area_control.claim.pos", pos.getX(), pos.getY(), pos.getZ())
+        		.withStyle(TextFormatting.GREEN);
     }
 
     public static IFormattableTextComponent toGreenText(Area area) {
-        ITextComponent min = new StringTextComponent(String.format("[%d, %d, %d]", area.minX, area.minY, area.minZ)).withStyle(TextFormatting.GREEN);
-        ITextComponent max = new StringTextComponent(String.format("[%d, %d, %d]", area.maxX, area.maxY, area.maxZ)).withStyle(TextFormatting.GREEN);
-        return new StringTextComponent("from ").append(min).append(" to ").append(max);
+        ITextComponent min = new TranslationTextComponent("area_control.claim.pos", area.minX, area.minY, area.minZ).withStyle(TextFormatting.GREEN);
+        ITextComponent max = new TranslationTextComponent("area_control.claim.pos", area.maxX, area.maxY, area.maxZ).withStyle(TextFormatting.GREEN);
+        return new TranslationTextComponent("area_control.claim.range", min, max);
     }
 
 	public static Area createArea(String name, AxisAlignedBB box) {

@@ -1,0 +1,20 @@
+{
+  "area_control.admin.welcome": "AreaControl: Welcome back, administrator %s",
+ 
+  "area_control.claim.pos": "[%d, %d, %d]",
+  "area_control.claim.range": "from %1$s to %2$s", 
+  "area_control.claim.marked": "AreaControl: Marked position %s",
+  "area_control.claim.created": "AreaControl: Successfully created claimed area '%1$s', %2$s",
+  "area_control.claim.abandoned": "AreaControl: Claim %s (internally as %s, %s) has now been abandoned",
+  
+  "area_control.claim.list": "Currently known areas: ",
+  "area_control.claim.list.element": "- %s (%s)",
+  
+  "area_control.claim.current": "You are in an area named '%s'",
+  "area_control.claim.current.wildness": "You are in the wildness.",
+  
+  "area_control.claim.property.update": "AreaControl: property '%2$s' in area '%1$s' has been updated to '%3$s' (was '%4$s')",
+  
+  "area_control.notice.pvp_disabled": "AreaControl: this area has disabled PvP, contact admin if you think it is an error",
+  "area_control.notice.pve_disabled": "AreaControl: this area has disabled PvE, contact admin if you think it is an error"
+}
