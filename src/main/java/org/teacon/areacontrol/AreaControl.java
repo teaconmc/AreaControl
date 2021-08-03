@@ -49,12 +49,13 @@ public final class AreaControl {
 
         PermissionAPI.registerNode("area_control.bypass.break_block", DefaultPermissionLevel.OP, "Bypass restrictions on breaking blocks");
         PermissionAPI.registerNode("area_control.bypass.place_block", DefaultPermissionLevel.OP, "Bypass restrictions on placing blocks");
-        PermissionAPI.registerNode("area_control.bypass.pvp", DefaultPermissionLevel.OP, "Bypass restrictions on PvP");
+        PermissionAPI.registerNode("area_control.bypass.pvp", DefaultPermissionLevel.OP, "Bypass restrictions on PvP (i.e. player attack other players)");
+        PermissionAPI.registerNode("area_control.bypass.attack", DefaultPermissionLevel.OP, "Bypass restrcitions on PvE (i.e. player attack non-player entities)");
 
         PermissionAPI.registerNode("area_control.bypass.click_block", DefaultPermissionLevel.ALL, "Bypass restrictions on clicking blocks");
         PermissionAPI.registerNode("area_control.bypass.activate_block", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting blocks using right-click");
         PermissionAPI.registerNode("area_control.bypass.use_item", DefaultPermissionLevel.ALL, "Bypass restrictions on using items");
-        PermissionAPI.registerNode("area_control.allow_interact_entity", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting with entities.");
+        PermissionAPI.registerNode("area_control.bypass.interact_entity", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting with entities.");
         PermissionAPI.registerNode("area_control.bypass.interact_entity_specific", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting with specific parts of entities.");
 
 

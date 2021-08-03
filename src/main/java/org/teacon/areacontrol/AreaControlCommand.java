@@ -11,9 +11,11 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.Vec3Argument;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
@@ -23,6 +25,7 @@ import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 public final class AreaControlCommand {
@@ -70,9 +73,14 @@ public final class AreaControlCommand {
 
     private static int claim(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
+        final ServerPlayerEntity claimer = src.getPlayerOrException();
         final Pair<BlockPos, BlockPos> recordPos = AreaControlClaimHandler.popRecord(src.getPlayerOrException());
         if (recordPos != null) {
-            final Area area = Util.createArea("Area " + Util.nextRandomString(), new AxisAlignedBB(recordPos.getLeft(), recordPos.getRight()));
+            final Area area = Util.createArea(new AxisAlignedBB(recordPos.getLeft(), recordPos.getRight()));
+            final UUID claimerUUID = claimer.getGameProfile().getId();
+            if (claimerUUID != null) {
+            	area.owner = claimerUUID;
+            }
             final RegistryKey<World> worldIndex = src.getLevel().dimension();
             if (AreaManager.INSTANCE.add(area, worldIndex)) {
                 src.sendSuccess(new TranslationTextComponent("area_control.claim.created", area.name, Util.toGreenText(area)), true);
@@ -90,10 +98,12 @@ public final class AreaControlCommand {
 
     private static int displayCurrent(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
+        final MinecraftServer server = src.getServer();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
         if (area != AreaManager.INSTANCE.wildness) {
             final String name = AreaProperties.getString(area, "area.display_name", area.name);
-            src.sendSuccess(new TranslationTextComponent("area_control.claim.current", name), true);
+            final ITextComponent ownerName = Util.getOwnerName(area, server.getProfileCache(), server.getPlayerList());
+            src.sendSuccess(new TranslationTextComponent("area_control.claim.current", name, ownerName), true);
         } else {
             src.sendSuccess(new TranslationTextComponent("area_control.claim.current.wildness"), true);
         }
@@ -134,9 +144,10 @@ public final class AreaControlCommand {
 
     private static int unclaim(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource src = context.getSource();
+        final ServerPlayerEntity claimer = src.getPlayerOrException();
         final RegistryKey<World> worldIndex = src.getLevel().dimension();
         final Area area = AreaManager.INSTANCE.findBy(worldIndex, new BlockPos(src.getPosition()));
-        if (area != AreaManager.INSTANCE.wildness) {
+        if (area != AreaManager.INSTANCE.wildness && area.owner.equals(claimer.getGameProfile().getId())) {
             AreaManager.INSTANCE.remove(area, worldIndex);
             src.sendSuccess(new TranslationTextComponent("area_control.claim.abandoned", 
             		AreaProperties.getString(area, "area.display_name", area.name),

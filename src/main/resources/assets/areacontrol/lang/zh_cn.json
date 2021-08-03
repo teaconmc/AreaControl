@@ -1,6 +1,8 @@
 {
   "area_control.admin.welcome": "AreaControl：欢迎回来，管理员 %s",
   
+  "area_control.owner.aka": "在游戏中又名 %s",
+  
   "area_control.claim.pos": "[%d, %d, %d]",
   "area_control.claim.range": "范围为从 %1$s 到 %2$s", 
   "area_control.claim.marked": "AreaControl：已选定位置 %s",
@@ -10,11 +12,14 @@
   "area_control.claim.list": "目前已知领地列表：",
   "area_control.claim.list.element": "- %s (%s)",
   
-  "area_control.claim.current": "你现在身在名为 %s 的领地中。",
+  "area_control.claim.current": "你现在身在名为 %1$s 的领地中，这块领地由 %2$s 控制。",
   "area_control.claim.current.wildness": "你现在身在野外。",
   
   "area_control.claim.property.update": "AreaControl：已将领地 '%1$s' 的属性 '%2$s' 值更新为 '%3$s'（此前为 '%4$s'）",
   
+  "area_control.notice.break_block_disabled": "AreaControl：该区域已禁止破坏方块，如果你认为这是个错误，请联系管理员",
+  "area_control.notice.click_block_disabled": "AreaControl：该区域已禁止点击方块，如果你认为这是个错误，请联系管理员",
   "area_control.notice.pvp_disabled": "AreaControl：该区域已禁止 PvP，如果你认为这是个错误，请联系管理员",
-  "area_control.notice.pve_disabled": "AreaControl：该区域已禁止 PvE，如果你认为这是个错误，请联系管理员"
+  "area_control.notice.pve_disabled": "AreaControl：该区域已禁止 PvE，如果你认为这是个错误，请联系管理员",
+  "area_control.notice.use_item_disabled": "AreaControl：该区域已禁止使用物品，如果你认为这是个错误，请联系管理员"
 }

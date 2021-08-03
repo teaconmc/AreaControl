@@ -11,6 +11,8 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -50,22 +52,23 @@ public final class AreaManager {
     private final IdentityHashMap<RegistryKey<World>, Map<ChunkPos, Set<Area>>> perWorldAreaCache = new IdentityHashMap<>();
 
     {
-        wildness.name = "wildness";
-        wildness.minX = Integer.MIN_VALUE;
-        wildness.minY = Integer.MIN_VALUE;
-        wildness.minZ = Integer.MIN_VALUE;
-        wildness.maxX = Integer.MAX_VALUE;
-        wildness.maxY = Integer.MAX_VALUE;
-        wildness.maxZ = Integer.MAX_VALUE;
-        wildness.properties.put("area.allow_click_block", Boolean.TRUE);
-        wildness.properties.put("area.allow_activate_block", Boolean.TRUE);
-        wildness.properties.put("area.allow_use_item", Boolean.TRUE);
-        wildness.properties.put("area.allow_interact_entity", Boolean.TRUE);
-        wildness.properties.put("area.allow_interact_entity_specific", Boolean.TRUE);
+    	this.wildness.uid = Util.SYSTEM;
+        this.wildness.name = "wildness";
+        this.wildness.minX = Integer.MIN_VALUE;
+        this.wildness.minY = Integer.MIN_VALUE;
+        this.wildness.minZ = Integer.MIN_VALUE;
+        this.wildness.maxX = Integer.MAX_VALUE;
+        this.wildness.maxY = Integer.MAX_VALUE;
+        this.wildness.maxZ = Integer.MAX_VALUE;
+        this.wildness.properties.put("area.allow_click_block", Boolean.TRUE);
+        this.wildness.properties.put("area.allow_activate_block", Boolean.TRUE);
+        this.wildness.properties.put("area.allow_use_item", Boolean.TRUE);
+        this.wildness.properties.put("area.allow_interact_entity", Boolean.TRUE);
+        this.wildness.properties.put("area.allow_interact_entity_specific", Boolean.TRUE);
     }
 
     private void buildCacheFor(Area area, RegistryKey<World> worldIndex) {
-        final Map<ChunkPos, Set<Area>> areasInDim = perWorldAreaCache.computeIfAbsent(worldIndex, id -> new HashMap<>());
+        final Map<ChunkPos, Set<Area>> areasInDim = this.perWorldAreaCache.computeIfAbsent(worldIndex, id -> new HashMap<>());
         ChunkPos.rangeClosed(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))
                 .map(cp -> areasInDim.computeIfAbsent(cp, _cp -> Collections.newSetFromMap(new IdentityHashMap<>())))
                 .forEach(list -> list.add(area));
@@ -112,7 +115,7 @@ public final class AreaManager {
             && findBy(worldIndex, new BlockPos(area.maxX, area.maxY, area.maxZ)) == this.wildness) {
             // Second we filter out cases where the area to define is enclosing another area.
             boolean noEnclosing = true;
-            for (Area a : areasByName.values()) {
+            for (Area a : this.areasByName.values()) {
                 if (area.minX < a.minX && a.maxX < area.maxX) {
                     if (area.minY < a.minY && a.maxY < area.maxY) {
                         if (area.minZ < a.minZ && a.maxZ < area.maxZ) {
@@ -123,10 +126,10 @@ public final class AreaManager {
                 }
             }
             if (noEnclosing) {
-                areasByName.computeIfAbsent(area.name, name -> area);
+                this.areasByName.computeIfAbsent(area.name, name -> area);
                 this.buildCacheFor(area, worldIndex);
                 // Copy default settings over
-                area.properties.putAll(wildness.properties);
+                area.properties.putAll(this.wildness.properties);
                 return true;
             }
         }
@@ -134,8 +137,8 @@ public final class AreaManager {
     }
 
     public void remove(Area area, RegistryKey<World> worldIndex) {
-        areasByName.remove(area.name, area);
-        perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(a -> a == area)));
+        this.areasByName.remove(area.name, area);
+        this.perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(a -> a == area)));
 	}
 
     /**
@@ -145,10 +148,12 @@ public final class AreaManager {
      * @return The area instance
      * @see #findBy(RegistryKey, BlockPos)
      */
+    @Nonnull
     public Area findBy(GlobalPos pos) {
         return this.findBy(pos.dimension(), pos.pos());
     }
 
+    @Nonnull
     public Area findBy(IWorld worldInstance, BlockPos pos) {
         // Remember that neither Dimension nor DimensionType are for
         // distinguishing a world - they are information for world
@@ -172,6 +177,7 @@ public final class AreaManager {
         }
     }
 
+    @Nonnull
     public Area findBy(RegistryKey<World> world, BlockPos pos) {
         for (Area area : this.perWorldAreaCache.getOrDefault(world, Collections.emptyMap()).getOrDefault(new ChunkPos(pos), Collections.emptySet())) {
             if (area.minX <= pos.getX() && pos.getX() <= area.maxX) {
@@ -199,7 +205,7 @@ public final class AreaManager {
     }
 
     public Area findBy(String name) {
-        return areasByName.get(name);
+        return this.areasByName.get(name);
     }
 
     public Collection<Area> getKnownAreas() {

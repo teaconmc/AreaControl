@@ -28,6 +28,7 @@ minecraft {
         client {
             workingDirectory project.file('run')
             property 'forge.logging.console.level', 'info'
+            args '--username', 'Dev-###'
             mods {
                 area_control {
                     source sourceSets.main

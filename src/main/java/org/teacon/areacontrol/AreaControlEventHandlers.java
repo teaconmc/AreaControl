@@ -122,9 +122,11 @@ public final class AreaControlEventHandlers {
         if (event.getWorld().isClientSide()) {
             return;
         }
+        final PlayerEntity p = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
-        if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_break_block")
+        if (!AreaProperties.getBool(targetArea, "area.allow_break_block")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.break_block")) {
+                p.displayClientMessage(new TranslationTextComponent("area_control.notice.break_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
                 event.setCanceled(true);
         }
     }
@@ -134,9 +136,11 @@ public final class AreaControlEventHandlers {
         if (event.getWorld().isClientSide) {
             return;
         }
+        final PlayerEntity p = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_click_block")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.click_block")) {
+            p.displayClientMessage(new TranslationTextComponent("area_control.notice.click_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
         }
     }
@@ -158,9 +162,11 @@ public final class AreaControlEventHandlers {
         if (event.getWorld().isClientSide) {
             return;
         }
+        final PlayerEntity p = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         if (targetArea != null && !AreaProperties.getBool(targetArea, "area.allow_use_item")
             && !PermissionAPI.hasPermission(event.getPlayer(), "area_control.bypass.use_item")) {
+            p.displayClientMessage(new TranslationTextComponent("area_control.notice.use_item_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
         }
     }
