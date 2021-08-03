@@ -52,7 +52,7 @@ public final class AreaManager {
     private final IdentityHashMap<RegistryKey<World>, Map<ChunkPos, Set<Area>>> perWorldAreaCache = new IdentityHashMap<>();
 
     {
-    	this.wildness.uid = Util.SYSTEM;
+        this.wildness.uid = Util.SYSTEM;
         this.wildness.name = "wildness";
         this.wildness.minX = Integer.MIN_VALUE;
         this.wildness.minY = Integer.MIN_VALUE;
