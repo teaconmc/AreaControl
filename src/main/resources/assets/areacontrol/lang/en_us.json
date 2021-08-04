@@ -21,5 +21,7 @@
   "area_control.notice.click_block_disabled": "AreaControl: this area has disabled clicking blocks, contact admin if you think it is an error",
   "area_control.notice.pvp_disabled": "AreaControl: this area has disabled PvP, contact admin if you think it is an error",
   "area_control.notice.pve_disabled": "AreaControl: this area has disabled PvE, contact admin if you think it is an error",
-  "area_control.notice.use_item_disabled": "AreaControl: this area has disabled item using, contact admin if you think it is an error"
+  "area_control.notice.use_item_disabled": "AreaControl: this area has disabled item using, contact admin if you think it is an error",
+  
+  "area_cnotrol.error.unclaim_without_permimisson": "AreaControl: Unable to abandon claim %s (internally as %s, %s) because it doesn't belong to you, or you are not authorized."
 }

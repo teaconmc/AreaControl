@@ -147,12 +147,19 @@ public final class AreaControlCommand {
         final ServerPlayerEntity claimer = src.getPlayerOrException();
         final RegistryKey<World> worldIndex = src.getLevel().dimension();
         final Area area = AreaManager.INSTANCE.findBy(worldIndex, new BlockPos(src.getPosition()));
-        if (area != AreaManager.INSTANCE.wildness && area.owner.equals(claimer.getGameProfile().getId())) {
-            AreaManager.INSTANCE.remove(area, worldIndex);
-            src.sendSuccess(new TranslationTextComponent("area_control.claim.abandoned", 
-            		AreaProperties.getString(area, "area.display_name", area.name),
-            		area.name, Util.toGreenText(area)), false);
-            return Command.SINGLE_SUCCESS;
+        if (area != AreaManager.INSTANCE.wildness) {
+            if (area.owner.equals(claimer.getGameProfile().getId())) {
+                AreaManager.INSTANCE.remove(area, worldIndex);
+                src.sendSuccess(new TranslationTextComponent("area_control.claim.abandoned", 
+                        AreaProperties.getString(area, "area.display_name", area.name),
+                        area.name, Util.toGreenText(area)), false);
+                return Command.SINGLE_SUCCESS;
+            } else {
+                src.sendFailure(new TranslationTextComponent("area_cnotrol.error.unclaim_without_permimisson",
+                        AreaProperties.getString(area, "area.display_name", area.name),
+                        area.name, Util.toGreenText(area)));
+                return -1;
+            }
         } else {
             context.getSource().sendFailure(new StringTextComponent("You are in the wildness. Are you returning the wild nature to the nature itself?"));
             return -1;
