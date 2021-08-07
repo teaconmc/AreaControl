@@ -75,7 +75,7 @@ public final class Util {
                         PlayerEntity p = onlinePlayers.getPlayer(owner);
                         if (p != null) {
                             ownerName.setStyle(Style.EMPTY.withColor(TextFormatting.GREEN)
-                                    .withUnderlined(Boolean.TRUE)
+                                    .setUnderlined(Boolean.TRUE)
                                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslationTextComponent("area_control.owner.aka", p.getDisplayName())))
                             );
                         }
