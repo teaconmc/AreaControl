@@ -1,7 +1,6 @@
 package org.teacon.areacontrol;
 
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -16,27 +15,26 @@ import javax.annotation.Nonnull;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import net.minecraft.world.IServerWorld;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.teacon.areacontrol.api.Area;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.GlobalPos;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.dimension.DimensionType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.teacon.areacontrol.api.Area;
 
 public final class AreaManager {
 
     public static final AreaManager INSTANCE = new AreaManager();
 
-    private static final Logger LOGGER = LogManager.getLogger("AreaControl");
+    private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     
@@ -49,7 +47,7 @@ public final class AreaManager {
      */
     @Deprecated
     private final IdentityHashMap<DimensionType, Map<ChunkPos, Set<Area>>> areasByChunk = new IdentityHashMap<>();
-    private final IdentityHashMap<RegistryKey<World>, Map<ChunkPos, Set<Area>>> perWorldAreaCache = new IdentityHashMap<>();
+    private final IdentityHashMap<ResourceKey<Level>, Map<ChunkPos, Set<Area>>> perWorldAreaCache = new IdentityHashMap<>();
 
     {
         this.wildness.uid = Util.SYSTEM;
@@ -67,7 +65,7 @@ public final class AreaManager {
         this.wildness.properties.put("area.allow_interact_entity_specific", Boolean.TRUE);
     }
 
-    private void buildCacheFor(Area area, RegistryKey<World> worldIndex) {
+    private void buildCacheFor(Area area, ResourceKey<Level> worldIndex) {
         final Map<ChunkPos, Set<Area>> areasInDim = this.perWorldAreaCache.computeIfAbsent(worldIndex, id -> new HashMap<>());
         ChunkPos.rangeClosed(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))
                 .map(cp -> areasInDim.computeIfAbsent(cp, _cp -> Collections.newSetFromMap(new IdentityHashMap<>())))
@@ -80,7 +78,7 @@ public final class AreaManager {
             try (Reader reader = Files.newBufferedReader(userDefinedAreas)) {
                 for (Area a : GSON.fromJson(reader, Area[].class)) {
                     this.areasByName.put(a.name, a);
-                    this.buildCacheFor(a, RegistryKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
+                    this.buildCacheFor(a, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
                     /*if (maybeDimType.isPresent()) {
                         this.buildCacheFor(a, maybeDimType.get());
                     } else {
@@ -100,16 +98,16 @@ public final class AreaManager {
     }
 
     void saveTo(Path dataDirRoot) throws Exception {
-        Files.write(dataDirRoot.resolve("claims.json"), GSON.toJson(this.areasByName.values()).getBytes(StandardCharsets.UTF_8));
-        Files.write(dataDirRoot.resolve("wildness.json"), GSON.toJson(this.wildness).getBytes(StandardCharsets.UTF_8));
+        Files.writeString(dataDirRoot.resolve("claims.json"), GSON.toJson(this.areasByName.values()));
+        Files.writeString(dataDirRoot.resolve("wildness.json"), GSON.toJson(this.wildness));
     }
 
     /**
      * @param area The Area instance to be recorded
-     * @param worldIndex The {@link RegistryKey<World>} of the {@link World} to which the area belongs
+     * @param worldIndex The {@link ResourceKey<Level>} of the {@link Level} to which the area belongs
      * @return true if and only if the area is successfully recorded by this AreaManager; false otherwise.
      */
-    public boolean add(Area area, RegistryKey<World> worldIndex) {
+    public boolean add(Area area, ResourceKey<Level> worldIndex) {
         // First we filter out cases where at least one defining coordinate falls in an existing area
         if (findBy(worldIndex, new BlockPos(area.minX, area.minY, area.minZ)) == this.wildness
             && findBy(worldIndex, new BlockPos(area.maxX, area.maxY, area.maxZ)) == this.wildness) {
@@ -136,17 +134,17 @@ public final class AreaManager {
         return false;
     }
 
-    public void remove(Area area, RegistryKey<World> worldIndex) {
+    public void remove(Area area, ResourceKey<Level> worldIndex) {
         this.areasByName.remove(area.name, area);
         this.perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(a -> a == area)));
 	}
 
     /**
-     * Convenient overload of {@link #findBy(RegistryKey, BlockPos)} that unpacks
+     * Convenient overload of {@link #findBy(ResourceKey, BlockPos)} that unpacks
      * the {@link GlobalPos} instance for you, in case you have one.
      * @param pos The globally qualified coordinate
      * @return The area instance
-     * @see #findBy(RegistryKey, BlockPos)
+     * @see #findBy(ResourceKey, BlockPos)
      */
     @Nonnull
     public Area findBy(GlobalPos pos) {
@@ -154,7 +152,7 @@ public final class AreaManager {
     }
 
     @Nonnull
-    public Area findBy(IWorld worldInstance, BlockPos pos) {
+    public Area findBy(Level worldInstance, BlockPos pos) {
         // Remember that neither Dimension nor DimensionType are for
         // distinguishing a world - they are information for world
         // generation. Mojang is most likely to allow duplicated
@@ -167,18 +165,23 @@ public final class AreaManager {
         // We will see how Mojang proceeds. Specifically, the exact
         // meaning of Dimension objects. For now, they seems to be
         // able to fully qualify a world/dimension.
-        if (worldInstance instanceof World) {
-            return this.findBy(((World) worldInstance).dimension(), pos);
-        } else if (worldInstance instanceof IServerWorld) {
-            return this.findBy(((IServerWorld) worldInstance).getLevel().dimension(), pos);
+        return this.findBy(worldInstance.dimension(), pos);
+    }
+
+    public @Nonnull Area findBy(LevelAccessor maybeLevel, BlockPos pos) {
+        if (maybeLevel instanceof Level) {
+            // TODO Is maybeLevel.dimensionType() actually reliable?
+            return this.findBy((Level) maybeLevel, pos);
+        } else if (maybeLevel instanceof ServerLevelAccessor) {
+            return this.findBy(((ServerLevelAccessor) maybeLevel).getLevel(), pos);
         } else {
-            LOGGER.warn("Unrecognized world instance of IWorld passed in for area querying");
+            LOGGER.warn("Unrecognized world instance of LevelAccessor passed in for area querying");
             return AreaManager.INSTANCE.wildness;
         }
     }
 
     @Nonnull
-    public Area findBy(RegistryKey<World> world, BlockPos pos) {
+    public Area findBy(ResourceKey<Level> world, BlockPos pos) {
         for (Area area : this.perWorldAreaCache.getOrDefault(world, Collections.emptyMap()).getOrDefault(new ChunkPos(pos), Collections.emptySet())) {
             if (area.minX <= pos.getX() && pos.getX() <= area.maxX) {
                 if (area.minY <= pos.getY() && pos.getY() <= area.maxY) {
@@ -192,9 +195,9 @@ public final class AreaManager {
     }
 
     /**
-     * @deprecated It is no longer reliable to get a {@link IWorld} instance from just a
+     * @deprecated It is no longer reliable to get a {@link Level} instance from just a
      * {@link DimensionType} instance alone.
-     * Consider use {@link #findBy(RegistryKey, BlockPos)} instead.
+     * Consider use {@link #findBy(ResourceKey, BlockPos)} instead.
      * @param dimType The dimension type object
      * @param pos The position
      * @return The area instance

@@ -3,18 +3,18 @@ package org.teacon.areacontrol;
 import javax.annotation.Nonnull;
 import java.util.WeakHashMap;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.permission.PermissionAPI;
-import org.apache.commons.lang3.tuple.Pair;
 
 @Mod.EventBusSubscriber(modid = "area_control")
 public final class AreaControlClaimHandler {
@@ -23,27 +23,29 @@ public final class AreaControlClaimHandler {
     static Item userClaimTool = Items.STICK;
     static Item adminTool = Items.TRIDENT;
 
-    private static final WeakHashMap<PlayerEntity, Pair<BlockPos, BlockPos>> records = new WeakHashMap<>();
+    private static final WeakHashMap<Player, RectangleRegion> records = new WeakHashMap<>();
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onRightClick(PlayerInteractEvent.RightClickBlock event) {
         if (event.getSide() == LogicalSide.SERVER) {
-            final PlayerEntity player = event.getPlayer();
-            if (event.getItemStack().getItem() == adminTool && PermissionAPI.hasPermission(player, "area_control.admin.inspect")) {
-                player.displayClientMessage(new TranslationTextComponent("area_control.admin.welcome", player.getDisplayName()), true);
-            } else if (event.getItemStack().getItem() == userClaimTool && PermissionAPI.hasPermission(player, "area_control.command.mark")) {
+            final var player = (ServerPlayer) event.getPlayer();
+            if (event.getItemStack().getItem() == adminTool && PermissionAPI.getPermission(player, AreaControlPermissions.INSPECT)) {
+                player.displayClientMessage(new TranslatableComponent("area_control.admin.welcome", player.getDisplayName()), true);
+            } else if (event.getItemStack().getItem() == userClaimTool && PermissionAPI.getPermission(player, AreaControlPermissions.MARK_AREA)) {
                 final BlockPos clicked  = event.getPos();
                 pushRecord(player, clicked.immutable());
-                player.displayClientMessage(new TranslationTextComponent("area_control.claim.marked", Util.toGreenText(clicked)), true);
+                player.displayClientMessage(new TranslatableComponent("area_control.claim.marked", Util.toGreenText(clicked)), true);
             }
         }
     }
 
-    static Pair<BlockPos, BlockPos> popRecord(@Nonnull PlayerEntity player) {
-        return records.containsKey(player) && records.get(player).getLeft() != null ? records.remove(player) : null;
+    static RectangleRegion popRecord(@Nonnull Player player) {
+        return records.containsKey(player) && records.get(player).start != null ? records.remove(player) : null;
     }
 
-    static void pushRecord(@Nonnull PlayerEntity player, @Nonnull BlockPos clicked) {
-        records.compute(player, (p, old) -> Pair.of(old == null ? null : old.getRight(), clicked));
+    static void pushRecord(@Nonnull Player player, @Nonnull BlockPos clicked) {
+        records.compute(player, (p, old) -> new RectangleRegion(old == null ? null : old.end, clicked));
     }
+
+    record RectangleRegion(BlockPos start, BlockPos end) {}
 }

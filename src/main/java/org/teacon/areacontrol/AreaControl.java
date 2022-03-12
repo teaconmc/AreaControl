@@ -1,37 +1,34 @@
 package org.teacon.areacontrol;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import net.minecraft.world.storage.FolderName;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.storage.LevelResource;
+import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ExtensionPoint;
+import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
-import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
-import net.minecraftforge.fml.network.FMLNetworkConstants;
-import net.minecraftforge.server.permission.DefaultPermissionLevel;
-import net.minecraftforge.server.permission.PermissionAPI;
+import net.minecraftforge.network.NetworkConstants;
+import net.minecraftforge.server.permission.events.PermissionGatherEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @Mod("area_control")
 @Mod.EventBusSubscriber(modid = "area_control")
 public final class AreaControl {
 
-    private static final Logger LOGGER = LogManager.getLogger("AreaControl");
+    private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
 
-    private static final FolderName SERVER_CONFIG = new FolderName("serverconfig");
+    private static final LevelResource SERVER_CONFIG = new LevelResource("serverconfig");
 
     public AreaControl() {
         ModLoadingContext context = ModLoadingContext.get();
-        context.registerExtensionPoint(ExtensionPoint.DISPLAYTEST,
-                () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (serverVer, isDedi) -> true));
+        context.registerExtensionPoint(IExtensionPoint.DisplayTest.class,
+                () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (serverVer, isDedi) -> true));
     }
 
     @SubscribeEvent
@@ -40,8 +37,31 @@ public final class AreaControl {
     }
 
     @SubscribeEvent
-    public static void onServerStart(FMLServerStartingEvent event) {
-        PermissionAPI.registerNode("area_control.command.set_property", DefaultPermissionLevel.OP, "Allow user to set properties of a claimed area.");
+    public static void setupPerm(PermissionGatherEvent.Nodes event) {
+        event.addNodes(
+                AreaControlPermissions.SET_PROPERTY,
+                AreaControlPermissions.CLAIM_AREA,
+                AreaControlPermissions.MARK_AREA,
+                AreaControlPermissions.UNCLAIM_AREA,
+                AreaControlPermissions.INSPECT,
+
+                AreaControlPermissions.BYPASS_BREAK_BLOCK,
+                AreaControlPermissions.BYPASS_PLACE_BLOCK,
+                AreaControlPermissions.BYPASS_PVP,
+                AreaControlPermissions.BYPASS_ATTACK,
+
+                AreaControlPermissions.BYPASS_CLICK_BLOCK,
+                AreaControlPermissions.BYPASS_ACTIVATE_BLOCK,
+                AreaControlPermissions.BYPASS_USE_ITEM,
+                AreaControlPermissions.BYPASS_INTERACT_ENTITY,
+                AreaControlPermissions.BYPASS_INTERACT_ENTITY_SPECIFIC
+        );
+    }
+
+    @SubscribeEvent
+    public static void onServerStart(ServerStartingEvent event) {
+        /*
+        PermissionAPI.registerNode(, DefaultPermissionLevel.OP, "Allow user to set properties of a claimed area.");
         // TODO Once we have properly set up the management system, this can be changed to DefaultPermissionLevel.ALL
         PermissionAPI.registerNode("area_control.command.claim", DefaultPermissionLevel.ALL, "Allow user to claim an area in the wildness.");
         PermissionAPI.registerNode("area_control.command.mark", DefaultPermissionLevel.ALL, "Allow user to mark a location for claiming areas.");
@@ -57,7 +77,7 @@ public final class AreaControl {
         PermissionAPI.registerNode("area_control.bypass.use_item", DefaultPermissionLevel.ALL, "Bypass restrictions on using items");
         PermissionAPI.registerNode("area_control.bypass.interact_entity", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting with entities.");
         PermissionAPI.registerNode("area_control.bypass.interact_entity_specific", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting with specific parts of entities.");
-
+*/
 
         final MinecraftServer server = event.getServer();
         final Path dataDir = server.getWorldPath(SERVER_CONFIG).resolve("area_control");
@@ -78,7 +98,7 @@ public final class AreaControl {
     }
 
     @SubscribeEvent
-    public static void onServerStop(FMLServerStoppingEvent event) {
+    public static void onServerStop(ServerStoppingEvent event) {
         final MinecraftServer server = event.getServer();
         final Path dataDir = server.getWorldPath(SERVER_CONFIG).resolve("area_control");
         if (Files.isDirectory(dataDir)) {

@@ -1,25 +1,21 @@
 package org.teacon.areacontrol;
 
-import java.util.Random;
-import java.util.UUID;
-
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.players.GameProfileCache;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
 import org.teacon.areacontrol.api.Area;
 
-import com.mojang.authlib.GameProfile;
-
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.management.PlayerList;
-import net.minecraft.server.management.PlayerProfileCache;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.util.text.event.HoverEvent;
+import java.util.Random;
+import java.util.UUID;
 
 public final class Util {
 
@@ -34,24 +30,24 @@ public final class Util {
         return String.format("%08x", RAND.nextInt());
     }
 
-    public static boolean isOpInServer(PlayerEntity player, MinecraftServer server) {
+    public static boolean isOpInServer(Player player, MinecraftServer server) {
         return server.getPlayerList().getOps().get(player.getGameProfile()) != null;
     }
 
-    public static IFormattableTextComponent toGreenText(BlockPos pos) {
-        return new TranslationTextComponent("area_control.claim.pos", pos.getX(), pos.getY(), pos.getZ())
-                .withStyle(TextFormatting.GREEN);
+    public static Component toGreenText(BlockPos pos) {
+        return new TranslatableComponent("area_control.claim.pos", pos.getX(), pos.getY(), pos.getZ())
+                .withStyle(ChatFormatting.GREEN);
     }
 
-    public static IFormattableTextComponent toGreenText(Area area) {
-        ITextComponent min = new TranslationTextComponent("area_control.claim.pos", area.minX, area.minY, area.minZ)
-                .withStyle(TextFormatting.GREEN);
-        ITextComponent max = new TranslationTextComponent("area_control.claim.pos", area.maxX, area.maxY, area.maxZ)
-                .withStyle(TextFormatting.GREEN);
-        return new TranslationTextComponent("area_control.claim.range", min, max);
+    public static Component toGreenText(Area area) {
+        var min = new TranslatableComponent("area_control.claim.pos", area.minX, area.minY, area.minZ)
+                .withStyle(ChatFormatting.GREEN);
+        var max = new TranslatableComponent("area_control.claim.pos", area.maxX, area.maxY, area.maxZ)
+                .withStyle(ChatFormatting.GREEN);
+        return new TranslatableComponent("area_control.claim.range", min, max);
     }
 
-    public static Area createArea(AxisAlignedBB box) {
+    public static Area createArea(AABB box) {
         final Area a = new Area();
         a.minX = (int) box.minX;
         a.minY = (int) box.minY;
@@ -62,28 +58,29 @@ public final class Util {
         return a;
     }
 
-    public static ITextComponent getOwnerName(Area area, PlayerProfileCache profileCache, PlayerList onlinePlayers) {
+    public static Component getOwnerName(Area area, GameProfileCache profileCache, PlayerList onlinePlayers) {
         final UUID owner = area.owner;
         if (owner == null || SYSTEM.equals(owner)) {
-            return new StringTextComponent("System");
+            return new TextComponent("System");
         } else {
             if (profileCache != null) {
-                GameProfile profile = profileCache.get(owner);
-                if (profile != null) {
-                    final IFormattableTextComponent ownerName = new StringTextComponent(profile.getName());
+                var maybeProfile = profileCache.get(owner);
+                if (maybeProfile.isPresent()) {
+                    var profile = maybeProfile.get();
+                    final var ownerName = new TextComponent(profile.getName());
                     if (onlinePlayers != null) {
-                        PlayerEntity p = onlinePlayers.getPlayer(owner);
+                        Player p = onlinePlayers.getPlayer(owner);
                         if (p != null) {
-                            ownerName.setStyle(Style.EMPTY.withColor(TextFormatting.GREEN)
+                            ownerName.setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)
                                     .setUnderlined(Boolean.TRUE)
-                                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslationTextComponent("area_control.owner.aka", p.getDisplayName())))
+                                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.owner.aka", p.getDisplayName())))
                             );
                         }
                     }
                     return ownerName;
                 }
             }
-            return new StringTextComponent(owner.toString());
+            return new TextComponent(owner.toString());
         }
     }
 }

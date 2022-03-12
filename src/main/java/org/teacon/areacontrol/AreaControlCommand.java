@@ -5,22 +5,19 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-
 import it.unimi.dsi.fastutil.objects.ObjectArrays;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.Vec3Argument;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.coordinates.Vec3Argument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.server.permission.PermissionAPI;
-import org.apache.commons.lang3.tuple.Pair;
+import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 
@@ -30,138 +27,133 @@ import java.util.function.Predicate;
 
 public final class AreaControlCommand {
 
-    public AreaControlCommand(CommandDispatcher<CommandSource> dispatcher) {
+    public AreaControlCommand(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("ac")
                 .redirect(dispatcher.register(Commands.literal("areacontrol")
                         .then(Commands.literal("about").executes(AreaControlCommand::about))
                         .then(Commands.literal("admin").executes(AreaControlCommand::admin))
-                        .then(Commands.literal("claim").requires(check("area_control.command.claim")).executes(AreaControlCommand::claim))
+                        .then(Commands.literal("claim").requires(check(AreaControlPermissions.CLAIM_AREA)).executes(AreaControlCommand::claim))
                         .then(Commands.literal("current").executes(AreaControlCommand::displayCurrent))
                         .then(Commands.literal("list").executes(AreaControlCommand::list))
-                        .then(Commands.literal("mark").requires(check("area_control.command.mark")).then(
+                        .then(Commands.literal("mark").requires(check(AreaControlPermissions.MARK_AREA)).then(
                                 Commands.argument("pos", Vec3Argument.vec3())
                                         .executes(AreaControlCommand::mark)))
-                        .then(Commands.literal("set").requires(check("area_control.command.set_property")).then(
+                        .then(Commands.literal("set").requires(check(AreaControlPermissions.SET_PROPERTY)).then(
                             Commands.argument("property", StringArgumentType.string()).then(
                                 Commands.argument("value", StringArgumentType.greedyString())
                                     .executes(AreaControlCommand::setProperty)
                             )))
-                        .then(Commands.literal("unclaim").requires(check("area_control.command.unclaim")).executes(AreaControlCommand::unclaim))
+                        .then(Commands.literal("unclaim").requires(check(AreaControlPermissions.UNCLAIM_AREA)).executes(AreaControlCommand::unclaim))
                         )
                 )
         );
     }
 
-    private Predicate<CommandSource> check(String permission) {
+    private static Predicate<CommandSourceStack> check(PermissionNode<Boolean> permission) {
         return source -> {
-            if (source.source instanceof ServerPlayerEntity) {
-                return PermissionAPI.hasPermission((ServerPlayerEntity) source.source, permission);
+            if (source.getEntity() instanceof ServerPlayer) {
+                return PermissionAPI.getPermission((ServerPlayer) source.getEntity(), permission);
             }
             return source.hasPermission(2);
         };
     }
 
-    private static int about(CommandContext<CommandSource> context) {
-        context.getSource().sendSuccess(new StringTextComponent("AreaControl 0.1.4"), false);
+    private static int about(CommandContext<CommandSourceStack> context) {
+        context.getSource().sendSuccess(new TextComponent("AreaControl 0.1.4"), false);
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int admin(CommandContext<CommandSource> context) {
-        context.getSource().sendSuccess(new StringTextComponent("WIP"), false);
+    private static int admin(CommandContext<CommandSourceStack> context) {
+        context.getSource().sendSuccess(new TextComponent("WIP"), false);
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int claim(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final CommandSource src = context.getSource();
-        final ServerPlayerEntity claimer = src.getPlayerOrException();
-        final Pair<BlockPos, BlockPos> recordPos = AreaControlClaimHandler.popRecord(src.getPlayerOrException());
+    private static int claim(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var claimer = src.getPlayerOrException();
+        final var recordPos = AreaControlClaimHandler.popRecord(src.getPlayerOrException());
         if (recordPos != null) {
-            final Area area = Util.createArea(new AxisAlignedBB(recordPos.getLeft(), recordPos.getRight()));
+            final Area area = Util.createArea(new AABB(recordPos.start(), recordPos.end()));
             final UUID claimerUUID = claimer.getGameProfile().getId();
             if (claimerUUID != null) {
             	area.owner = claimerUUID;
             }
-            final RegistryKey<World> worldIndex = src.getLevel().dimension();
+            final var worldIndex = src.getLevel().dimension();
             if (AreaManager.INSTANCE.add(area, worldIndex)) {
-                src.sendSuccess(new TranslationTextComponent("area_control.claim.created", area.name, Util.toGreenText(area)), true);
+                src.sendSuccess(new TranslatableComponent("area_control.claim.created", area.name, Util.toGreenText(area)), true);
                 return Command.SINGLE_SUCCESS;
             } else {
-                src.sendFailure(new StringTextComponent("Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?"));
+                src.sendFailure(new TextComponent("Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?"));
                 return -2;
             }
         } else {
-            src.sendFailure(new StringTextComponent("Cannot determine what area you want to claim. Did you forget to select an area?"));
+            src.sendFailure(new TextComponent("Cannot determine what area you want to claim. Did you forget to select an area?"));
             return -1;
         }
         
     }
 
-    private static int displayCurrent(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final CommandSource src = context.getSource();
-        final MinecraftServer server = src.getServer();
+    private static int displayCurrent(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var server = src.getServer();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
         if (area != AreaManager.INSTANCE.wildness) {
             final String name = AreaProperties.getString(area, "area.display_name", area.name);
-            final ITextComponent ownerName = Util.getOwnerName(area, server.getProfileCache(), server.getPlayerList());
-            src.sendSuccess(new TranslationTextComponent("area_control.claim.current", name, ownerName), true);
+            final var ownerName = Util.getOwnerName(area, server.getProfileCache(), server.getPlayerList());
+            src.sendSuccess(new TranslatableComponent("area_control.claim.current", name, ownerName), true);
         } else {
-            src.sendSuccess(new TranslationTextComponent("area_control.claim.current.wildness"), true);
+            src.sendSuccess(new TranslatableComponent("area_control.claim.current.wildness"), true);
         }
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int list(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final CommandSource src = context.getSource();
-        src.sendSuccess(new TranslationTextComponent("area_control.claim.list", ObjectArrays.EMPTY_ARRAY), false);
+    private static int list(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        src.sendSuccess(new TranslatableComponent("area_control.claim.list", ObjectArrays.EMPTY_ARRAY), false);
         for (Area a : AreaManager.INSTANCE.getKnownAreas()) {
-        	src.sendSuccess(new TranslationTextComponent("area_control.claim.list.element", a.name, Util.toGreenText(a)), false);
+        	src.sendSuccess(new TranslatableComponent("area_control.claim.list.element", a.name, Util.toGreenText(a)), false);
         }
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int mark(CommandContext<CommandSource> context) throws CommandSyntaxException {
+    private static int mark(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         BlockPos marked = new BlockPos(Vec3Argument.getVec3(context, "pos"));
         AreaControlClaimHandler.pushRecord(context.getSource().getPlayerOrException(), marked);
-        context.getSource().sendSuccess(new TranslationTextComponent("area_control.claim.marked", Util.toGreenText(marked)), true);
+        context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.marked", Util.toGreenText(marked)), true);
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int setProperty(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final CommandSource src = context.getSource();
+    private static int setProperty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
-        if (area != null) {
-            final String prop = context.getArgument("property", String.class);
-            final String value = context.getArgument("value", String.class);
-            final Object oldValue = area.properties.put(prop, value);
-            context.getSource().sendSuccess(new TranslationTextComponent("area_control.claim.property.update",
-            		area.name, prop, value, Objects.toString(oldValue)), false);
-            return Command.SINGLE_SUCCESS;
-        } else {
-            context.getSource().sendFailure(new StringTextComponent("You are not even in an designated area?! This can be a bug; consider reporting it."));
-            return -1;
-        }
+        final String prop = context.getArgument("property", String.class);
+        final String value = context.getArgument("value", String.class);
+        final Object oldValue = area.properties.put(prop, value);
+        context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.property.update",
+        		area.name, prop, value, Objects.toString(oldValue)), false);
+        return Command.SINGLE_SUCCESS;
     }
 
-    private static int unclaim(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final CommandSource src = context.getSource();
-        final ServerPlayerEntity claimer = src.getPlayerOrException();
-        final RegistryKey<World> worldIndex = src.getLevel().dimension();
+    private static int unclaim(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var claimer = src.getPlayerOrException();
+        final ResourceKey<Level> worldIndex = src.getLevel().dimension();
         final Area area = AreaManager.INSTANCE.findBy(worldIndex, new BlockPos(src.getPosition()));
         if (area != AreaManager.INSTANCE.wildness) {
             if (area.owner.equals(claimer.getGameProfile().getId())) {
                 AreaManager.INSTANCE.remove(area, worldIndex);
-                src.sendSuccess(new TranslationTextComponent("area_control.claim.abandoned", 
+                src.sendSuccess(new TranslatableComponent("area_control.claim.abandoned", 
                         AreaProperties.getString(area, "area.display_name", area.name),
                         area.name, Util.toGreenText(area)), false);
                 return Command.SINGLE_SUCCESS;
             } else {
-                src.sendFailure(new TranslationTextComponent("area_cnotrol.error.unclaim_without_permimisson",
+                src.sendFailure(new TranslatableComponent("area_cnotrol.error.unclaim_without_permimisson",
                         AreaProperties.getString(area, "area.display_name", area.name),
                         area.name, Util.toGreenText(area)));
                 return -1;
             }
         } else {
-            context.getSource().sendFailure(new StringTextComponent("You are in the wildness. Are you returning the wild nature to the nature itself?"));
+            context.getSource().sendFailure(new TextComponent("You are in the wildness. Are you returning the wild nature to the nature itself?"));
             return -1;
         }
     }
