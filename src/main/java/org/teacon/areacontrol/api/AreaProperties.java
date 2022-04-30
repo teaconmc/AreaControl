@@ -21,6 +21,10 @@ public final class AreaProperties {
         return property;
     }
 
+    public static boolean keyPresent(Area area, String key) {
+        return area.properties.containsKey(key);
+    }
+
     public static boolean getBool(Area area, String key) {
         Object o = area.properties.get(key);
         if (o == null) {

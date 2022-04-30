@@ -16,6 +16,7 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.PermissionAPI;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
@@ -119,10 +120,25 @@ public final class AreaControlEventHandlers {
         }
         final var p = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
-        if (!AreaProperties.getBool(targetArea, "area.allow_break_block")
-           && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_BREAK_BLOCK)) {
-                p.displayClientMessage(new TranslatableComponent("area_control.notice.break_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
-                event.setCanceled(true);
+        final var block = event.getWorld().getBlockState(event.getPos());
+        final var blockName = ForgeRegistries.BLOCKS.getKey(block.getBlock());
+        final var blockSpecificPerm = blockName != null ? "area.allow_break_block." + blockName : null;
+        final var modSpecificPerm = blockName != null ? "area.allow_break_block." + blockName.getNamespace() : null;
+        var allowed = true;
+        if (AreaProperties.keyPresent(targetArea, blockSpecificPerm)) {
+            allowed = AreaProperties.getBool(targetArea, blockSpecificPerm);
+        } else if (AreaProperties.keyPresent(targetArea, modSpecificPerm)) {
+            allowed = AreaProperties.getBool(targetArea, modSpecificPerm);
+        } else {
+            allowed = AreaProperties.getBool(targetArea, "area.allow_break_block");
+        }
+        var override = PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_BREAK_BLOCK);
+        if (override != null) {
+            allowed |= override;
+        }
+        if (!allowed) {
+            p.displayClientMessage(new TranslatableComponent("area_control.notice.break_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
+            event.setCanceled(true);
         }
     }
 
@@ -158,8 +174,22 @@ public final class AreaControlEventHandlers {
         }
         final var p = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
-        if (!AreaProperties.getBool(targetArea, "area.allow_use_item")
-                && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_USE_ITEM)) {
+        final var itemName = event.getItemStack().getItem().getRegistryName();
+        final var itemSpecificPerm = itemName != null ? "area.allow_use_item." + itemName : null;
+        final var modSpecificPerm = itemName != null ? "area.allow_use_item." + itemName.getNamespace() : null;
+        var allow = true;
+        if (AreaProperties.keyPresent(targetArea, itemSpecificPerm)) {
+            allow = AreaProperties.getBool(targetArea, itemSpecificPerm);
+        } else if (AreaProperties.keyPresent(targetArea, modSpecificPerm)) {
+            allow = AreaProperties.getBool(targetArea, modSpecificPerm);
+        } else {
+            allow = AreaProperties.getBool(targetArea, "area.allow_use_item");
+        }
+        var override = PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_USE_ITEM);
+        if (override != null) {
+            allow |= override;
+        }
+        if (!allow) {
             p.displayClientMessage(new TranslatableComponent("area_control.notice.use_item_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
         }
@@ -183,11 +213,30 @@ public final class AreaControlEventHandlers {
             return;
         }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
-        if (!AreaProperties.getBool(targetArea, "area.allow_place_block")) {
-            final Entity e = event.getEntity();
-            if (e instanceof ServerPlayer && !PermissionAPI.getPermission((ServerPlayer) e, AreaControlPermissions.BYPASS_PLACE_BLOCK)) {
-                // TODO This one does consume the item. Ideas?
-                event.setCanceled(true);
+        final var block = event.getWorld().getBlockState(event.getPos());
+        final var blockName = ForgeRegistries.BLOCKS.getKey(block.getBlock());
+        final var blockSpecificPerm = blockName != null ? "area.allow_place_block." + blockName : null;
+        final var modSpecificPerm = blockName != null ? "area.allow_place_block." + blockName.getNamespace() : null;
+        var allowed = true;
+        if (AreaProperties.keyPresent(targetArea, blockSpecificPerm)) {
+            allowed = AreaProperties.getBool(targetArea, blockSpecificPerm);
+        } else if (AreaProperties.keyPresent(targetArea, modSpecificPerm)) {
+            allowed = AreaProperties.getBool(targetArea, modSpecificPerm);
+        } else {
+            allowed = AreaProperties.getBool(targetArea, "area.allow_place_block");
+        }
+        final var placer = event.getEntity();
+        if (placer instanceof ServerPlayer p) {
+            var override = PermissionAPI.getPermission(p, AreaControlPermissions.BYPASS_BREAK_BLOCK);
+            if (override != null) {
+                allowed |= override;
+            }
+        }
+        if (!allowed) {
+            // TODO Client will falsely report item being consumed; however it will return to normal if you click again in inventory GUI
+            event.setCanceled(true);
+            if (placer instanceof ServerPlayer p) {
+                p.displayClientMessage(new TranslatableComponent("area_control.notice.place_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
             }
         }
     }
