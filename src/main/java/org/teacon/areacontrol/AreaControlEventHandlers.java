@@ -246,7 +246,7 @@ public final class AreaControlEventHandlers {
         if (event.getWorld().isClientSide()) {
             return;
         }
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().dimension(), new BlockPos(event.getExplosion().getPosition()));
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), new BlockPos(event.getExplosion().getPosition()));
         if (!AreaProperties.getBool(targetArea, "area.allow_explosion")) {
             event.setCanceled(true);
         }
@@ -257,7 +257,7 @@ public final class AreaControlEventHandlers {
         if (event.getWorld().isClientSide()) {
             return;
         }
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().dimension(), new BlockPos(event.getExplosion().getPosition()));
+        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), new BlockPos(event.getExplosion().getPosition()));
         if (!AreaProperties.getBool(targetArea, "area.allow_explosion_affect_blocks")) {
             event.getAffectedBlocks().clear();
         }

@@ -15,6 +15,7 @@ import javax.annotation.Nonnull;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Registry;
@@ -26,6 +27,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.dimension.DimensionType;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
@@ -39,6 +41,7 @@ public final class AreaManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     
     final Area wildness = new Area();
+    final Area singlePlayerWildness = new Area();
 
     private final HashMap<String, Area> areasByName = new HashMap<>();
     /**
@@ -63,6 +66,31 @@ public final class AreaManager {
         this.wildness.properties.put("area.allow_use_item", Boolean.TRUE);
         this.wildness.properties.put("area.allow_interact_entity", Boolean.TRUE);
         this.wildness.properties.put("area.allow_interact_entity_specific", Boolean.TRUE);
+
+        // TODO Too brutal, need a clever way
+        this.singlePlayerWildness.uid = Util.SYSTEM;
+        this.singlePlayerWildness.name = "single_player_wildness";
+        this.singlePlayerWildness.minX = Integer.MIN_VALUE;
+        this.singlePlayerWildness.minY = Integer.MIN_VALUE;
+        this.singlePlayerWildness.minZ = Integer.MIN_VALUE;
+        this.singlePlayerWildness.maxX = Integer.MAX_VALUE;
+        this.singlePlayerWildness.maxY = Integer.MAX_VALUE;
+        this.singlePlayerWildness.maxZ = Integer.MAX_VALUE;
+        this.singlePlayerWildness.properties.put("area.allow_spawn", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_special_spawn", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_pvp", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_attack", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_click_block", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_break_block", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_activate_block", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_use_item", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_trample_farmland", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_place_block", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_interact_entity", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_interact_entity_specific", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_explosion", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_explosion_affect_blocks", Boolean.TRUE);
+        this.singlePlayerWildness.properties.put("area.allow_explosion_affect_entities", Boolean.TRUE);
     }
 
     private void buildCacheFor(Area area, ResourceKey<Level> worldIndex) {
@@ -165,10 +193,15 @@ public final class AreaManager {
         // We will see how Mojang proceeds. Specifically, the exact
         // meaning of Dimension objects. For now, they seems to be
         // able to fully qualify a world/dimension.
-        return this.findBy(worldInstance.dimension(), pos);
+        return this.findBy((LevelAccessor) worldInstance, pos);
     }
 
     public @Nonnull Area findBy(LevelAccessor maybeLevel, BlockPos pos) {
+        if (maybeLevel.getServer() instanceof IntegratedServer lanServer) {
+            if (!lanServer.isPublished()) {
+                return this.singlePlayerWildness;
+            }
+        }
         if (maybeLevel instanceof Level) {
             // TODO Is maybeLevel.dimensionType() actually reliable?
             return this.findBy((Level) maybeLevel, pos);
