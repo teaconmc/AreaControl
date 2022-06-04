@@ -8,8 +8,9 @@ public class AreaControlPermissions {
     static final PermissionNode.PermissionResolver<Boolean> OP_ONLY = (p, uuid, contexts) -> {
         if (p == null) return true;
         var server = p.getServer();
-        if (server == null) return false;
-        return server.getPlayerList().isOp(p.getGameProfile());
+        if (server == null) return false; // There isn't a server?
+        if (server.isSingleplayerOwner(p.getGameProfile())) return true; // Bypass single-player
+        return p.hasPermissions(2);
     };
     static final PermissionNode.PermissionResolver<Boolean> ANYONE = (p, uuid, contexts) -> true;
 

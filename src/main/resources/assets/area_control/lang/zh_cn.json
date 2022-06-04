@@ -22,6 +22,7 @@
   "area_control.notice.pvp_disabled": "AreaControl：该区域已禁止 PvP，如果你认为这是个错误，请联系管理员",
   "area_control.notice.pve_disabled": "AreaControl：该区域已禁止 PvE，如果你认为这是个错误，请联系管理员",
   "area_control.notice.use_item_disabled": "AreaControl：该区域已禁止使用物品，如果你认为这是个错误，请联系管理员",
-  
+  "area_control.notice.place_block_disabled": "AreaControl：该区域已禁止放置方块，如果你认为这是个错误，请联系管理员",
+
   "area_cnotrol.error.unclaim_without_permimisson": "AreaControl：放弃领地 %s（内部名 %s，%s）失败，因为这块领地不属于你，或者你没有权限这么做。"
 }
