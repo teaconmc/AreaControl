@@ -260,6 +260,14 @@ public final class AreaControlEventHandlers {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), new BlockPos(event.getExplosion().getPosition()));
         if (!AreaProperties.getBool(targetArea, "area.allow_explosion_affect_blocks")) {
             event.getAffectedBlocks().clear();
+        } else {
+            for (var itr = event.getAffectedBlocks().iterator(); itr.hasNext();) {
+                BlockPos affected = itr.next();
+                final Area a = AreaManager.INSTANCE.findBy(event.getWorld(), affected);
+                if (!AreaProperties.getBool(a, "area.allow_explosion_affect_blocks")) {
+                    itr.remove();
+                }
+            }
         }
         if (!AreaProperties.getBool(targetArea, "area.allow_explosion_affect_entities")) {
             event.getAffectedEntities().clear();
