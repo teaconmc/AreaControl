@@ -3,6 +3,7 @@ package org.teacon.areacontrol;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -13,6 +14,7 @@ import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.server.permission.events.PermissionGatherEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.teacon.areacontrol.network.ACNetworking;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +31,7 @@ public final class AreaControl {
         ModLoadingContext context = ModLoadingContext.get();
         context.registerExtensionPoint(IExtensionPoint.DisplayTest.class,
                 () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (serverVer, isDedi) -> true));
+        ACNetworking.init();
     }
 
     @SubscribeEvent
@@ -95,6 +98,16 @@ public final class AreaControl {
                 LOGGER.warn("Failed to create data directory.", e);
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        AreaControlPlayerTracker.INSTANCE.markPlayerAsSupportExt(event.getPlayer().getGameProfile().getId());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        AreaControlPlayerTracker.INSTANCE.undoMarkPlayer(event.getPlayer().getGameProfile().getId());
     }
 
     @SubscribeEvent

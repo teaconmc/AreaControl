@@ -3,10 +3,13 @@ package org.teacon.areacontrol;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,6 +22,7 @@ import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Registry;
+import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -27,7 +31,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.dimension.DimensionType;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
@@ -48,9 +51,8 @@ public final class AreaManager {
      * All known instances of {@link Area}, indexed by dimensions and chunk positions covered by this area.
      * Used for faster lookup of {@link Area}.
      */
-    @Deprecated
-    private final IdentityHashMap<DimensionType, Map<ChunkPos, Set<Area>>> areasByChunk = new IdentityHashMap<>();
     private final IdentityHashMap<ResourceKey<Level>, Map<ChunkPos, Set<Area>>> perWorldAreaCache = new IdentityHashMap<>();
+    private final IdentityHashMap<ResourceKey<Level>, Set<Area>> areasByWorld = new IdentityHashMap<>();
 
     {
         this.wildness.uid = Util.SYSTEM;
@@ -94,6 +96,13 @@ public final class AreaManager {
     }
 
     private void buildCacheFor(Area area, ResourceKey<Level> worldIndex) {
+        this.areasByWorld.compute(worldIndex, (key, areas) -> {
+            if (areas == null) {
+                areas = new HashSet<>();
+            }
+            areas.add(area);
+            return areas;
+        });
         final Map<ChunkPos, Set<Area>> areasInDim = this.perWorldAreaCache.computeIfAbsent(worldIndex, id -> new HashMap<>());
         ChunkPos.rangeClosed(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))
                 .map(cp -> areasInDim.computeIfAbsent(cp, _cp -> Collections.newSetFromMap(new IdentityHashMap<>())))
@@ -193,7 +202,7 @@ public final class AreaManager {
         // We will see how Mojang proceeds. Specifically, the exact
         // meaning of Dimension objects. For now, they seems to be
         // able to fully qualify a world/dimension.
-        return this.findBy((LevelAccessor) worldInstance, pos);
+        return this.findBy(worldInstance.dimension(), pos);
     }
 
     public @Nonnull Area findBy(LevelAccessor maybeLevel, BlockPos pos) {
@@ -227,19 +236,6 @@ public final class AreaManager {
         return AreaManager.INSTANCE.wildness;
     }
 
-    /**
-     * @deprecated It is no longer reliable to get a {@link Level} instance from just a
-     * {@link DimensionType} instance alone.
-     * Consider use {@link #findBy(ResourceKey, BlockPos)} instead.
-     * @param dimType The dimension type object
-     * @param pos The position
-     * @return The area instance
-     */
-    @Deprecated
-    public Area findBy(DimensionType dimType, BlockPos pos) {
-        return this.wildness;
-    }
-
     public Area findBy(String name) {
         return this.areasByName.get(name);
     }
@@ -247,4 +243,14 @@ public final class AreaManager {
     public Collection<Area> getKnownAreas() {
 		return Collections.unmodifiableCollection(this.areasByName.values());
 	}
+
+    public List<Area.Summary> getAreaSummariesSurround(ResourceKey<Level> dim, BlockPos center, double radius) {
+        var ret = new ArrayList<Area.Summary>();
+        for (Area area : this.areasByWorld.getOrDefault(dim, Collections.emptySet())) {
+            if (center.closerThan(new Vec3i((area.maxX - area.minX) / 2, (area.maxY - area.minY) / 2, (area.maxZ - area.minZ) / 2), radius)) {
+                ret.add(new Area.Summary(area));
+            }
+        }
+        return ret;
+    }
 }

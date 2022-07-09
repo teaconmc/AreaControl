@@ -32,6 +32,7 @@ public final class AreaControlCommand {
                 .redirect(dispatcher.register(Commands.literal("areacontrol")
                         .then(Commands.literal("about").executes(AreaControlCommand::about))
                         .then(Commands.literal("admin").executes(AreaControlCommand::admin))
+                        .then(Commands.literal("nearby").executes(AreaControlCommand::nearby))
                         .then(Commands.literal("claim").requires(check(AreaControlPermissions.CLAIM_AREA)).executes(AreaControlCommand::claim))
                         .then(Commands.literal("current").executes(AreaControlCommand::displayCurrent))
                         .then(Commands.literal("list").executes(AreaControlCommand::list))
@@ -65,6 +66,15 @@ public final class AreaControlCommand {
 
     private static int admin(CommandContext<CommandSourceStack> context) {
         context.getSource().sendSuccess(new TextComponent("WIP"), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int nearby(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var server = src.getServer();
+        final var sender = src.getPlayerOrException();
+        final var dim = src.getLevel().dimension();
+        AreaControlPlayerTracker.INSTANCE.sendNearbyAreasToClient(dim, sender, server.getPlayerList().getViewDistance() * 16);
         return Command.SINGLE_SUCCESS;
     }
 
