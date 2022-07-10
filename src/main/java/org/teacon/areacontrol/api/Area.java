@@ -1,7 +1,9 @@
 package org.teacon.areacontrol.api;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.teacon.areacontrol.Util;
@@ -18,6 +20,7 @@ public final class Area {
     public String dimension = "minecraft:overworld";
     
     public UUID owner = new UUID(0L, 0L);
+    public Set<UUID> friends = new HashSet<>();
 
     public int minX, minY, minZ, maxX, maxY, maxZ;
 
