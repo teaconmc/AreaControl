@@ -22,6 +22,7 @@ import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -30,7 +31,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
@@ -39,6 +40,7 @@ public final class AreaManager {
 
     public static final AreaManager INSTANCE = new AreaManager();
 
+    public static final boolean DEBUG = Boolean.getBoolean("area_control.dev");
     private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -174,6 +176,7 @@ public final class AreaManager {
     public void remove(Area area, ResourceKey<Level> worldIndex) {
         this.areasByName.remove(area.name, area);
         this.perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(a -> a == area)));
+        this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet()).remove(area);
 	}
 
     /**
@@ -206,19 +209,34 @@ public final class AreaManager {
     }
 
     public @Nonnull Area findBy(LevelAccessor maybeLevel, BlockPos pos) {
-        if (maybeLevel.getServer() instanceof IntegratedServer lanServer) {
+        if (!DEBUG && maybeLevel.getServer() instanceof IntegratedServer lanServer) {
             if (!lanServer.isPublished()) {
                 return this.singlePlayerWildness;
             }
         }
-        if (maybeLevel instanceof Level) {
-            // TODO Is maybeLevel.dimensionType() actually reliable?
-            return this.findBy((Level) maybeLevel, pos);
+        if (maybeLevel instanceof Level level) {
+            return this.findBy(level.dimension(), pos);
         } else if (maybeLevel instanceof ServerLevelAccessor) {
             return this.findBy(((ServerLevelAccessor) maybeLevel).getLevel(), pos);
         } else {
-            LOGGER.warn("Unrecognized world instance of LevelAccessor passed in for area querying");
-            return AreaManager.INSTANCE.wildness;
+            LOGGER.debug("Use LevelAccessor.dimensionType() to determine dimension id at best effort");
+            var server = ServerLifecycleHooks.getCurrentServer();
+            if (server == null) {
+                return this.wildness;
+            }
+            RegistryAccess registryAccess = server.registryAccess();
+            var maybeDimRegistry = registryAccess.registry(Registry.DIMENSION_TYPE_REGISTRY);
+            if (maybeDimRegistry.isPresent()) {
+                var dimKey = maybeDimRegistry.get().getKey(maybeLevel.dimensionType());
+                if (dimKey == null) {
+                    LOGGER.warn("Detect unregistered DimensionType; we cannot reliably determine the dimension name. Treat as wildness instead.");
+                    return this.wildness;
+                }
+                return this.findBy(ResourceKey.create(Registry.DIMENSION_REGISTRY, dimKey), pos);
+            } else {
+                LOGGER.warn("Detect that the DimensionType registry itself is missing. This should be impossible. Treat as wildness instead.");
+                return this.wildness;
+            }
         }
     }
 
