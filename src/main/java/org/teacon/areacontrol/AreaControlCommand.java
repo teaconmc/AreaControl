@@ -89,9 +89,9 @@ public final class AreaControlCommand {
     private static int claim(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final var claimer = src.getPlayerOrException();
-        final var recordPos = AreaControlClaimHandler.popRecord(src.getPlayerOrException());
+        final var recordPos = AreaControlClaimHandler.popRecord(claimer);
         if (recordPos != null) {
-            final Area area = Util.createArea(new AABB(recordPos.start(), recordPos.end()));
+            final Area area = Util.createArea(recordPos.start(), recordPos.end());
             final UUID claimerUUID = claimer.getGameProfile().getId();
             if (claimerUUID != null) {
             	area.owner = claimerUUID;

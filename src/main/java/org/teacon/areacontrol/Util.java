@@ -47,14 +47,14 @@ public final class Util {
         return new TranslatableComponent("area_control.claim.range", min, max);
     }
 
-    public static Area createArea(AABB box) {
+    public static Area createArea(BlockPos start, BlockPos end) {
         final Area a = new Area();
-        a.minX = (int) box.minX;
-        a.minY = (int) box.minY;
-        a.minZ = (int) box.minZ;
-        a.maxX = (int) box.maxX;
-        a.maxY = (int) box.maxY;
-        a.maxZ = (int) box.maxZ;
+        a.minX = Math.min(start.getX(), end.getX());
+        a.minY = Math.min(start.getY(), end.getY());
+        a.minZ = Math.min(start.getZ(), end.getZ());
+        a.maxX = Math.max(start.getX(), end.getX());
+        a.maxY = Math.max(start.getY(), end.getY());
+        a.maxZ = Math.max(start.getZ(), end.getZ());
         return a;
     }
 
