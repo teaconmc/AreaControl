@@ -15,6 +15,7 @@
   
   "area_control.claim.current": "You are in an area named '%1$s', owned by %2$s",
   "area_control.claim.current.wildness": "You are in the wildness.",
+  "area_control.claim.nearby": "There are %d area(s) within your sight. They are now temporarily highlighted as aquamarine-colored cuboid(s).",
   
   "area_control.claim.property.update": "AreaControl: property '%2$s' in area '%1$s' has been updated to '%3$s' (was '%4$s')",
   

@@ -15,7 +15,8 @@
   
   "area_control.claim.current": "你现在身在名为 %1$s 的领地中，这块领地由 %2$s 控制。",
   "area_control.claim.current.wildness": "你现在身在野外。",
-  
+  "area_control.claim.nearby": "在你的视野范围内有 %d 块领地，这些领地的范围现在有临时的碧绿色高亮。",
+
   "area_control.claim.property.update": "AreaControl：已将领地 '%1$s' 的属性 '%2$s' 值更新为 '%3$s'（此前为 '%4$s'）",
   
   "area_control.notice.break_block_disabled": "AreaControl：该区域已禁止破坏方块，如果你认为这是个错误，请联系管理员",

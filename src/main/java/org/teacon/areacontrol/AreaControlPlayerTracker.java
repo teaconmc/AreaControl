@@ -1,5 +1,6 @@
 package org.teacon.areacontrol;
 
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -29,6 +30,7 @@ public enum AreaControlPlayerTracker {
         if (this.playersWithExt.contains(requester.getGameProfile().getId())) {
             var nearbyAreas = AreaManager.INSTANCE.getAreaSummariesSurround(dim, requester.blockPosition(), radius);
             ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> requester), new ACSendNearbyArea(nearbyAreas));
+            requester.displayClientMessage(new TranslatableComponent("area_control.claim.nearby", nearbyAreas.size()), false);
         }
     }
 }
