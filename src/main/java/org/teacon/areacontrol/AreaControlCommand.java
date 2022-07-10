@@ -14,6 +14,7 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -31,6 +32,7 @@ public final class AreaControlCommand {
         dispatcher.register(Commands.literal("ac")
                 .redirect(dispatcher.register(Commands.literal("areacontrol")
                         .then(Commands.literal("about").executes(AreaControlCommand::about))
+                        .then(Commands.literal("help").executes(AreaControlCommand::help))
                         .then(Commands.literal("admin").executes(AreaControlCommand::admin))
                         .then(Commands.literal("nearby").executes(AreaControlCommand::nearby))
                         .then(Commands.literal("claim").requires(check(AreaControlPermissions.CLAIM_AREA)).executes(AreaControlCommand::claim))
@@ -61,6 +63,12 @@ public final class AreaControlCommand {
 
     private static int about(CommandContext<CommandSourceStack> context) {
         context.getSource().sendSuccess(new TextComponent("AreaControl 0.1.4"), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int help(CommandContext<CommandSourceStack> context) {
+        var markerTool = new ItemStack(AreaControlClaimHandler.userClaimTool).getDisplayName();
+        context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.how_to", markerTool), false);
         return Command.SINGLE_SUCCESS;
     }
 

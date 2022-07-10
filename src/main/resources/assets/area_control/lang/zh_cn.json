@@ -2,7 +2,8 @@
   "area_control.admin.welcome": "AreaControl：欢迎回来，管理员 %s",
   
   "area_control.owner.aka": "在游戏中又名 %s",
-  
+
+  "area_control.claim.how_to": "你需要%1$s来声明领地。首先你要手持%1$s右击你要声明的区域的左下角。\n然后你要手持一样的物品右击你要声明的区域的右上角，然后执行命令 /ac claim 即可。",
   "area_control.claim.pos": "[%d, %d, %d]",
   "area_control.claim.range": "范围为从 %1$s 到 %2$s", 
   "area_control.claim.marked": "AreaControl：已选定位置 %s",

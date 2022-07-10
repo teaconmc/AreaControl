@@ -2,7 +2,8 @@
   "area_control.admin.welcome": "AreaControl: Welcome back, administrator %s",
   
   "area_control.owner.aka": "Known as %s in-game",
- 
+
+  "area_control.claim.how_to": "To claim a area, you need a(n) %1$s. You need to hold this item and use it on the lower-left corner of the area you would like to claim. \nThen, do the same on the upper-right corner of the area you would like to claim. Finally, execute command /ac claim.",
   "area_control.claim.pos": "[%d, %d, %d]",
   "area_control.claim.range": "from %1$s to %2$s", 
   "area_control.claim.marked": "AreaControl: Marked position %s",
