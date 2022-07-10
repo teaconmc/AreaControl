@@ -62,8 +62,16 @@ minecraft {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     minecraft 'net.minecraftforge:forge:1.18.2-40.0.12'
+
+    // Yes you see this right, LuckPerms.
+    // This is for our custom ContextCalculator support.
+    compileOnly 'net.luckperms:api:5.4'
 }
 
 jar {
