@@ -16,7 +16,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.teacon.areacontrol.api.Area;
@@ -101,11 +100,11 @@ public final class AreaControlCommand {
                 src.sendSuccess(new TranslatableComponent("area_control.claim.created", area.name, Util.toGreenText(area)), true);
                 return Command.SINGLE_SUCCESS;
             } else {
-                src.sendFailure(new TextComponent("Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?"));
+                src.sendFailure(new TranslatableComponent("area_control.error.overlap"));
                 return -2;
             }
         } else {
-            src.sendFailure(new TextComponent("Cannot determine what area you want to claim. Did you forget to select an area?"));
+            src.sendFailure(new TranslatableComponent("area_control.error.no_selection"));
             return -1;
         }
         
@@ -171,7 +170,7 @@ public final class AreaControlCommand {
                 return -1;
             }
         } else {
-            context.getSource().sendFailure(new TextComponent("You are in the wildness. Are you returning the wild nature to the nature itself?"));
+            context.getSource().sendFailure(new TranslatableComponent("area_control.error.unclaim_wildness"));
             return -1;
         }
     }

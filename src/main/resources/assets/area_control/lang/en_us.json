@@ -25,5 +25,8 @@
   "area_control.notice.use_item_disabled": "AreaControl: this area has disabled item using, contact admin if you think it is an error",
   "area_control.notice.place_block_disabled": "AreaControl: this area has disabled block placing, contact admin if you think it is an error",
 
-  "area_cnotrol.error.unclaim_without_permimisson": "AreaControl: Unable to abandon claim %s (internally as %s, %s) because it doesn't belong to you, or you are not authorized."
+  "area_control.error.overlap": "AreaControl: Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?",
+  "area_control.error.no_selection": "AreaControl: Cannot determine what area you want to claim. Did you forget to select an area?",
+  "area_control.error.unclaim_wildness": "AreaControl: You are in the wildness. Are you returning the wild nature to the nature itself?",
+  "area_control.error.unclaim_without_permission": "AreaControl: Cannot to abandon claim %s (internally as %s, %s) because it doesn't belong to you, or you are not authorized."
 }

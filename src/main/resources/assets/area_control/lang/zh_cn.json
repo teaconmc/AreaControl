@@ -25,5 +25,8 @@
   "area_control.notice.use_item_disabled": "AreaControl：该区域已禁止使用物品，如果你认为这是个错误，请联系管理员",
   "area_control.notice.place_block_disabled": "AreaControl：该区域已禁止放置方块，如果你认为这是个错误，请联系管理员",
 
-  "area_cnotrol.error.unclaim_without_permimisson": "AreaControl：放弃领地 %s（内部名 %s，%s）失败，因为这块领地不属于你，或者你没有权限这么做。"
+  "area_control.error.overlap": "AreaControl：你试图声明的领地和另一块领地有重叠，因此无法申领。试试别的地方？",
+  "area_control.error.no_selection": "AreaControl：无法确定你要声明的领地范围，你是不是忘记标记领地范围了？",
+  "area_control.error.unclaim_wildness": "AreaControl：你现在身在野外，你确定要将大自然还给大自然自己吗？",
+  "area_control.error.unclaim_without_permission": "AreaControl：放弃领地 %s（内部名 %s，%s）失败，因为这块领地不属于你，或者你没有权限这么做。"
 }
