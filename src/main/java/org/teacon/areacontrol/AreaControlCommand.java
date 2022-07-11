@@ -35,16 +35,20 @@ public final class AreaControlCommand {
                         .then(Commands.literal("admin").executes(AreaControlCommand::admin))
                         .then(Commands.literal("nearby").executes(AreaControlCommand::nearby))
                         .then(Commands.literal("claim").requires(check(AreaControlPermissions.CLAIM_AREA)).executes(AreaControlCommand::claim))
-                        .then(Commands.literal("current").executes(AreaControlCommand::displayCurrent))
+                        .then(Commands.literal("current")
+                                .then(Commands.literal("properties")
+                                        .then(Commands.literal("set")
+                                                .then(Commands.argument("property", StringArgumentType.string())
+                                                        .then(Commands.argument("value", StringArgumentType.greedyString())
+                                                                .executes(AreaControlCommand::setProperty))))
+                                        .then(Commands.literal("unset")
+                                                .then(Commands.argument("property", StringArgumentType.string())
+                                                        .executes(AreaControlCommand::unsetProperty)))
+                                        .executes(AreaControlCommand::listProperties))
+                                .executes(AreaControlCommand::displayCurrent))
                         .then(Commands.literal("list").executes(AreaControlCommand::list))
                         .then(Commands.literal("mark").requires(check(AreaControlPermissions.MARK_AREA)).then(
-                                Commands.argument("pos", Vec3Argument.vec3())
-                                        .executes(AreaControlCommand::mark)))
-                        .then(Commands.literal("set").requires(check(AreaControlPermissions.SET_PROPERTY)).then(
-                            Commands.argument("property", StringArgumentType.string()).then(
-                                Commands.argument("value", StringArgumentType.greedyString())
-                                    .executes(AreaControlCommand::setProperty)
-                            )))
+                                Commands.argument("pos", Vec3Argument.vec3()).executes(AreaControlCommand::mark)))
                         .then(Commands.literal("unclaim").requires(check(AreaControlPermissions.UNCLAIM_AREA)).executes(AreaControlCommand::unclaim))
                         )
                 )
@@ -140,15 +144,49 @@ public final class AreaControlCommand {
         return Command.SINGLE_SUCCESS;
     }
 
+    private static int listProperties(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final var properties = area.properties;
+        src.sendSuccess(new TranslatableComponent("area_control.claim.property.list.header", area.name), false);
+        for (var prop : properties.entrySet()) {
+            src.sendSuccess(new TranslatableComponent("area_control.claim.property.list.entry", prop.getKey(), prop.getValue()), false);
+        }
+        src.sendSuccess(new TranslatableComponent("area_control.claim.property.list.footer", properties.size()), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
     private static int setProperty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
-        final String prop = context.getArgument("property", String.class);
-        final String value = context.getArgument("value", String.class);
-        final Object oldValue = area.properties.put(prop, value);
-        context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.property.update",
-        		area.name, prop, value, Objects.toString(oldValue)), false);
-        return Command.SINGLE_SUCCESS;
+        final var player = src.getPlayerOrException();
+        if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_PROPERTY)) {
+            final String prop = context.getArgument("property", String.class);
+            final String value = context.getArgument("value", String.class);
+            final Object oldValue = area.properties.put(prop, value);
+            src.sendSuccess(new TranslatableComponent("area_control.claim.property.update",
+                    area.name, prop, value, Objects.toString(oldValue)), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
+            return -1;
+        }
+    }
+
+    private static int unsetProperty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final var player = src.getPlayerOrException();
+        if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_PROPERTY)) {
+            final String prop = context.getArgument("property", String.class);
+            final Object oldValue = area.properties.remove(prop);
+            src.sendSuccess(new TranslatableComponent("area_control.claim.property.unset",
+                    area.name, prop, Objects.toString(oldValue)), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
+            return -1;
+        }
     }
 
     private static int unclaim(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
