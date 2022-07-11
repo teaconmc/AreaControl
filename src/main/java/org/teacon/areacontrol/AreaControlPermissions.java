@@ -15,6 +15,7 @@ public class AreaControlPermissions {
     static final PermissionNode.PermissionResolver<Boolean> ANYONE = (p, uuid, contexts) -> true;
 
     public static final PermissionNode<Boolean> SET_PROPERTY = new PermissionNode<>("area_control", "command.set_property", PermissionTypes.BOOLEAN, OP_ONLY);
+    public static final PermissionNode<Boolean> SET_FRIENDS  = new PermissionNode<>("area_control", "command.set_friend", PermissionTypes.BOOLEAN, OP_ONLY);
     public static final PermissionNode<Boolean> CLAIM_AREA   = new PermissionNode<>("area_control", "command.claim", PermissionTypes.BOOLEAN, ANYONE);
     public static final PermissionNode<Boolean> MARK_AREA    = new PermissionNode<>("area_control", "command.mark", PermissionTypes.BOOLEAN, ANYONE);
     public static final PermissionNode<Boolean> UNCLAIM_AREA = new PermissionNode<>("area_control", "command.unclaim", PermissionTypes.BOOLEAN, ANYONE);

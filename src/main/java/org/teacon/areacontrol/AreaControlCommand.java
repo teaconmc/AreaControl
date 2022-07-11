@@ -1,5 +1,6 @@
 package org.teacon.areacontrol;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -8,6 +9,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
@@ -36,6 +38,14 @@ public final class AreaControlCommand {
                         .then(Commands.literal("nearby").executes(AreaControlCommand::nearby))
                         .then(Commands.literal("claim").requires(check(AreaControlPermissions.CLAIM_AREA)).executes(AreaControlCommand::claim))
                         .then(Commands.literal("current")
+                                .then(Commands.literal("friends")
+                                        .then(Commands.literal("add")
+                                                .then(Commands.argument("friend", GameProfileArgument.gameProfile())
+                                                        .executes(AreaControlCommand::addFriend)))
+                                        .then(Commands.literal("remove")
+                                                .then(Commands.argument("friend", GameProfileArgument.gameProfile())
+                                                        .executes(AreaControlCommand::removeFriend)))
+                                        .executes(AreaControlCommand::listFriends))
                                 .then(Commands.literal("properties")
                                         .then(Commands.literal("set")
                                                 .then(Commands.argument("property", StringArgumentType.string())
@@ -142,6 +152,52 @@ public final class AreaControlCommand {
         AreaControlClaimHandler.pushRecord(context.getSource().getPlayerOrException(), marked);
         context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.marked", Util.toGreenText(marked)), true);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int listFriends(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var server = src.getServer();
+        final var profileCache = server.getProfileCache();
+        final var playerList = server.getPlayerList();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        // TODO Check if it is wildness
+        src.sendSuccess(new TranslatableComponent("area_control.claim.friend.list.header", area.name), false);
+        final var friends = area.friends;
+        for (var friend :friends) {
+            src.sendSuccess(new TranslatableComponent("area_control.claim.friend.list.entry", Util.getPlayerDisplayName(friend, profileCache, playerList)), false);
+        }
+        src.sendSuccess(new TranslatableComponent("area_control.claim.friend.list.footer", friends.size()), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int addFriend(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final var player = src.getPlayerOrException();
+        if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+            final var friendProfile = context.getArgument("friend", GameProfile.class);
+            String message = area.friends.add(friendProfile.getId()) ? "area_control.claim.friend.added" : "area_control.claim.friend.existed";
+            src.sendSuccess(new TranslatableComponent(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_friend", area.name));
+            return -1;
+        }
+    }
+
+    private static int removeFriend(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final var player = src.getPlayerOrException();
+        if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+            final var friendProfile = context.getArgument("friend", GameProfile.class);
+            String message = area.friends.remove(friendProfile.getId()) ? "area_control.claim.friend.removed" : "area_control.claim.friend.not_yet";
+            src.sendSuccess(new TranslatableComponent(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_friend", area.name));
+            return -1;
+        }
     }
 
     private static int listProperties(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

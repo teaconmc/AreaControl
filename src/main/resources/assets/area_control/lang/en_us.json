@@ -17,6 +17,13 @@
   "area_control.claim.current.wildness": "You are in the wildness.",
   "area_control.claim.nearby": "There are %d area(s) within your sight. They are now temporarily highlighted as aquamarine-colored cuboid(s).",
 
+  "area_control.claim.friend.list.header": "------ List of friends %1$s ------",
+  "area_control.claim.friend.list.entry": "  - %s",
+  "area_control.claim.friend.list.footer": "------ Total %1$s ------",
+  "area_control.claim.friend.added": "Successfully added %2$s as a friend to area %1$s.",
+  "area_control.claim.friend.existed": "%2$s is already a friend for area %1$s!",
+  "area_control.claim.friend.removed": "Successfully removed %2$s as a friend to area $1$s",
+  "area_control.claim.friend.not_yet": "%2$s has not been a friend for area %1$s yet!",
   "area_control.claim.property.list.header": "------ List of properties set in %1$s ------",
   "area_control.claim.property.list.entry": "  - %1$s: %2$s",
   "area_control.claim.property.list.footer": "------ Total %1$s ------",
@@ -33,6 +40,7 @@
   "area_control.error.overlap": "AreaControl: Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?",
   "area_control.error.no_selection": "AreaControl: Cannot determine what area you want to claim. Did you forget to select an area?",
   "area_control.error.cannot_set_property": "AreaControl: Cannot set property for area %s because you are not authorized to do so.",
+  "area_control.error.cannot_set_friend": "AreaControl: Cannot add/remove friend for area %s because you are not authorized to do so.",
   "area_control.error.unclaim_wildness": "AreaControl: You are in the wildness. Are you returning the wild nature to the nature itself?",
   "area_control.error.unclaim_without_permission": "AreaControl: Cannot to abandon claim %s (internally as %s, %s) because it doesn't belong to you, or you are not authorized."
 }

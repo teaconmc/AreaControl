@@ -17,10 +17,18 @@
   "area_control.claim.current.wildness": "你现在身在野外。",
   "area_control.claim.nearby": "在你的视野范围内有 %d 块领地，这些领地的范围现在有临时的碧绿色高亮。",
 
+  "area_control.claim.friend.list.header": "------ List of friends %1$s ------",
+  "area_control.claim.friend.list.entry": "  - %s",
+  "area_control.claim.friend.list.footer": "------ Total %1$s ------",
+  "area_control.claim.friend.added": "已成功将 %2$s 设定为领地 %1$s 的成员。",
+  "area_control.claim.friend.existed": "%2$s 已经是领地 %1$s 的成员了！",
+  "area_control.claim.friend.removed": "已成功将 %2$s 从领地 $1$s 的成员列表中移除",
+  "area_control.claim.friend.not_yet": "%2$s 还不是领地 %1$s 的成员！",
   "area_control.claim.property.list.header": "------ 领地 %1$s 当前属性列表------",
   "area_control.claim.property.list.entry": "  - %1$s: %2$s",
   "area_control.claim.property.list.footer": "------ 总计 %1$s 条------",
-  "area_control.claim.property.update": "AreaControl：已将领地 '%1$s' 的属性 '%2$s' 值更新为 '%3$s'（此前为 '%4$s'）",
+  "area_control.claim.property.update": "已将领地 '%1$s' 的属性 '%2$s' 值更新为 '%3$s'（此前为 '%4$s'）",
+  "area_control.claim.property.unset": "已将领地 '%1$s' 的属性 '%2$s' 清除（此前为 '%3$s'）",
   
   "area_control.notice.break_block_disabled": "AreaControl：该区域已禁止破坏方块，如果你认为这是个错误，请联系管理员",
   "area_control.notice.click_block_disabled": "AreaControl：该区域已禁止点击方块，如果你认为这是个错误，请联系管理员",
@@ -32,6 +40,7 @@
   "area_control.error.overlap": "AreaControl：你试图声明的领地和另一块领地有重叠，因此无法申领。试试别的地方？",
   "area_control.error.no_selection": "AreaControl：无法确定你要声明的领地范围，你是不是忘记标记领地范围了？",
   "area_control.error.cannot_set_property": "AreaControl：你没有修改领地 %s 的属性的权限。",
+  "area_control.error.cannot_set_friend": "AreaControl: 你没有修改领地 %s 的成员列表的权限。",
   "area_control.error.unclaim_wildness": "AreaControl：你现在身在野外，你确定要将大自然还给大自然自己吗？",
   "area_control.error.unclaim_without_permission": "AreaControl：放弃领地 %s（内部名 %s，%s）失败，因为这块领地不属于你，或者你没有权限这么做。"
 }

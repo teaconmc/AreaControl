@@ -1,5 +1,6 @@
 package org.teacon.areacontrol;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -60,27 +61,30 @@ public final class Util {
 
     public static Component getOwnerName(Area area, GameProfileCache profileCache, PlayerList onlinePlayers) {
         final UUID owner = area.owner;
-        if (owner == null || SYSTEM.equals(owner)) {
-            return new TextComponent("System");
-        } else {
-            if (profileCache != null) {
-                var maybeProfile = profileCache.get(owner);
-                if (maybeProfile.isPresent()) {
-                    var profile = maybeProfile.get();
-                    final var ownerName = new TextComponent(profile.getName());
-                    if (onlinePlayers != null) {
-                        Player p = onlinePlayers.getPlayer(owner);
-                        if (p != null) {
-                            ownerName.setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)
-                                    .setUnderlined(Boolean.TRUE)
-                                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.owner.aka", p.getDisplayName())))
-                            );
-                        }
-                    }
-                    return ownerName;
-                }
+        return owner == null || SYSTEM.equals(owner) ? new TextComponent("System") : getPlayerDisplayName(owner, profileCache, onlinePlayers);
+    }
+
+    public static Component getPlayerDisplayName(UUID playerUid, GameProfileCache profileCache, PlayerList onlinePlayers) {
+        if (profileCache != null) {
+            var maybeProfile = profileCache.get(playerUid);
+            if (maybeProfile.isPresent()) {
+                return getOwnerName(maybeProfile.get(), onlinePlayers);
             }
-            return new TextComponent(owner.toString());
         }
+        return new TextComponent(playerUid.toString());
+    }
+
+    public static Component getOwnerName(GameProfile profile, PlayerList onlinePlayers) {
+        final var ownerName = new TextComponent(profile.getName());
+        if (onlinePlayers != null) {
+            Player p = onlinePlayers.getPlayer(profile.getId());
+            if (p != null) {
+                ownerName.setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)
+                        .setUnderlined(Boolean.TRUE)
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.owner.aka", p.getDisplayName())))
+                );
+            }
+        }
+        return ownerName;
     }
 }
