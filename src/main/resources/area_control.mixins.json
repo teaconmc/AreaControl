@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.teacon.areacontrol.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "area_control.refmap.json",
+  "mixins": [
+    "EntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

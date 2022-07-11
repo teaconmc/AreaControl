@@ -7,16 +7,19 @@ buildscript {
         maven { url = 'https://files.minecraftforge.net/maven' }
         mavenCentral()
         maven { url = "https://maven.parchmentmc.org" }
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath group: 'org.parchmentmc', name: 'librarian', version: '1.2.+'
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
+apply plugin: 'org.spongepowered.mixin'
 
 version = '0.4.3'
 group = 'org.teacon'
@@ -31,6 +34,7 @@ minecraft {
         client {
             workingDirectory project.file('run')
             property 'forge.logging.console.level', 'info'
+            property 'area_control.dev', 'true'
             args '--username', 'Dev-###'
             mods {
                 area_control {
@@ -72,6 +76,14 @@ dependencies {
     // Yes you see this right, LuckPerms.
     // This is for our custom ContextCalculator support.
     compileOnly 'net.luckperms:api:5.4'
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+}
+
+mixin {
+    add sourceSets.main, "area_control.refmap.json"
+
+    config "area_control.mixins.json"
 }
 
 jar {

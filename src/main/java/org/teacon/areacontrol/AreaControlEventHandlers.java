@@ -4,11 +4,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
@@ -38,54 +34,6 @@ public final class AreaControlEventHandlers {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), spawnPos);
         if (!AreaProperties.getBool(targetArea, "area.allow_special_spawn")) {
             event.setCanceled(true);
-        }
-    }
-
-    // This one is fired when player directly attacks something else
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onAttackEntity(AttackEntityEvent event) {
-        if (event.getPlayer().level.isClientSide) {
-            return;
-        }
-        // We use the location of target entity to find the area.
-        final Entity target = event.getTarget();
-        final Area targetArea = AreaManager.INSTANCE.findBy(target.getCommandSenderWorld().dimension(), target.blockPosition());
-        if (target instanceof Player) {
-            if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_PVP, AreaControlPermissions.KEY_AREA.createContext(targetArea))) {
-                event.getPlayer().displayClientMessage(new TranslatableComponent("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY), true);
-                event.setCanceled(true);
-            }
-        } else {
-            if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_ATTACK, AreaControlPermissions.KEY_AREA.createContext(targetArea))) {
-                event.getPlayer().displayClientMessage(new TranslatableComponent("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY), true);
-                event.setCanceled(true);
-            }
-        }
-    }
-
-    // This one is fired when player is using "indirect" tools, e.g. ranged weapons such as bows
-    // and crossbows, to attack something else.
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onAttackEntity(LivingAttackEvent event) {
-        final Entity src = event.getSource().getEntity();
-        if (src instanceof Player) {
-            if (src.level.isClientSide) {
-                return;
-            }
-            // Same above, we use the location of target entity to find the area.
-            final Entity target = event.getEntity();
-            final Area targetArea = AreaManager.INSTANCE.findBy(target.getCommandSenderWorld().dimension(), target.blockPosition());
-            if (target instanceof Player) {
-                if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.getPermission((ServerPlayer) src, AreaControlPermissions.BYPASS_PVP, AreaControlPermissions.KEY_AREA.createContext(targetArea))) {
-                    ((Player) src).displayClientMessage(new TranslatableComponent("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY), true);
-                    event.setCanceled(true);
-                }
-            } else {
-                if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.getPermission((ServerPlayer) src, AreaControlPermissions.BYPASS_ATTACK, AreaControlPermissions.KEY_AREA.createContext(targetArea))) {
-                    ((Player) src).displayClientMessage(new TranslatableComponent("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY), true);
-                    event.setCanceled(true);
-                }
-            }
         }
     }
 
