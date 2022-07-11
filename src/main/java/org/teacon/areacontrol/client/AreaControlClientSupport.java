@@ -104,76 +104,76 @@ public final class AreaControlClientSupport {
         var x = pose.last().pose();
 
         // Bottom interior
-        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(0, diffZ).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(diffX, diffZ).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(diffX, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
+        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(0, diffZ).endVertex();
+        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(diffX, diffZ).endVertex();
+        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(diffX, 0).endVertex();
 
         // Bottom exterior
-        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(0, diffX).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(diffZ, diffX).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(diffZ, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
+        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(0, diffX).endVertex();
+        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(diffZ, diffX).endVertex();
+        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(diffZ, 0).endVertex();
 
         // Top interior
-        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(0, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(0, diffX).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffZ, diffX).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(diffZ, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(0, 0).endVertex();
+        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(0, diffX).endVertex();
+        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffZ, diffX).endVertex();
+        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(diffZ, 0).endVertex();
 
         // Top exterior
-        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(0, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(0, diffZ).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffX, diffZ).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(diffX, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(0, 0).endVertex();
+        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(0, diffZ).endVertex();
+        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffX, diffZ).endVertex();
+        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(diffX, 0).endVertex();
 
         // Front interior
-        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(0, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(0, diffY).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffX, diffY).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(diffX, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(0, 0).endVertex();
+        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(0, diffY).endVertex();
+        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffX, diffY).endVertex();
+        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(diffX, 0).endVertex();
 
         // Front exterior
-        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(0, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(0, diffX).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffY, diffX).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(diffY, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(0, 0).endVertex();
+        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(0, diffX).endVertex();
+        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffY, diffX).endVertex();
+        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(diffY, 0).endVertex();
 
         // Back interior
-        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(0, diffX).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(diffY, diffX).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(diffY, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
+        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(0, diffX).endVertex();
+        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(diffY, diffX).endVertex();
+        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(diffY, 0).endVertex();
 
         // Back exterior
-        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(0, diffY).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(diffX, diffY).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(diffX, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
+        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(0, diffY).endVertex();
+        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(diffX, diffY).endVertex();
+        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(diffX, 0).endVertex();
 
         // Left interior
-        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(0, diffY).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(diffZ, diffY).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(diffZ, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
+        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(0, diffY).endVertex();
+        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(diffZ, diffY).endVertex();
+        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(diffZ, 0).endVertex();
 
         // Left exterior
-        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(0, diffZ).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(diffY, diffZ).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(diffY, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
+        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(0, diffZ).endVertex();
+        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(diffY, diffZ).endVertex();
+        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(diffY, 0).endVertex();
 
         // Right interior
-        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(0, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(0, diffZ).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffY, diffZ).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(diffY, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
+        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(0, diffZ).endVertex();
+        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffY, diffZ).endVertex();
+        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(diffY, 0).endVertex();
 
         // Right exterior
-        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(0, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(0, diffY).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffZ, diffY).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(diffZ, 0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
+        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(0, diffY).endVertex();
+        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffZ, diffY).endVertex();
+        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(diffZ, 0).endVertex();
     }
 
     private static final class Holder extends RenderStateShard {
