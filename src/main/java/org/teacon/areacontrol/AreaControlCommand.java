@@ -59,7 +59,7 @@ public final class AreaControlCommand {
                         .then(Commands.literal("list").executes(AreaControlCommand::list))
                         .then(Commands.literal("mark").requires(check(AreaControlPermissions.MARK_AREA)).then(
                                 Commands.argument("pos", Vec3Argument.vec3()).executes(AreaControlCommand::mark)))
-                        .then(Commands.literal("unclaim").requires(check(AreaControlPermissions.UNCLAIM_AREA)).executes(AreaControlCommand::unclaim))
+                        .then(Commands.literal("unclaim").executes(AreaControlCommand::unclaim))
                         )
                 )
         );
@@ -251,14 +251,14 @@ public final class AreaControlCommand {
         final ResourceKey<Level> worldIndex = src.getLevel().dimension();
         final Area area = AreaManager.INSTANCE.findBy(worldIndex, new BlockPos(src.getPosition()));
         if (area != AreaManager.INSTANCE.wildness) {
-            if (area.owner.equals(claimer.getGameProfile().getId())) {
+            if (area.owner.equals(claimer.getGameProfile().getId()) || PermissionAPI.getPermission(claimer, AreaControlPermissions.UNCLAIM_AREA)) {
                 AreaManager.INSTANCE.remove(area, worldIndex);
                 src.sendSuccess(new TranslatableComponent("area_control.claim.abandoned", 
                         AreaProperties.getString(area, "area.display_name", area.name),
                         area.name, Util.toGreenText(area)), false);
                 return Command.SINGLE_SUCCESS;
             } else {
-                src.sendFailure(new TranslatableComponent("area_cnotrol.error.unclaim_without_permimisson",
+                src.sendFailure(new TranslatableComponent("area_control.error.unclaim_without_permission",
                         AreaProperties.getString(area, "area.display_name", area.name),
                         area.name, Util.toGreenText(area)));
                 return -1;
