@@ -152,7 +152,7 @@ public final class AreaManager {
             && findBy(worldIndex, new BlockPos(area.maxX, area.maxY, area.maxZ)) == this.wildness) {
             // Second we filter out cases where the area to define is enclosing another area.
             boolean noEnclosing = true;
-            for (Area a : this.areasByName.values()) {
+            for (Area a : this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet())) {
                 if (area.minX < a.minX && a.maxX < area.maxX) {
                     if (area.minY < a.minY && a.maxY < area.maxY) {
                         if (area.minZ < a.minZ && a.maxZ < area.maxZ) {
