@@ -15,9 +15,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.teacon.areacontrol.api.Area;
@@ -80,8 +82,9 @@ public final class AreaControlCommand {
     }
 
     private static int help(CommandContext<CommandSourceStack> context) {
-        var markerTool = new ItemStack(AreaControlClaimHandler.userClaimTool).getDisplayName();
-        context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.how_to", markerTool), false);
+        var markerTool = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(AreaControlConfig.areaClaimTool.get())));
+        var markerToolName = markerTool.getDisplayName();
+        context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.how_to", markerToolName), false);
         return Command.SINGLE_SUCCESS;
     }
 
