@@ -15,6 +15,7 @@ public final class Area {
 
     /**
      * A special owner UUID that denotes an area as "global".
+     * Areas with this owner is also considered as "wildness".
      */
     public static final UUID GLOBAL_AREA_OWNER = new UUID(0L, 0L);
 	
