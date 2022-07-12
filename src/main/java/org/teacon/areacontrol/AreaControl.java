@@ -2,6 +2,7 @@ package org.teacon.areacontrol;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -10,6 +11,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.server.permission.events.PermissionGatherEvent;
 import org.slf4j.Logger;
@@ -32,6 +34,7 @@ public final class AreaControl {
         context.registerExtensionPoint(IExtensionPoint.DisplayTest.class,
                 () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (serverVer, isDedi) -> true));
         ACNetworking.init();
+        context.registerConfig(ModConfig.Type.SERVER, AreaControlConfig.setup(new ForgeConfigSpec.Builder()));
     }
 
     @SubscribeEvent
