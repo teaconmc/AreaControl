@@ -44,9 +44,9 @@ public abstract class EntityMixin {
      * subject to some form of attack, you most likely will need to call this method.
      * This is the case for vanilla entities.
      */
-    @Inject(method = "isInvulnerableTo", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "isInvulnerableTo", at = @At("TAIL"), cancellable = true)
     private void damageSrcCheck(DamageSource src, CallbackInfoReturnable<Boolean> cir) {
-        if (!this.getLevel().isClientSide()) {
+        if (!cir.getReturnValueZ() && !this.getLevel().isClientSide()) {
             var area = AreaManager.INSTANCE.findBy(this.getLevel(), this.blockPosition());
             String propToCheck;
             PermissionNode<Boolean> permissionToCheck;
