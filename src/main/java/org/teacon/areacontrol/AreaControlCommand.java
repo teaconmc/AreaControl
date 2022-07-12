@@ -129,7 +129,7 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final var server = src.getServer();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
-        if (area != AreaManager.INSTANCE.wildness) {
+        if (!area.owner.equals(Area.GLOBAL_AREA_OWNER)) {
             final String name = AreaProperties.getString(area, "area.display_name", area.name);
             final var ownerName = Util.getOwnerName(area, server.getProfileCache(), server.getPlayerList());
             src.sendSuccess(new TranslatableComponent("area_control.claim.current", name, ownerName), true);
@@ -242,7 +242,7 @@ public final class AreaControlCommand {
         final var claimer = src.getPlayerOrException();
         final ResourceKey<Level> worldIndex = src.getLevel().dimension();
         final Area area = AreaManager.INSTANCE.findBy(worldIndex, new BlockPos(src.getPosition()));
-        if (area != AreaManager.INSTANCE.wildness) {
+        if (!area.owner.equals(Area.GLOBAL_AREA_OWNER)) {
             if (area.owner.equals(claimer.getGameProfile().getId()) || PermissionAPI.getPermission(claimer, AreaControlPermissions.UNCLAIM_AREA)) {
                 AreaManager.INSTANCE.remove(area, worldIndex);
                 src.sendSuccess(new TranslatableComponent("area_control.claim.abandoned", 
