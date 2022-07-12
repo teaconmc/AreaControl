@@ -17,7 +17,7 @@
   "area_control.claim.current.wildness": "You are in the wildness.",
   "area_control.claim.nearby": "There are %d area(s) within your sight. They are now temporarily highlighted as aquamarine-colored cuboid(s).",
 
-  "area_control.claim.friend.list.header": "------ List of friends %1$s ------",
+  "area_control.claim.friend.list.header": "------ List of friends for %1$s ------",
   "area_control.claim.friend.list.entry": "  - %s",
   "area_control.claim.friend.list.footer": "------ Total %1$s ------",
   "area_control.claim.friend.added": "Successfully added %2$s as a friend to area %1$s.",
