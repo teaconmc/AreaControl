@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.impl.AreaFactory;
+import org.teacon.areacontrol.impl.persistence.AreaRepository;
 
 public final class AreaManager {
 
@@ -46,7 +47,9 @@ public final class AreaManager {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    final Area singlePlayerWildness = AreaFactory.singlePlayerWildness();
+    private final Area singlePlayerWildness = AreaFactory.singlePlayerWildness();
+
+    private AreaRepository repository = null;
 
     private final HashMap<UUID, Area> areasById = new HashMap<>();
     private final HashMap<String, Area> areasByName = new HashMap<>();
@@ -86,19 +89,18 @@ public final class AreaManager {
                 .forEach(list -> list.add(area));
     }
 
-    void loadFrom(MinecraftServer server, Path dataDirRoot) throws Exception {
-        Path userDefinedAreas = dataDirRoot.resolve("claims.json");
-        if (Files.isRegularFile(userDefinedAreas)) {
-            try (Reader reader = Files.newBufferedReader(userDefinedAreas)) {
-                for (Area a : GSON.fromJson(reader, Area[].class)) {
-                    this.buildCacheFor(a, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
-                }
-            }
+    void init(AreaRepository repository) {
+        this.repository = repository;
+    }
+
+    void load() throws Exception {
+        for (Area a : this.repository.load()) {
+            this.buildCacheFor(a, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
         }
     }
 
-    void saveTo(Path dataDirRoot) throws Exception {
-        Files.writeString(dataDirRoot.resolve("claims.json"), GSON.toJson(this.areasByName.values()));
+    void save() throws Exception {
+        this.repository.save(this.areasById.values());
     }
 
     /**

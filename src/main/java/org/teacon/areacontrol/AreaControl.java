@@ -16,6 +16,7 @@ import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.server.permission.events.PermissionGatherEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.teacon.areacontrol.impl.persistence.AreaRepositoryManager;
 import org.teacon.areacontrol.network.ACNetworking;
 
 import java.nio.file.Files;
@@ -34,6 +35,7 @@ public final class AreaControl {
         context.registerExtensionPoint(IExtensionPoint.DisplayTest.class,
                 () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (serverVer, isDedi) -> true));
         ACNetworking.init();
+        AreaRepositoryManager.init();
         context.registerConfig(ModConfig.Type.SERVER, AreaControlConfig.setup(new ForgeConfigSpec.Builder()));
     }
 
@@ -66,30 +68,13 @@ public final class AreaControl {
 
     @SubscribeEvent
     public static void onServerStart(ServerStartingEvent event) {
-        /*
-        PermissionAPI.registerNode(, DefaultPermissionLevel.OP, "Allow user to set properties of a claimed area.");
-        // TODO Once we have properly set up the management system, this can be changed to DefaultPermissionLevel.ALL
-        PermissionAPI.registerNode("area_control.command.claim", DefaultPermissionLevel.ALL, "Allow user to claim an area in the wildness.");
-        PermissionAPI.registerNode("area_control.command.mark", DefaultPermissionLevel.ALL, "Allow user to mark a location for claiming areas.");
-        PermissionAPI.registerNode("area_control.command.unclaim", DefaultPermissionLevel.ALL, "Allow user to unclaim an area in the wildness.");
-
-        PermissionAPI.registerNode("area_control.bypass.break_block", DefaultPermissionLevel.OP, "Bypass restrictions on breaking blocks");
-        PermissionAPI.registerNode("area_control.bypass.place_block", DefaultPermissionLevel.OP, "Bypass restrictions on placing blocks");
-        PermissionAPI.registerNode("area_control.bypass.pvp", DefaultPermissionLevel.OP, "Bypass restrictions on PvP (i.e. player attack other players)");
-        PermissionAPI.registerNode("area_control.bypass.attack", DefaultPermissionLevel.OP, "Bypass restrcitions on PvE (i.e. player attack non-player entities)");
-
-        PermissionAPI.registerNode("area_control.bypass.click_block", DefaultPermissionLevel.ALL, "Bypass restrictions on clicking blocks");
-        PermissionAPI.registerNode("area_control.bypass.activate_block", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting blocks using right-click");
-        PermissionAPI.registerNode("area_control.bypass.use_item", DefaultPermissionLevel.ALL, "Bypass restrictions on using items");
-        PermissionAPI.registerNode("area_control.bypass.interact_entity", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting with entities.");
-        PermissionAPI.registerNode("area_control.bypass.interact_entity_specific", DefaultPermissionLevel.ALL, "Bypass restrictions on interacting with specific parts of entities.");
-*/
-
         final MinecraftServer server = event.getServer();
         final Path dataDir = server.getWorldPath(SERVER_CONFIG).resolve("area_control");
+        final var repo = AreaRepositoryManager.INSTANCE.create(AreaControlConfig.persistenceMode.get(), dataDir);
+        AreaManager.INSTANCE.init(repo);
         if (Files.isDirectory(dataDir)) {
             try {
-                AreaManager.INSTANCE.loadFrom(server, dataDir);
+                AreaManager.INSTANCE.load();
             } catch (Exception e) {
                 LOGGER.error("Failed to read claims data.", e);
             }
@@ -115,14 +100,10 @@ public final class AreaControl {
 
     @SubscribeEvent
     public static void onServerStop(ServerStoppingEvent event) {
-        final MinecraftServer server = event.getServer();
-        final Path dataDir = server.getWorldPath(SERVER_CONFIG).resolve("area_control");
-        if (Files.isDirectory(dataDir)) {
-            try {
-                AreaManager.INSTANCE.saveTo(dataDir);
-            } catch (Exception e) {
-                LOGGER.warn("Failed to create data directory.", e);
-            }
-        } 
+        try {
+            AreaManager.INSTANCE.save();
+        } catch (Exception e) {
+            LOGGER.warn("Failed to write claims data.", e);
+        }
     }
 }
