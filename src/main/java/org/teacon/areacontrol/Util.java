@@ -12,7 +12,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.AABB;
 import org.teacon.areacontrol.api.Area;
 
 import java.util.Random;
@@ -29,10 +28,6 @@ public final class Util {
         // tldr: formatting to 8 digits of hexadecimal number, padding zeros at
         // beginning
         return String.format("%08x", RAND.nextInt());
-    }
-
-    public static boolean isOpInServer(Player player, MinecraftServer server) {
-        return server.getPlayerList().getOps().get(player.getGameProfile()) != null;
     }
 
     public static Component toGreenText(BlockPos pos) {

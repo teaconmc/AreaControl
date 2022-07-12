@@ -1,8 +1,5 @@
 package org.teacon.areacontrol;
 
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,9 +12,6 @@ import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -26,7 +20,6 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -44,8 +37,6 @@ public final class AreaManager {
 
     public static final boolean DEBUG = Boolean.getBoolean("area_control.dev");
     private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
-
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private final Area singlePlayerWildness = AreaFactory.singlePlayerWildness();
 
