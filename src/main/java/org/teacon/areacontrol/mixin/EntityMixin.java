@@ -46,7 +46,7 @@ public abstract class EntityMixin {
      */
     @Inject(method = "isInvulnerableTo", at = @At("TAIL"), cancellable = true)
     private void damageSrcCheck(DamageSource src, CallbackInfoReturnable<Boolean> cir) {
-        if (!cir.getReturnValueZ() && !this.getLevel().isClientSide()) {
+        if (!src.isBypassInvul() && !cir.getReturnValueZ() && !this.getLevel().isClientSide()) {
             var area = AreaManager.INSTANCE.findBy(this.getLevel(), this.blockPosition());
             String propToCheck;
             PermissionNode<Boolean> permissionToCheck;
