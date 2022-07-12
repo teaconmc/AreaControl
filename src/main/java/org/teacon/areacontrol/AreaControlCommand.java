@@ -6,7 +6,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.GameProfileArgument;
@@ -58,7 +57,6 @@ public final class AreaControlCommand {
                                                         .executes(AreaControlCommand::unsetProperty)))
                                         .executes(AreaControlCommand::listProperties))
                                 .executes(AreaControlCommand::displayCurrent))
-                        .then(Commands.literal("list").executes(AreaControlCommand::list))
                         .then(Commands.literal("mark").requires(check(AreaControlPermissions.MARK_AREA)).then(
                                 Commands.argument("pos", Vec3Argument.vec3()).executes(AreaControlCommand::mark)))
                         .then(Commands.literal("unclaim").executes(AreaControlCommand::unclaim))
@@ -137,15 +135,6 @@ public final class AreaControlCommand {
             src.sendSuccess(new TranslatableComponent("area_control.claim.current", name, ownerName), true);
         } else {
             src.sendSuccess(new TranslatableComponent("area_control.claim.current.wildness"), true);
-        }
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int list(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        final var src = context.getSource();
-        src.sendSuccess(new TranslatableComponent("area_control.claim.list", ObjectArrays.EMPTY_ARRAY), false);
-        for (Area a : AreaManager.INSTANCE.getKnownAreas()) {
-        	src.sendSuccess(new TranslatableComponent("area_control.claim.list.element", a.name, Util.toGreenText(a)), false);
         }
         return Command.SINGLE_SUCCESS;
     }
