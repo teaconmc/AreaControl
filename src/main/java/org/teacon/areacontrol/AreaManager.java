@@ -92,6 +92,7 @@ public final class AreaManager {
     void load() throws Exception {
         var writeLock = this.lock.writeLock();
         try {
+            writeLock.lock();
             for (Area a : this.repository.load()) {
                 this.buildCacheFor(a, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
             }
@@ -103,6 +104,7 @@ public final class AreaManager {
     void save() throws Exception {
         var writeLock = this.lock.writeLock();
         try {
+            writeLock.lock();
             this.repository.save(this.areasById.values());
         } finally {
             writeLock.unlock();
@@ -117,6 +119,7 @@ public final class AreaManager {
     public boolean add(Area area, ResourceKey<Level> worldIndex) {
         var writeLock = this.lock.writeLock();
         try {
+            writeLock.lock();
             // First we filter out cases where at least one defining coordinate falls in an existing area
             if (findBy(worldIndex, new BlockPos(area.minX, area.minY, area.minZ)).owner.equals(Area.GLOBAL_AREA_OWNER)
                 && findBy(worldIndex, new BlockPos(area.maxX, area.maxY, area.maxZ)).owner.equals(Area.GLOBAL_AREA_OWNER)) {
@@ -148,6 +151,7 @@ public final class AreaManager {
     public void remove(Area area, ResourceKey<Level> worldIndex) {
         var writeLock = this.lock.writeLock();
         try {
+            writeLock.lock();
             this.areasByName.remove(area.name, area);
             this.perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(a -> a == area)));
             this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet()).remove(area);
@@ -206,6 +210,7 @@ public final class AreaManager {
             if (server == null) {
                 var readLock = this.lock.readLock();
                 try {
+                    readLock.lock();
                     return this.wildnessByWorld.computeIfAbsent(Level.OVERWORLD, AreaFactory::defaultWildness);
                 } finally {
                     readLock.unlock();
@@ -218,6 +223,7 @@ public final class AreaManager {
                 if (dimKey != null) {
                     var readLock = this.lock.readLock();
                     try {
+                        readLock.lock();
                         return this.findBy(ResourceKey.create(Registry.DIMENSION_REGISTRY, dimKey), pos);
                     } finally {
                         readLock.unlock();
@@ -229,6 +235,7 @@ public final class AreaManager {
             }
             var readLock = this.lock.readLock();
             try {
+                readLock.lock();
                 return this.wildnessByWorld.computeIfAbsent(Level.OVERWORLD, AreaFactory::defaultWildness);
             } finally {
                 readLock.unlock();
@@ -240,6 +247,7 @@ public final class AreaManager {
     public Area findBy(ResourceKey<Level> world, BlockPos pos) {
         var readLock = this.lock.readLock();
         try {
+            readLock.lock();
             for (Area area : this.perWorldAreaCache.getOrDefault(world, Collections.emptyMap()).getOrDefault(new ChunkPos(pos), Collections.emptySet())) {
                 if (area.minX <= pos.getX() && pos.getX() <= area.maxX) {
                     if (area.minY <= pos.getY() && pos.getY() <= area.maxY) {
@@ -258,6 +266,7 @@ public final class AreaManager {
     public Area findBy(String name) {
         var readLock = this.lock.readLock();
         try {
+            readLock.lock();
             return this.areasByName.get(name);
         } finally {
             readLock.unlock();
@@ -267,6 +276,7 @@ public final class AreaManager {
     public List<Area.Summary> getAreaSummariesSurround(ResourceKey<Level> dim, BlockPos center, double radius) {
         var readLock = this.lock.readLock();
         try {
+            readLock.lock();
             var ret = new ArrayList<Area.Summary>();
             for (Area area : this.areasByWorld.getOrDefault(dim, Collections.emptySet())) {
                 if (center.closerThan(new Vec3i((area.maxX - area.minX) / 2, (area.maxY - area.minY) / 2, (area.maxZ - area.minZ) / 2), radius)) {
