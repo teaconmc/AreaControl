@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -52,17 +53,17 @@ public final class AreaManager {
      * All known instances of {@link Area}, indexed by dimensions and chunk positions covered by this area.
      * Used for faster lookup of {@link Area} when the position is known.
      */
-    private final IdentityHashMap<ResourceKey<Level>, Map<ChunkPos, Set<Area>>> perWorldAreaCache = new IdentityHashMap<>();
+    private final IdentityHashMap<ResourceKey<Level>, Map<ChunkPos, Set<UUID>>> perWorldAreaCache = new IdentityHashMap<>();
     /**
      * All known instances of {@link Area}, indexed by dimensions only. Used for situations such as querying
      * areas in a larger range.
      */
-    private final IdentityHashMap<ResourceKey<Level>, Set<Area>> areasByWorld = new IdentityHashMap<>();
+    private final IdentityHashMap<ResourceKey<Level>, Set<UUID>> areasByWorld = new IdentityHashMap<>();
     /**
      * All instances of "wildness" area, indexed by dimension.
      * They all have owner as {@link Area#GLOBAL_AREA_OWNER}.
      */
-    private final IdentityHashMap<ResourceKey<Level>, Area> wildnessByWorld = new IdentityHashMap<>();
+    private final IdentityHashMap<ResourceKey<Level>, UUID> wildnessByWorld = new IdentityHashMap<>();
 
     private void buildCacheFor(Area area, ResourceKey<Level> worldIndex) {
         // not locked since every method invoking this one has been locked
@@ -72,17 +73,17 @@ public final class AreaManager {
             if (areas == null) {
                 areas = new HashSet<>();
             }
-            areas.add(area);
+            areas.add(area.uid);
             return areas;
         });
         if (Area.GLOBAL_AREA_OWNER.equals(area.owner)) {
-            this.wildnessByWorld.put(worldIndex, area);
+            this.wildnessByWorld.put(worldIndex, area.uid);
             return;
         }
-        final Map<ChunkPos, Set<Area>> areasInDim = this.perWorldAreaCache.computeIfAbsent(worldIndex, id -> new HashMap<>());
+        final var areasInDim = this.perWorldAreaCache.computeIfAbsent(worldIndex, id -> new HashMap<>());
         ChunkPos.rangeClosed(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))
                 .map(cp -> areasInDim.computeIfAbsent(cp, _cp -> Collections.newSetFromMap(new IdentityHashMap<>())))
-                .forEach(list -> list.add(area));
+                .forEach(list -> list.add(area.uid));
     }
 
     void init(AreaRepository repository) {
@@ -125,7 +126,9 @@ public final class AreaManager {
                 && findBy(worldIndex, new BlockPos(area.maxX, area.maxY, area.maxZ)).owner.equals(Area.GLOBAL_AREA_OWNER)) {
                 // Second we filter out cases where the area to define is enclosing another area.
                 boolean noEnclosing = true;
-                for (Area a : this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet())) {
+                for (var uuid : this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet())) {
+                    Area a = this.areasById.get(uuid);
+                    if (a == null) continue;
                     if (area.minX < a.minX && a.maxX < area.maxX) {
                         if (area.minY < a.minY && a.maxY < area.maxY) {
                             if (area.minZ < a.minZ && a.maxZ < area.maxZ) {
@@ -138,7 +141,12 @@ public final class AreaManager {
                 if (noEnclosing) {
                     this.buildCacheFor(area, worldIndex);
                     // Copy default settings over
-                    area.properties.putAll(this.wildnessByWorld.computeIfAbsent(worldIndex, AreaFactory::defaultWildness).properties);
+                    var currentWildnessUUID = this.wildnessByWorld.getOrDefault(worldIndex, UUID.randomUUID());
+                    if (!this.areasById.containsKey(currentWildnessUUID)) {
+                        area.properties.putAll(AreaFactory.defaultWildness(worldIndex).properties);
+                    } else {
+                        area.properties.putAll(this.areasById.get(currentWildnessUUID).properties);
+                    }
                     return true;
                 }
             }
@@ -153,8 +161,8 @@ public final class AreaManager {
         try {
             writeLock.lock();
             this.areasByName.remove(area.name, area);
-            this.perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(a -> a == area)));
-            this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet()).remove(area);
+            this.perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(uid -> uid == area.uid)));
+            this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet()).remove(area.uid);
         } finally {
             writeLock.unlock();
         }
@@ -211,7 +219,8 @@ public final class AreaManager {
                 var readLock = this.lock.readLock();
                 try {
                     readLock.lock();
-                    return this.wildnessByWorld.computeIfAbsent(Level.OVERWORLD, AreaFactory::defaultWildness);
+                    var def = this.areasById.get(this.wildnessByWorld.getOrDefault(Level.OVERWORLD, UUID.randomUUID()));
+                    return Objects.requireNonNullElseGet(def, () -> AreaFactory.defaultWildness(Level.OVERWORLD));
                 } finally {
                     readLock.unlock();
                 }
@@ -236,7 +245,8 @@ public final class AreaManager {
             var readLock = this.lock.readLock();
             try {
                 readLock.lock();
-                return this.wildnessByWorld.computeIfAbsent(Level.OVERWORLD, AreaFactory::defaultWildness);
+                var def = this.areasById.get(this.wildnessByWorld.getOrDefault(Level.OVERWORLD, UUID.randomUUID()));
+                return Objects.requireNonNullElseGet(def, () -> AreaFactory.defaultWildness(Level.OVERWORLD));
             } finally {
                 readLock.unlock();
             }
@@ -248,7 +258,10 @@ public final class AreaManager {
         var readLock = this.lock.readLock();
         try {
             readLock.lock();
-            for (Area area : this.perWorldAreaCache.getOrDefault(world, Collections.emptyMap()).getOrDefault(new ChunkPos(pos), Collections.emptySet())) {
+            for (var uuid : this.perWorldAreaCache.getOrDefault(
+                    world, Collections.emptyMap()).getOrDefault(new ChunkPos(pos), Collections.emptySet())) {
+                Area area = this.areasById.get(uuid);
+                if (area == null) continue;
                 if (area.minX <= pos.getX() && pos.getX() <= area.maxX) {
                     if (area.minY <= pos.getY() && pos.getY() <= area.maxY) {
                         if (area.minZ <= pos.getZ() && pos.getZ() <= area.maxZ) {
@@ -257,7 +270,8 @@ public final class AreaManager {
                     }
                 }
             }
-            return this.wildnessByWorld.computeIfAbsent(world, AreaFactory::defaultWildness);
+            var def = this.areasById.get(this.wildnessByWorld.getOrDefault(world, UUID.randomUUID()));
+            return Objects.requireNonNullElseGet(def, () -> AreaFactory.defaultWildness(Level.OVERWORLD));
         } finally {
             readLock.unlock();
         }
@@ -278,7 +292,9 @@ public final class AreaManager {
         try {
             readLock.lock();
             var ret = new ArrayList<Area.Summary>();
-            for (Area area : this.areasByWorld.getOrDefault(dim, Collections.emptySet())) {
+            for (var uuid : this.areasByWorld.getOrDefault(dim, Collections.emptySet())) {
+                Area area = this.areasById.get(uuid);
+                if (area == null) continue;
                 if (center.closerThan(new Vec3i((area.maxX - area.minX) / 2, (area.maxY - area.minY) / 2, (area.maxZ - area.minZ) / 2), radius)) {
                     ret.add(new Area.Summary(area));
                 }
