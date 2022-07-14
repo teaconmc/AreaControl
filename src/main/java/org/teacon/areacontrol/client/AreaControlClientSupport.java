@@ -1,6 +1,5 @@
 package org.teacon.areacontrol.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -9,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
@@ -23,7 +21,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.network.PacketDistributor;
-import org.lwjgl.opengl.GL11;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -177,21 +174,6 @@ public final class AreaControlClientSupport {
 
     private static final class Holder extends RenderStateShard {
 
-        static final class RepeatingTextureStateShard extends RenderStateShard.EmptyTextureStateShard {
-            public RepeatingTextureStateShard(ResourceLocation texture) {
-                super(() -> {
-                    RenderSystem.enableTexture();
-                    TextureManager manager = Minecraft.getInstance().getTextureManager();
-                    var textureObj = manager.getTexture(texture);
-                    textureObj.setFilter(false, false);
-                    var textureId = textureObj.getId();
-                    RenderSystem.texParameter(textureId, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
-                    RenderSystem.texParameter(textureId, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
-                    RenderSystem.setShaderTexture(0, texture);
-                }, () -> {});
-            }
-        }
-
         static ShaderInstance areaControlShader;
 
         private Holder(String name, Runnable setupCallback, Runnable cleanupCallback) {
@@ -201,7 +183,7 @@ public final class AreaControlClientSupport {
         //static final ShaderStateShard AREA_CONTROL_SHADER = new ShaderStateShard(() -> areaControlShader);
 
         // This is the vanilla world border texture; we are merely referring it, but using a custom texture state.
-        static final EmptyTextureStateShard REPEATED_FORCE_FIELD = new RepeatingTextureStateShard(new ResourceLocation("textures/misc/forcefield.png"));
+        static final EmptyTextureStateShard REPEATED_FORCE_FIELD = new TextureStateShard(new ResourceLocation("textures/misc/forcefield.png"), false, false);
 
         static final RenderType BORDER = RenderType.create("area_control_border",
                 DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 256, false, false,
