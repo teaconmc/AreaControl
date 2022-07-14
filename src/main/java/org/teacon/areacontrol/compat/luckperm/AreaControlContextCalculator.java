@@ -4,6 +4,8 @@ import net.luckperms.api.context.ContextCalculator;
 import net.luckperms.api.context.ContextConsumer;
 import net.minecraft.server.level.ServerPlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.AreaManager;
 
 import java.util.Objects;
@@ -12,6 +14,8 @@ public enum AreaControlContextCalculator implements ContextCalculator<ServerPlay
 
     INSTANCE;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
+
     private static final String CONTEXT_AREA_ID = "area_control:current_area_id";
     private static final String CONTEXT_AREA_NAME = "area_control:current_area_name";
     private static final String CONTEXT_OWNER = "area_control:owning_current_position";
@@ -19,6 +23,11 @@ public enum AreaControlContextCalculator implements ContextCalculator<ServerPlay
 
     @Override
     public void calculate(@NonNull ServerPlayer target, @NonNull ContextConsumer consumer) {
+        if (!target.server.isSameThread()) {
+            LOGGER.info("The calculator is not running on the server thread so no context will be calculated.");
+            LOGGER.debug("The calculator is not running on the server.", new RuntimeException());
+            return;
+        }
         var uid = target.getGameProfile().getId();
         var pos = target.blockPosition();
         var dim = target.level.dimension();
