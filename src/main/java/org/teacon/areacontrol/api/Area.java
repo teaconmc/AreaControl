@@ -1,10 +1,10 @@
 package org.teacon.areacontrol.api;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.teacon.areacontrol.Util;
 
@@ -30,7 +30,7 @@ public final class Area {
 
     public int minX, minY, minZ, maxX, maxY, maxZ;
 
-    public final Map<String, Object> properties = new HashMap<>();
+    public final Map<String, Object> properties = new ConcurrentHashMap<>();
 
     public static final class Summary {
         public final UUID uid;
