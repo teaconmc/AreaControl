@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
@@ -88,6 +90,11 @@ public final class AreaManager {
 
     void init(AreaRepository repository) {
         this.repository = repository;
+        this.areasById.clear();
+        this.areasByName.clear();
+        this.areasByWorld.clear();
+        this.perWorldAreaCache.clear();
+        this.wildnessByWorld.clear();
     }
 
     void load() throws Exception {
@@ -121,10 +128,27 @@ public final class AreaManager {
         var writeLock = this.lock.writeLock();
         try {
             writeLock.lock();
-            // First we filter out cases where at least one defining coordinate falls in an existing area
-            if (findBy(worldIndex, new BlockPos(area.minX, area.minY, area.minZ)).owner.equals(Area.GLOBAL_AREA_OWNER)
-                && findBy(worldIndex, new BlockPos(area.maxX, area.maxY, area.maxZ)).owner.equals(Area.GLOBAL_AREA_OWNER)) {
-                // Second we filter out cases where the area to define is enclosing another area.
+            // First we check if at least one vertex of the defining cuboid falls in an existing area
+            var maybeOverlaps = Stream.of(
+                    new BlockPos(area.minX, area.minY, area.minZ),
+                    new BlockPos(area.minX, area.minY, area.maxZ),
+                    new BlockPos(area.minX, area.maxY, area.minZ),
+                    new BlockPos(area.minX, area.maxY, area.maxZ),
+                    new BlockPos(area.maxX, area.minY, area.minZ),
+                    new BlockPos(area.maxX, area.minY, area.maxZ),
+                    new BlockPos(area.maxX, area.maxY, area.minZ),
+                    new BlockPos(area.maxX, area.maxY, area.maxZ)
+            ).map(cornerPos -> findBy(worldIndex, cornerPos)).collect(Collectors.toCollection(() -> Collections.newSetFromMap(new IdentityHashMap<>())));
+            // We need to make sure that all 8 vertices fall into the same area.
+            if (maybeOverlaps.size() != 1) {
+                return false;
+            }
+            // There are two possibilities:
+            // 1. theEnclosingArea is the wildness
+            // 2. theEnclosingArea is an existing area claimed by someone
+            var theEnclosingArea = maybeOverlaps.iterator().next();
+            {
+                // Then, we check if the defining cuboid is enclosing another area.
                 boolean noEnclosing = true;
                 for (var uuid : this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet())) {
                     Area a = this.areasById.get(uuid);
@@ -138,19 +162,19 @@ public final class AreaManager {
                         }
                     }
                 }
+                // If not, we consider this to be a success.
                 if (noEnclosing) {
                     this.buildCacheFor(area, worldIndex);
+                    area.properties.putAll(theEnclosingArea.properties);
                     // Copy default settings over
-                    var currentWildnessUUID = this.wildnessByWorld.getOrDefault(worldIndex, UUID.randomUUID());
-                    if (!this.areasById.containsKey(currentWildnessUUID)) {
-                        area.properties.putAll(AreaFactory.defaultWildness(worldIndex).properties);
-                    } else {
-                        area.properties.putAll(this.areasById.get(currentWildnessUUID).properties);
+                    if (!theEnclosingArea.owner.equals(Area.GLOBAL_AREA_OWNER)) {
+                        area.belongingArea = theEnclosingArea.uid;
+                        theEnclosingArea.subAreas.add(area.uid);
                     }
                     return true;
                 }
+                return false;
             }
-            return false;
         } finally {
             writeLock.unlock();
         }
@@ -160,9 +184,14 @@ public final class AreaManager {
         var writeLock = this.lock.writeLock();
         try {
             writeLock.lock();
+            this.areasById.remove(area.uid, area);
             this.areasByName.remove(area.name, area);
             this.perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(uid -> uid == area.uid)));
             this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet()).remove(area.uid);
+            if (area.belongingArea != null) {
+                Area enclosing = this.areasById.get(area.belongingArea);
+                enclosing.subAreas.remove(area.uid);
+            }
         } finally {
             writeLock.unlock();
         }
@@ -258,6 +287,8 @@ public final class AreaManager {
         var readLock = this.lock.readLock();
         try {
             readLock.lock();
+            Set<Area> results = Collections.newSetFromMap(new IdentityHashMap<>());
+            // Locate all areas that contain the specified position
             for (var uuid : this.perWorldAreaCache.getOrDefault(
                     world, Collections.emptyMap()).getOrDefault(new ChunkPos(pos), Collections.emptySet())) {
                 Area area = this.areasById.get(uuid);
@@ -265,13 +296,35 @@ public final class AreaManager {
                 if (area.minX <= pos.getX() && pos.getX() <= area.maxX) {
                     if (area.minY <= pos.getY() && pos.getY() <= area.maxY) {
                         if (area.minZ <= pos.getZ() && pos.getZ() <= area.maxZ) {
-                            return area;
+                            results.add(area);
                         }
                     }
                 }
             }
+            // If there is only one area, it will be our result.
+            if (results.size() == 1) {
+                return results.iterator().next();
+            }
+            // Else, we find the area that does not contain any sub-area.
+            // Think about it like a tree (in data structure): leaf node does not have child node.
+            // Similarly, area that doesn't contain sub-area should be the deepest one on that location.
+            for (Area a : results) {
+                if (a.subAreas.isEmpty()) {
+                    return a;
+                }
+            }
             var def = this.areasById.get(this.wildnessByWorld.getOrDefault(world, UUID.randomUUID()));
             return Objects.requireNonNullElseGet(def, () -> AreaFactory.defaultWildness(Level.OVERWORLD));
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    public Area findBy(UUID uid) {
+        var readLock = this.lock.readLock();
+        try {
+            readLock.lock();
+            return this.areasById.get(uid);
         } finally {
             readLock.unlock();
         }
@@ -294,7 +347,7 @@ public final class AreaManager {
             var ret = new ArrayList<Area.Summary>();
             for (var uuid : this.areasByWorld.getOrDefault(dim, Collections.emptySet())) {
                 Area area = this.areasById.get(uuid);
-                if (area == null) continue;
+                if (area == null || Area.GLOBAL_AREA_OWNER.equals(area.owner)) continue;
                 if (center.closerThan(new Vec3i((area.maxX - area.minX) / 2, (area.maxY - area.minY) / 2, (area.maxZ - area.minZ) / 2), radius)) {
                     ret.add(new Area.Summary(area));
                 }

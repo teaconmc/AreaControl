@@ -24,7 +24,8 @@ public class ACSendNearbyArea {
             UUID uid = buf.readUUID();
             int minX = buf.readVarInt(), minY = buf.readVarInt(), minZ = buf.readVarInt();
             int maxX = buf.readVarInt(), maxY = buf.readVarInt(), maxZ = buf.readVarInt();
-            this.areas.add(new Area.Summary(uid, minX, minY, minZ, maxX, maxY, maxZ));
+            boolean enclosed = buf.readBoolean();
+            this.areas.add(new Area.Summary(uid, minX, minY, minZ, maxX, maxY, maxZ, enclosed));
         }
     }
 
@@ -32,7 +33,7 @@ public class ACSendNearbyArea {
         buf.writeVarInt(this.areas.size());
         for (var area : this.areas) {
             buf.writeUUID(area.uid).writeVarInt(area.minX).writeVarInt(area.minY).writeVarInt(area.minZ)
-                    .writeVarInt(area.maxX).writeVarInt(area.maxY).writeVarInt(area.maxZ);
+                    .writeVarInt(area.maxX).writeVarInt(area.maxY).writeVarInt(area.maxZ).writeBoolean(area.enclosed);
         }
     }
 

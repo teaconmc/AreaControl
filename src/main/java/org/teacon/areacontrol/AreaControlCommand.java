@@ -158,9 +158,14 @@ public final class AreaControlCommand {
         final var server = src.getServer();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
         if (!area.owner.equals(Area.GLOBAL_AREA_OWNER)) {
-            final String name = AreaProperties.getString(area, "area.display_name", area.name);
+            final String name = area.name;
             final var ownerName = Util.getOwnerName(area, server.getProfileCache(), server.getPlayerList());
             src.sendSuccess(new TranslatableComponent("area_control.claim.current", name, ownerName), true);
+            if (area.belongingArea != null) {
+                final var enclosingArea = AreaManager.INSTANCE.findBy(area.belongingArea);
+                final var enclosingAreaOwnerName = Util.getOwnerName(enclosingArea, server.getProfileCache(), server.getPlayerList());
+                src.sendSuccess(new TranslatableComponent("area_control.claim.current.enclosed", enclosingArea.name, enclosingAreaOwnerName), true);
+            }
         } else {
             src.sendSuccess(new TranslatableComponent("area_control.claim.current.wildness"), true);
         }

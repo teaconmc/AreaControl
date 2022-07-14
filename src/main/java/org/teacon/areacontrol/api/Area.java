@@ -29,6 +29,8 @@ public final class Area {
     public Set<UUID> friends = new HashSet<>();
 
     public int minX, minY, minZ, maxX, maxY, maxZ;
+    public UUID belongingArea = null;
+    public Set<UUID> subAreas = new HashSet<>();
 
     public final Map<String, Object> properties = new ConcurrentHashMap<>();
 
@@ -36,10 +38,11 @@ public final class Area {
         public final UUID uid;
         public final int minX, minY, minZ, maxX, maxY, maxZ;
         public final int midX, midY, midZ;
+        public final boolean enclosed;
         public Summary(Area area) {
-            this(area.uid, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ);
+            this(area.uid, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ, area.belongingArea != null);
         }
-        public Summary(UUID uid, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        public Summary(UUID uid, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, boolean enclosed) {
             this.uid = uid;
             this.minX = minX;
             this.minY = minY;
@@ -50,6 +53,7 @@ public final class Area {
             this.midX = (maxX + minX) / 2;
             this.midY = (maxY + minY) / 2;
             this.midZ = (maxZ + minZ) / 2;
+            this.enclosed = enclosed;
         }
     }
 }
