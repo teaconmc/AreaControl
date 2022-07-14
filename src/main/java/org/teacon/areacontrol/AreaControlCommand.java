@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -37,7 +38,13 @@ public final class AreaControlCommand {
                         .then(Commands.literal("help").executes(AreaControlCommand::help))
                         .then(Commands.literal("admin").executes(AreaControlCommand::admin))
                         .then(Commands.literal("nearby").executes(AreaControlCommand::nearby))
-                        .then(Commands.literal("claim").requires(check(AreaControlPermissions.CLAIM_AREA)).executes(AreaControlCommand::claim))
+                        .then(Commands.literal("claim")
+                                .then(Commands.literal("marked")
+                                        .requires(check(AreaControlPermissions.CLAIM_MARKED_AREA))
+                                        .executes(AreaControlCommand::claimMarked))
+                                .then(Commands.literal("chunk")
+                                        .requires(check(AreaControlPermissions.CLAIM_CHUNK_AREA))
+                                        .executes(AreaControlCommand::claimChunk)))
                         .then(Commands.literal("current")
                                 .then(Commands.literal("friends")
                                         .then(Commands.literal("add")
@@ -100,7 +107,28 @@ public final class AreaControlCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int claim(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int claimChunk(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var claimer = src.getPlayerOrException();
+        final var chunkPos = new ChunkPos(new BlockPos(src.getPosition()));
+        final var chunkStart = chunkPos.getBlockAt(0, Integer.MIN_VALUE, 0);
+        final var chunkEnd = chunkPos.getBlockAt(15, Integer.MAX_VALUE, 15);
+        final Area area = Util.createArea(chunkStart, chunkEnd);
+        final var worldIndex = src.getLevel().dimension();
+        final UUID claimerUUID = claimer.getGameProfile().getId();
+        if (claimerUUID != null) {
+            area.owner = claimerUUID;
+        }
+        if (AreaManager.INSTANCE.add(area, worldIndex)) {
+            src.sendSuccess(new TranslatableComponent("area_control.claim.created", area.name, Util.toGreenText(area)), true);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(new TranslatableComponent("area_control.error.overlap"));
+            return -2;
+        }
+    }
+
+    private static int claimMarked(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final var claimer = src.getPlayerOrException();
         final var recordPos = AreaControlClaimHandler.popRecord(claimer);
@@ -122,7 +150,7 @@ public final class AreaControlCommand {
             src.sendFailure(new TranslatableComponent("area_control.error.no_selection"));
             return -1;
         }
-        
+
     }
 
     private static int displayCurrent(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -245,7 +273,7 @@ public final class AreaControlCommand {
         if (!area.owner.equals(Area.GLOBAL_AREA_OWNER)) {
             if (area.owner.equals(claimer.getGameProfile().getId()) || PermissionAPI.getPermission(claimer, AreaControlPermissions.UNCLAIM_AREA)) {
                 AreaManager.INSTANCE.remove(area, worldIndex);
-                src.sendSuccess(new TranslatableComponent("area_control.claim.abandoned", 
+                src.sendSuccess(new TranslatableComponent("area_control.claim.abandoned",
                         AreaProperties.getString(area, "area.display_name", area.name),
                         area.name, Util.toGreenText(area)), false);
                 return Command.SINGLE_SUCCESS;

@@ -19,7 +19,8 @@ public class AreaControlPermissions {
 
     public static final PermissionNode<Boolean> SET_PROPERTY = new PermissionNode<>("area_control", "command.set_property", PermissionTypes.BOOLEAN, OP_ONLY);
     public static final PermissionNode<Boolean> SET_FRIENDS  = new PermissionNode<>("area_control", "command.set_friend", PermissionTypes.BOOLEAN, OP_ONLY);
-    public static final PermissionNode<Boolean> CLAIM_AREA   = new PermissionNode<>("area_control", "command.claim", PermissionTypes.BOOLEAN, ANYONE);
+    public static final PermissionNode<Boolean> CLAIM_MARKED_AREA = new PermissionNode<>("area_control", "command.claim.marked", PermissionTypes.BOOLEAN, ANYONE);
+    public static final PermissionNode<Boolean> CLAIM_CHUNK_AREA   = new PermissionNode<>("area_control", "command.claim.chunk", PermissionTypes.BOOLEAN, ANYONE);
     public static final PermissionNode<Boolean> MARK_AREA    = new PermissionNode<>("area_control", "command.mark", PermissionTypes.BOOLEAN, ANYONE);
     public static final PermissionNode<Boolean> UNCLAIM_AREA = new PermissionNode<>("area_control", "command.unclaim", PermissionTypes.BOOLEAN, ANYONE);
     public static final PermissionNode<Boolean> INSPECT      = new PermissionNode<>("area_control", "admin.inspect", PermissionTypes.BOOLEAN, OP_ONLY);
