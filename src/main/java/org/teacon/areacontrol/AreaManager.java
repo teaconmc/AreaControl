@@ -2,13 +2,12 @@ package org.teacon.areacontrol;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 
@@ -42,23 +41,24 @@ public final class AreaManager {
 
     private AreaRepository repository = null;
 
-    private final HashMap<UUID, Area> areasById = new HashMap<>();
-    private final HashMap<String, Area> areasByName = new HashMap<>();
+    private final Map<UUID, Area> areasById = new ConcurrentHashMap<>();
+    private final Map<String, Area> areasByName = new ConcurrentHashMap<>();
     /**
      * All known instances of {@link Area}, indexed by dimensions and chunk positions covered by this area.
      * Used for faster lookup of {@link Area} when the position is known.
      */
-    private final IdentityHashMap<ResourceKey<Level>, Map<ChunkPos, Set<Area>>> perWorldAreaCache = new IdentityHashMap<>();
+    private final Map<ResourceKey<Level>, Map<ChunkPos, Set<Area>>> perWorldAreaCache = new ConcurrentHashMap<>();
+
     /**
      * All known instances of {@link Area}, indexed by dimensions only. Used for situations such as querying
      * areas in a larger range.
      */
-    private final IdentityHashMap<ResourceKey<Level>, Set<Area>> areasByWorld = new IdentityHashMap<>();
+    private final Map<ResourceKey<Level>, Set<Area>> areasByWorld = new ConcurrentHashMap<>();
     /**
      * All instances of "wildness" area, indexed by dimension.
      * They all have owner as {@link Area#GLOBAL_AREA_OWNER}.
      */
-    private final IdentityHashMap<ResourceKey<Level>, Area> wildnessByWorld = new IdentityHashMap<>();
+    private final Map<ResourceKey<Level>, Area> wildnessByWorld = new ConcurrentHashMap<>();
 
     private void buildCacheFor(Area area, ResourceKey<Level> worldIndex) {
         this.areasById.put(area.uid, area);
@@ -74,9 +74,9 @@ public final class AreaManager {
             this.wildnessByWorld.put(worldIndex, area);
             return;
         }
-        final Map<ChunkPos, Set<Area>> areasInDim = this.perWorldAreaCache.computeIfAbsent(worldIndex, id -> new HashMap<>());
+        final Map<ChunkPos, Set<Area>> areasInDim = this.perWorldAreaCache.computeIfAbsent(worldIndex, id -> new ConcurrentHashMap<>());
         ChunkPos.rangeClosed(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))
-                .map(cp -> areasInDim.computeIfAbsent(cp, _cp -> Collections.newSetFromMap(new IdentityHashMap<>())))
+                .map(cp -> areasInDim.computeIfAbsent(cp, _cp -> ConcurrentHashMap.newKeySet()))
                 .forEach(list -> list.add(area));
     }
 
