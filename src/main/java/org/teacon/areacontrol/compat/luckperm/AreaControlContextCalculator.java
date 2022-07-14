@@ -23,11 +23,6 @@ public enum AreaControlContextCalculator implements ContextCalculator<ServerPlay
 
     @Override
     public void calculate(@NonNull ServerPlayer target, @NonNull ContextConsumer consumer) {
-        if (!target.server.isSameThread()) {
-            LOGGER.info("The calculator is not running on the server thread so no context will be calculated.");
-            LOGGER.debug("The calculator is not running on the server.", new RuntimeException());
-            return;
-        }
         var uid = target.getGameProfile().getId();
         var pos = target.blockPosition();
         var dim = target.level.dimension();

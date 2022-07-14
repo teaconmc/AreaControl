@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nonnull;
 
@@ -42,6 +44,8 @@ public final class AreaManager {
 
     private AreaRepository repository = null;
 
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
     private final HashMap<UUID, Area> areasById = new HashMap<>();
     private final HashMap<String, Area> areasByName = new HashMap<>();
     /**
@@ -61,6 +65,7 @@ public final class AreaManager {
     private final IdentityHashMap<ResourceKey<Level>, Area> wildnessByWorld = new IdentityHashMap<>();
 
     private void buildCacheFor(Area area, ResourceKey<Level> worldIndex) {
+        // not locked since every method invoking this one has been locked
         this.areasById.put(area.uid, area);
         this.areasByName.put(area.name, area);
         this.areasByWorld.compute(worldIndex, (key, areas) -> {
@@ -85,13 +90,23 @@ public final class AreaManager {
     }
 
     void load() throws Exception {
-        for (Area a : this.repository.load()) {
-            this.buildCacheFor(a, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
+        var writeLock = this.lock.writeLock();
+        try {
+            for (Area a : this.repository.load()) {
+                this.buildCacheFor(a, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
+            }
+        } finally {
+            writeLock.unlock();
         }
     }
 
     void save() throws Exception {
-        this.repository.save(this.areasById.values());
+        var writeLock = this.lock.writeLock();
+        try {
+            this.repository.save(this.areasById.values());
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     /**
@@ -100,35 +115,45 @@ public final class AreaManager {
      * @return true if and only if the area is successfully recorded by this AreaManager; false otherwise.
      */
     public boolean add(Area area, ResourceKey<Level> worldIndex) {
-        // First we filter out cases where at least one defining coordinate falls in an existing area
-        if (findBy(worldIndex, new BlockPos(area.minX, area.minY, area.minZ)).owner.equals(Area.GLOBAL_AREA_OWNER)
-            && findBy(worldIndex, new BlockPos(area.maxX, area.maxY, area.maxZ)).owner.equals(Area.GLOBAL_AREA_OWNER)) {
-            // Second we filter out cases where the area to define is enclosing another area.
-            boolean noEnclosing = true;
-            for (Area a : this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet())) {
-                if (area.minX < a.minX && a.maxX < area.maxX) {
-                    if (area.minY < a.minY && a.maxY < area.maxY) {
-                        if (area.minZ < a.minZ && a.maxZ < area.maxZ) {
-                            noEnclosing = false;
-                            break;
+        var writeLock = this.lock.writeLock();
+        try {
+            // First we filter out cases where at least one defining coordinate falls in an existing area
+            if (findBy(worldIndex, new BlockPos(area.minX, area.minY, area.minZ)).owner.equals(Area.GLOBAL_AREA_OWNER)
+                && findBy(worldIndex, new BlockPos(area.maxX, area.maxY, area.maxZ)).owner.equals(Area.GLOBAL_AREA_OWNER)) {
+                // Second we filter out cases where the area to define is enclosing another area.
+                boolean noEnclosing = true;
+                for (Area a : this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet())) {
+                    if (area.minX < a.minX && a.maxX < area.maxX) {
+                        if (area.minY < a.minY && a.maxY < area.maxY) {
+                            if (area.minZ < a.minZ && a.maxZ < area.maxZ) {
+                                noEnclosing = false;
+                                break;
+                            }
                         }
                     }
                 }
+                if (noEnclosing) {
+                    this.buildCacheFor(area, worldIndex);
+                    // Copy default settings over
+                    area.properties.putAll(this.wildnessByWorld.computeIfAbsent(worldIndex, AreaFactory::defaultWildness).properties);
+                    return true;
+                }
             }
-            if (noEnclosing) {
-                this.buildCacheFor(area, worldIndex);
-                // Copy default settings over
-                area.properties.putAll(this.wildnessByWorld.computeIfAbsent(worldIndex, AreaFactory::defaultWildness).properties);
-                return true;
-            }
+            return false;
+        } finally {
+            writeLock.unlock();
         }
-        return false;
     }
 
     public void remove(Area area, ResourceKey<Level> worldIndex) {
-        this.areasByName.remove(area.name, area);
-        this.perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(a -> a == area)));
-        this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet()).remove(area);
+        var writeLock = this.lock.writeLock();
+        try {
+            this.areasByName.remove(area.name, area);
+            this.perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(a -> a == area)));
+            this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet()).remove(area);
+        } finally {
+            writeLock.unlock();
+        }
 	}
 
     /**
@@ -179,48 +204,78 @@ public final class AreaManager {
             LOGGER.debug("Use LevelAccessor.dimensionType() to determine dimension id at best effort");
             var server = ServerLifecycleHooks.getCurrentServer();
             if (server == null) {
-                return this.wildnessByWorld.computeIfAbsent(Level.OVERWORLD, AreaFactory::defaultWildness);
+                var readLock = this.lock.readLock();
+                try {
+                    return this.wildnessByWorld.computeIfAbsent(Level.OVERWORLD, AreaFactory::defaultWildness);
+                } finally {
+                    readLock.unlock();
+                }
             }
             RegistryAccess registryAccess = server.registryAccess();
             var maybeDimRegistry = registryAccess.registry(Registry.DIMENSION_TYPE_REGISTRY);
             if (maybeDimRegistry.isPresent()) {
                 var dimKey = maybeDimRegistry.get().getKey(maybeLevel.dimensionType());
                 if (dimKey != null) {
-                    return this.findBy(ResourceKey.create(Registry.DIMENSION_REGISTRY, dimKey), pos);
+                    var readLock = this.lock.readLock();
+                    try {
+                        return this.findBy(ResourceKey.create(Registry.DIMENSION_REGISTRY, dimKey), pos);
+                    } finally {
+                        readLock.unlock();
+                    }
                 }
                 LOGGER.warn("Detect unregistered DimensionType; we cannot reliably determine the dimension name. Treat as overworld wildness instead.");
             } else {
                 LOGGER.warn("Detect that the DimensionType registry itself is missing. This should be impossible. Treat as overworld wildness instead.");
             }
-            return this.wildnessByWorld.computeIfAbsent(Level.OVERWORLD, AreaFactory::defaultWildness);
+            var readLock = this.lock.readLock();
+            try {
+                return this.wildnessByWorld.computeIfAbsent(Level.OVERWORLD, AreaFactory::defaultWildness);
+            } finally {
+                readLock.unlock();
+            }
         }
     }
 
     @Nonnull
     public Area findBy(ResourceKey<Level> world, BlockPos pos) {
-        for (Area area : this.perWorldAreaCache.getOrDefault(world, Collections.emptyMap()).getOrDefault(new ChunkPos(pos), Collections.emptySet())) {
-            if (area.minX <= pos.getX() && pos.getX() <= area.maxX) {
-                if (area.minY <= pos.getY() && pos.getY() <= area.maxY) {
-                    if (area.minZ <= pos.getZ() && pos.getZ() <= area.maxZ) {
-                        return area;
+        var readLock = this.lock.readLock();
+        try {
+            for (Area area : this.perWorldAreaCache.getOrDefault(world, Collections.emptyMap()).getOrDefault(new ChunkPos(pos), Collections.emptySet())) {
+                if (area.minX <= pos.getX() && pos.getX() <= area.maxX) {
+                    if (area.minY <= pos.getY() && pos.getY() <= area.maxY) {
+                        if (area.minZ <= pos.getZ() && pos.getZ() <= area.maxZ) {
+                            return area;
+                        }
                     }
                 }
             }
+            return this.wildnessByWorld.computeIfAbsent(world, AreaFactory::defaultWildness);
+        } finally {
+            readLock.unlock();
         }
-        return this.wildnessByWorld.computeIfAbsent(world, AreaFactory::defaultWildness);
     }
 
     public Area findBy(String name) {
-        return this.areasByName.get(name);
+        var readLock = this.lock.readLock();
+        try {
+            return this.areasByName.get(name);
+        } finally {
+            readLock.unlock();
+        }
     }
 
     public List<Area.Summary> getAreaSummariesSurround(ResourceKey<Level> dim, BlockPos center, double radius) {
-        var ret = new ArrayList<Area.Summary>();
-        for (Area area : this.areasByWorld.getOrDefault(dim, Collections.emptySet())) {
-            if (center.closerThan(new Vec3i((area.maxX - area.minX) / 2, (area.maxY - area.minY) / 2, (area.maxZ - area.minZ) / 2), radius)) {
-                ret.add(new Area.Summary(area));
+        var readLock = this.lock.readLock();
+        try {
+            var ret = new ArrayList<Area.Summary>();
+            for (Area area : this.areasByWorld.getOrDefault(dim, Collections.emptySet())) {
+                if (center.closerThan(new Vec3i((area.maxX - area.minX) / 2, (area.maxY - area.minY) / 2, (area.maxZ - area.minZ) / 2), radius)) {
+                    ret.add(new Area.Summary(area));
+                }
             }
+            return ret;
+        } finally {
+            readLock.unlock();
         }
-        return ret;
     }
 }
