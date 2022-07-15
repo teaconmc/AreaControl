@@ -257,40 +257,36 @@ public final class AreaManager {
             LOGGER.debug("Use LevelAccessor.dimensionType() to determine dimension id at best effort");
             var server = ServerLifecycleHooks.getCurrentServer();
             if (server == null) {
-                var readLock = this.lock.readLock();
-                try {
-                    readLock.lock();
-                    var def = this.areasById.get(this.wildnessByWorld.getOrDefault(Level.OVERWORLD, UUID.randomUUID()));
-                    return Objects.requireNonNullElseGet(def, () -> AreaFactory.defaultWildness(Level.OVERWORLD));
-                } finally {
-                    readLock.unlock();
-                }
+                return findDefaultBy(Level.OVERWORLD);
             }
             RegistryAccess registryAccess = server.registryAccess();
             var maybeDimRegistry = registryAccess.registry(Registry.DIMENSION_TYPE_REGISTRY);
             if (maybeDimRegistry.isPresent()) {
                 var dimKey = maybeDimRegistry.get().getKey(maybeLevel.dimensionType());
                 if (dimKey != null) {
-                    var readLock = this.lock.readLock();
-                    try {
-                        readLock.lock();
-                        return this.findBy(ResourceKey.create(Registry.DIMENSION_REGISTRY, dimKey), pos);
-                    } finally {
-                        readLock.unlock();
-                    }
+                    return this.findBy(ResourceKey.create(Registry.DIMENSION_REGISTRY, dimKey), pos);
                 }
                 LOGGER.warn("Detect unregistered DimensionType; we cannot reliably determine the dimension name. Treat as overworld wildness instead.");
             } else {
                 LOGGER.warn("Detect that the DimensionType registry itself is missing. This should be impossible. Treat as overworld wildness instead.");
             }
-            var readLock = this.lock.readLock();
-            try {
-                readLock.lock();
-                var def = this.areasById.get(this.wildnessByWorld.getOrDefault(Level.OVERWORLD, UUID.randomUUID()));
-                return Objects.requireNonNullElseGet(def, () -> AreaFactory.defaultWildness(Level.OVERWORLD));
-            } finally {
-                readLock.unlock();
-            }
+            return findDefaultBy(Level.OVERWORLD);
+        }
+    }
+
+    @Nonnull
+    private Area findDefaultBy(ResourceKey<Level> key) {
+        var writeLock = this.lock.writeLock();
+        try {
+            writeLock.lock();
+            var def = this.areasById.get(this.wildnessByWorld.getOrDefault(key, UUID.randomUUID()));
+            return Objects.requireNonNullElseGet(def, () -> {
+                var newCreated = AreaFactory.defaultWildness(key);
+                buildCacheFor(newCreated, key);
+                return newCreated;
+            });
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -325,11 +321,10 @@ public final class AreaManager {
                     return a;
                 }
             }
-            var def = this.areasById.get(this.wildnessByWorld.getOrDefault(world, UUID.randomUUID()));
-            return Objects.requireNonNullElseGet(def, () -> AreaFactory.defaultWildness(Level.OVERWORLD));
         } finally {
             readLock.unlock();
         }
+        return findDefaultBy(world);
     }
 
     public Area findBy(UUID uid) {
