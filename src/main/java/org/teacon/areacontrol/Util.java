@@ -8,7 +8,6 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
@@ -22,13 +21,6 @@ public final class Util {
     public static final UUID SYSTEM = new UUID(0L, 0L);
 
     private static final Random RAND = new Random();
-
-    public static String nextRandomString() {
-        // https://stackoverflow.com/questions/14622622/generating-a-random-hex-string-of-length-50-in-java-me-j2me#comment100639373_14623245
-        // tldr: formatting to 8 digits of hexadecimal number, padding zeros at
-        // beginning
-        return String.format("%08x", RAND.nextInt());
-    }
 
     public static Component toGreenText(BlockPos pos) {
         return new TranslatableComponent("area_control.claim.pos", pos.getX(), pos.getY(), pos.getZ())

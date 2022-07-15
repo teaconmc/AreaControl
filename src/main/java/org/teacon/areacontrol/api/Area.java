@@ -21,7 +21,7 @@ public final class Area {
 	
 	public UUID uid = UUID.randomUUID();
 
-    public String name = "Area " + Util.nextRandomString();
+    public String name = "Area " + uid.toString().substring(0, 8);
     public Set<String> tags = new HashSet<>();
 
     public String dimension = "minecraft:overworld";
