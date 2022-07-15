@@ -8,8 +8,10 @@ import com.electronwill.nightconfig.core.conversion.ObjectConverter;
 import com.electronwill.nightconfig.core.conversion.SpecNotNull;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.io.MoreFiles;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
+import net.minecraft.core.BlockPos;
 import org.teacon.areacontrol.api.Area;
 
 import javax.annotation.Nullable;
@@ -88,8 +90,12 @@ public class TomlBasedAreaRepository implements AreaRepository {
         public UUID owner = new UUID(0L, 0L);
         @Conversion(UUIDCollectionConverter.class)
         public Collection<UUID> friends = new HashSet<>();
-
-        public int minX, minY, minZ, maxX, maxY, maxZ;
+        @Conversion(BlockPosConverter.class)
+        @SpecNotNull
+        public BlockPos min = new BlockPos(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+        @Conversion(BlockPosConverter.class)
+        @SpecNotNull
+        public BlockPos max = new BlockPos(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
 
         public Config properties;
 
@@ -102,12 +108,8 @@ public class TomlBasedAreaRepository implements AreaRepository {
             this.dimension = realArea.dimension;
             this.owner = realArea.owner;
             this.friends = realArea.friends;
-            this.minX = realArea.minX;
-            this.minY = realArea.minY;
-            this.minZ = realArea.minZ;
-            this.maxX = realArea.maxX;
-            this.maxY = realArea.maxY;
-            this.maxZ = realArea.maxZ;
+            this.min = new BlockPos(realArea.minX, realArea.minY, realArea.minZ);
+            this.max = new BlockPos(realArea.maxX, realArea.maxY, realArea.maxZ);
             this.properties = Config.wrap(realArea.properties, InMemoryFormat.defaultInstance());
         }
 
@@ -118,15 +120,28 @@ public class TomlBasedAreaRepository implements AreaRepository {
             area.dimension = this.dimension;
             area.owner = this.owner;
             area.friends = new ObjectArraySet<>(this.friends);
-            area.minX = this.minX;
-            area.minY = this.minY;
-            area.minZ = this.minZ;
-            area.maxX = this.maxX;
-            area.maxY = this.maxY;
-            area.maxZ = this.maxZ;
+            area.minX = Math.min(this.min.getX(), this.max.getX());
+            area.minY = Math.min(this.min.getY(), this.max.getY());
+            area.minZ = Math.min(this.min.getZ(), this.max.getZ());
+            area.maxX = Math.max(this.min.getX(), this.max.getX());
+            area.maxY = Math.max(this.min.getY(), this.max.getY());
+            area.maxZ = Math.max(this.min.getZ(), this.max.getZ());
             area.properties.clear();
             area.properties.putAll(this.properties.valueMap());
             return area;
+        }
+    }
+
+    private static final class BlockPosConverter implements Converter<BlockPos, List<Integer>> {
+        @Override
+        public BlockPos convertToField(List<Integer> value) {
+            Preconditions.checkArgument(value.size() == 3);
+            return new BlockPos(value.get(0), value.get(1), value.get(2));
+        }
+
+        @Override
+        public List<Integer> convertFromField(BlockPos value) {
+            return Lists.newArrayList(value.getX(), value.getY(), value.getZ());
         }
     }
 
