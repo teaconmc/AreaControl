@@ -10,6 +10,7 @@ import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -18,11 +19,14 @@ import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.server.permission.events.PermissionGatherEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.teacon.areacontrol.impl.ClientSinglePlayerServerChecker;
+import org.teacon.areacontrol.impl.ServerSinglePlayerServerChecker;
 import org.teacon.areacontrol.impl.persistence.AreaRepositoryManager;
 import org.teacon.areacontrol.network.ACNetworking;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Predicate;
 
 @Mod("area_control")
 @Mod.EventBusSubscriber(modid = "area_control")
@@ -32,6 +36,8 @@ public final class AreaControl {
 
     private static final LevelResource SERVER_CONFIG = new LevelResource("serverconfig");
 
+    public static Predicate<MinecraftServer> singlePlayerServerChecker;
+
     public AreaControl() {
         ModLoadingContext context = ModLoadingContext.get();
         context.registerExtensionPoint(IExtensionPoint.DisplayTest.class,
@@ -39,6 +45,8 @@ public final class AreaControl {
         ACNetworking.init();
         AreaRepositoryManager.init();
         context.registerConfig(ModConfig.Type.SERVER, AreaControlConfig.setup(new ForgeConfigSpec.Builder()));
+        singlePlayerServerChecker = DistExecutor.safeRunForDist(
+                () -> ClientSinglePlayerServerChecker::new, () -> ServerSinglePlayerServerChecker::new);
     }
 
     @SubscribeEvent

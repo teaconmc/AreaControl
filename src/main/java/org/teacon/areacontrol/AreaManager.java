@@ -17,7 +17,6 @@ import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
-import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Registry;
@@ -223,10 +222,8 @@ public final class AreaManager {
 
     @Nonnull
     public Area findBy(Level worldInstance, BlockPos pos) {
-        if (!DEBUG && worldInstance.getServer() instanceof IntegratedServer lanServer) {
-            if (!lanServer.isPublished()) {
-                return this.singlePlayerWildness;
-            }
+        if (!DEBUG && AreaControl.singlePlayerServerChecker.test(worldInstance.getServer())) {
+            return this.singlePlayerWildness;
         }
         // Remember that neither Dimension nor DimensionType are for
         // distinguishing a world - they are information for world
@@ -244,10 +241,8 @@ public final class AreaManager {
     }
 
     public @Nonnull Area findBy(LevelAccessor maybeLevel, BlockPos pos) {
-        if (!DEBUG && maybeLevel.getServer() instanceof IntegratedServer lanServer) {
-            if (!lanServer.isPublished()) {
-                return this.singlePlayerWildness;
-            }
+        if (!DEBUG && AreaControl.singlePlayerServerChecker.test(maybeLevel.getServer())) {
+            return this.singlePlayerWildness;
         }
         if (maybeLevel instanceof Level level) {
             return this.findBy(level.dimension(), pos);
