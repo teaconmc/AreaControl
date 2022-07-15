@@ -8,11 +8,8 @@ import com.electronwill.nightconfig.core.conversion.ObjectConverter;
 import com.electronwill.nightconfig.core.conversion.SpecNotNull;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.common.io.MoreFiles;
-import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
-import net.minecraft.core.BlockPos;
 import org.teacon.areacontrol.api.Area;
 
 import javax.annotation.Nullable;
@@ -34,13 +31,13 @@ public class TomlBasedAreaRepository implements AreaRepository {
         @Nullable var exception = (IOException) null;
         // noinspection UnstableApiUsage
         for (Path file : MoreFiles.listFiles(this.dataDirRoot)) {
-            var fileName = file.getFileName();
+            var fileName = file.getFileName().toString();
             if (fileName.startsWith("claim-") && fileName.endsWith(".toml")) {
                 try (FileConfig areasData = FileConfig.of(file)) {
                     areasData.load();
                     var converter = new ObjectConverter();
                     var model = converter.toObject(areasData, AreaModel::new);
-                    Preconditions.checkArgument(Path.of("claim-%s.toml".formatted(model.uid)).equals(fileName),
+                    Preconditions.checkArgument("claim-%s.toml".formatted(model.uid).equals(fileName),
                             "The name of the claim file (" + fileName + ") does not match the claim uid: " + model.uid);
                     areas.put(model.uid, model.toRealArea());
                 } catch (Exception e) {
@@ -62,7 +59,7 @@ public class TomlBasedAreaRepository implements AreaRepository {
         @Nullable var exception = (IOException) null;
         for (Area area : areas) {
             var model = new AreaModel(area);
-            try (FileConfig areasData = FileConfig.of(this.dataDirRoot.resolve("claims-%s.toml".formatted(area.uid)))) {
+            try (FileConfig areasData = FileConfig.of(this.dataDirRoot.resolve("claim-%s.toml".formatted(area.uid)))) {
                 var converter = new ObjectConverter();
                 converter.toConfig(model, areasData);
                 areasData.save();
