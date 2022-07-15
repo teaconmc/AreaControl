@@ -1,12 +1,14 @@
 package org.teacon.areacontrol;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -97,6 +99,17 @@ public final class AreaControl {
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         AreaControlPlayerTracker.INSTANCE.undoMarkPlayer(event.getPlayer().getGameProfile().getId());
+    }
+
+    @SubscribeEvent
+    public static void onServerSave(WorldEvent.Save event) {
+        if (event.getWorld() instanceof ServerLevel level) {
+            try {
+                AreaManager.INSTANCE.saveDimension(level.dimension());
+            } catch (Exception e) {
+                LOGGER.warn("Failed to write claims data.", e);
+            }
+        }
     }
 
     @SubscribeEvent

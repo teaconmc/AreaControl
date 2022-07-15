@@ -109,6 +109,17 @@ public final class AreaManager {
         }
     }
 
+    void saveDimension(ResourceKey<Level> key) throws Exception {
+        var writeLock = this.lock.writeLock();
+        try {
+            writeLock.lock();
+            this.repository.save(this.areasById.values().stream()
+                    .filter(a -> a.dimension.equals(key.location().toString())).toList());
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
     void save() throws Exception {
         var writeLock = this.lock.writeLock();
         try {
@@ -120,7 +131,7 @@ public final class AreaManager {
     }
 
     /**
-     * @param area The Area instance to be recorded
+     * @param area       The Area instance to be recorded
      * @param worldIndex The {@link ResourceKey<Level>} of the {@link Level} to which the area belongs
      * @return true if and only if the area is successfully recorded by this AreaManager; false otherwise.
      */
@@ -195,11 +206,12 @@ public final class AreaManager {
         } finally {
             writeLock.unlock();
         }
-	}
+    }
 
     /**
      * Convenient overload of {@link #findBy(ResourceKey, BlockPos)} that unpacks
      * the {@link GlobalPos} instance for you, in case you have one.
+     *
      * @param pos The globally qualified coordinate
      * @return The area instance
      * @see #findBy(ResourceKey, BlockPos)
