@@ -18,6 +18,10 @@
   "area_control.claim.current.wildness": "你现在身在野外。",
   "area_control.claim.nearby": "在你的视野范围内有 %d 块领地，这些领地的范围现在有临时的碧绿色或青蓝色高亮。",
 
+  "area_control.claim.tag.added": "已成功为领地 '%1$s' 添加标签 '%2$s'.",
+  "area_control.claim.tag.existed": "领地 '%1$s' 已有标签 %2$s!",
+  "area_control.claim.tag.removed": "已成功为领地 '$1$s' 移除标签 '%2$s'",
+  "area_control.claim.tag.not_yet": "领地 '%1$s' 目前没有标签 '%2$s'！",
   "area_control.claim.friend.list.header": "------ 领地 %1$s 的成员列表 ------",
   "area_control.claim.friend.list.entry": "  - %s",
   "area_control.claim.friend.list.footer": "------ 总计 %1$s ------",
@@ -42,6 +46,7 @@
   "area_control.error.no_selection": "AreaControl：无法确定你要声明的领地范围，你是不是忘记标记领地范围了？",
   "area_control.error.cannot_set_property": "AreaControl：你没有修改领地 %s 的属性的权限。",
   "area_control.error.cannot_set_friend": "AreaControl: 你没有修改领地 %s 的成员列表的权限。",
+  "area_control.error.cannot_set_tag": "AreaControl: 你没有修改领地 %s 的标签的权限。",
   "area_control.error.unclaim_wildness": "AreaControl：你现在身在野外，你确定要将大自然还给大自然自己吗？",
   "area_control.error.unclaim_without_permission": "AreaControl：放弃领地 %s（内部名 %s，%s）失败，因为这块领地不属于你，或者你没有权限这么做。"
 }

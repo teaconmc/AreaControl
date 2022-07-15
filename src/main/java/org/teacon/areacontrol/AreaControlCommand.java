@@ -9,6 +9,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.GameProfileArgument;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
@@ -63,6 +64,14 @@ public final class AreaControlCommand {
                                                 .then(Commands.argument("property", StringArgumentType.string())
                                                         .executes(AreaControlCommand::unsetProperty)))
                                         .executes(AreaControlCommand::listProperties))
+                                .then(Commands.literal("tags")
+                                        .then(Commands.literal("add")
+                                                .then(Commands.argument("tag", ResourceLocationArgument.id())
+                                                        .executes(AreaControlCommand::addTag)))
+                                        .then(Commands.literal("remove")
+                                                .then(Commands.argument("tag", ResourceLocationArgument.id())
+                                                        .executes(AreaControlCommand::removeTag)))
+                                        .executes(AreaControlCommand::listTags))
                                 .executes(AreaControlCommand::displayCurrent))
                         .then(Commands.literal("mark").requires(check(AreaControlPermissions.MARK_AREA)).then(
                                 Commands.argument("pos", Vec3Argument.vec3()).executes(AreaControlCommand::mark)))
@@ -177,6 +186,46 @@ public final class AreaControlCommand {
         AreaControlClaimHandler.pushRecord(context.getSource().getPlayerOrException(), marked);
         context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.marked", Util.toGreenText(marked)), true);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int listTags(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var server = src.getServer();
+        final var profileCache = server.getProfileCache();
+        final var playerList = server.getPlayerList();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        src.sendSuccess(new TextComponent(area.tags + " tag(s): " + String.join(", ", area.tags)), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int addTag(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final var player = src.getPlayerOrException();
+        if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+            final var tag = ResourceLocationArgument.getId(context, "tag");
+            String message = area.tags.add(tag.toString()) ? "area_control.claim.tag.added" : "area_control.claim.tag.existed";
+            src.sendSuccess(new TranslatableComponent(message, area.name, tag), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_tag", area.name));
+            return -1;
+        }
+    }
+
+    private static int removeTag(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final var player = src.getPlayerOrException();
+        if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+            final var tag = ResourceLocationArgument.getId(context, "tag");
+            String message = area.tags.remove(tag.toString()) ? "area_control.claim.friend.removed" : "area_control.claim.friend.not_yet";
+            src.sendSuccess(new TranslatableComponent(message, area.name, tag), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_tag", area.name));
+            return -1;
+        }
     }
 
     private static int listFriends(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
