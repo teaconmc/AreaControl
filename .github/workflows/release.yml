@@ -12,6 +12,13 @@ jobs:
         with:
           # Fetch all history 
           fetch-depth: 0
+      - name: Apply Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: $${{ runner.os }}-gradle
       - name: Maven Publish
         id: maven_publish
         env:
