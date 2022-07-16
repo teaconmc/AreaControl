@@ -60,6 +60,7 @@ public final class AreaControlClientSupport {
 
     public static volatile List<Area.Summary> knownAreas = Collections.emptyList();
     public static volatile long knownAreasExpiresAt = 0L;
+    public static volatile BlockPos selectionMin, selectionMax;
 
     static void renderAreaBorder(RenderLevelLastEvent event) {
         final Minecraft mc = Minecraft.getInstance();
@@ -85,6 +86,9 @@ public final class AreaControlClientSupport {
                     box(transform, builder, area.enclosed ? 0x8826619C : 0x887FFFD4, area.minX, area.minY, area.minZ, area.maxX + 1, area.maxY + 1, area.maxZ + 1);
                 }
             }
+        }
+        if (selectionMin != null && selectionMax != null) {
+            box(transform, builder, 0xFFFFD700, selectionMin.getX(), selectionMin.getY(), selectionMin.getZ(), selectionMax.getX() + 1, selectionMax.getY() + 1, selectionMax.getZ() + 1);
         }
 
         buffers.endBatch();

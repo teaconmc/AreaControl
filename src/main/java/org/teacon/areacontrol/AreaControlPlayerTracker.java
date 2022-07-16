@@ -4,7 +4,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
@@ -17,6 +16,7 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.network.ACNetworking;
+import org.teacon.areacontrol.network.ACSendCurrentSelection;
 import org.teacon.areacontrol.network.ACSendNearbyArea;
 
 import java.util.ArrayList;
@@ -66,5 +66,17 @@ public enum AreaControlPlayerTracker {
             requester.displayClientMessage(new TranslatableComponent("area_control.claim.nearby.visual"), false);
         }
         LOGGER.debug(MARKER, "End of the request");
+    }
+
+    public void sendCurrentSelectionToClient(ServerPlayer receiver, AreaControlClaimHandler.RectangleRegion region) {
+        if (this.playersWithExt.contains(receiver.getGameProfile().getId())) {
+            ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> receiver), new ACSendCurrentSelection(false, region.start(), region.end()));
+        }
+    }
+
+    public void clearSelectionForClient(ServerPlayer receiver) {
+        if (this.playersWithExt.contains(receiver.getGameProfile().getId())) {
+            ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> receiver), new ACSendCurrentSelection(true, null, null));
+        }
     }
 }

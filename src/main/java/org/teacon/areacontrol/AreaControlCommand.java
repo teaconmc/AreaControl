@@ -142,6 +142,7 @@ public final class AreaControlCommand {
         final var claimer = src.getPlayerOrException();
         final var recordPos = AreaControlClaimHandler.popRecord(claimer);
         if (recordPos != null) {
+            AreaControlPlayerTracker.INSTANCE.clearSelectionForClient(claimer);
             final Area area = Util.createArea(recordPos.start(), recordPos.end());
             final UUID claimerUUID = claimer.getGameProfile().getId();
             if (claimerUUID != null) {

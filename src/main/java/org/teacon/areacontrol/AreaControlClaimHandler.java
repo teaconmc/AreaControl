@@ -41,12 +41,13 @@ public final class AreaControlClaimHandler {
         }
     }
 
-    static RectangleRegion popRecord(@Nonnull Player player) {
+    static RectangleRegion popRecord(@Nonnull ServerPlayer player) {
         return records.containsKey(player) && records.get(player).start != null ? records.remove(player) : null;
     }
 
-    static void pushRecord(@Nonnull Player player, @Nonnull BlockPos clicked) {
-        records.compute(player, (p, old) -> new RectangleRegion(old == null ? null : old.end, clicked));
+    static void pushRecord(@Nonnull ServerPlayer player, @Nonnull BlockPos clicked) {
+        var selection = records.compute(player, (p, old) -> new RectangleRegion(old == null ? null : old.end, clicked));
+        AreaControlPlayerTracker.INSTANCE.sendCurrentSelectionToClient(player, selection);
     }
 
     record RectangleRegion(BlockPos start, BlockPos end) {}
