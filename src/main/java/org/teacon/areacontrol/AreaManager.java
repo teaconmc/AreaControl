@@ -21,9 +21,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -350,7 +350,8 @@ public final class AreaManager {
             for (var uuid : this.areasByWorld.getOrDefault(dim, Collections.emptySet())) {
                 Area area = this.areasById.get(uuid);
                 if (area == null || Area.GLOBAL_AREA_OWNER.equals(area.owner)) continue;
-                if (center.closerThan(new Vec3i((area.maxX - area.minX) / 2, (area.maxY - area.minY) / 2, (area.maxZ - area.minZ) / 2), radius)) {
+                int xDiff = (area.maxX - area.minX) / 2 - center.getX(), zDiff = (area.maxZ - area.minZ) / 2 - center.getZ();
+                if (Mth.square(xDiff) + Mth.square(zDiff) < Mth.square(radius)) {
                     ret.add(area);
                 }
             }
