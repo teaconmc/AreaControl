@@ -5,6 +5,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.PacketDistributor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.teacon.areacontrol.network.ACNetworking;
 import org.teacon.areacontrol.network.ACSendNearbyArea;
 
@@ -16,6 +20,8 @@ public enum AreaControlPlayerTracker {
 
     INSTANCE;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
+    private static final Marker MARKER = MarkerFactory.getMarker("PlayerTracker");
     private final Set<UUID> playersWithExt = new HashSet<>();
 
     public void markPlayerAsSupportExt(UUID playerUid) {
@@ -28,9 +34,15 @@ public enum AreaControlPlayerTracker {
 
     public void sendNearbyAreasToClient(ResourceKey<Level> dim, ServerPlayer requester, double radius) {
         if (this.playersWithExt.contains(requester.getGameProfile().getId())) {
+            LOGGER.debug(MARKER, "Player {} has requested nearby area. Center: {}, radius: {}", requester.getGameProfile().getName(), requester.blockPosition(), radius);
             var nearbyAreas = AreaManager.INSTANCE.getAreaSummariesSurround(dim, requester.blockPosition(), radius);
+            LOGGER.debug(MARKER, "Nearby area count: {}", nearbyAreas.size());
+            for (var nearbyArea : nearbyAreas) {
+                LOGGER.debug(MARKER, "Nearby area: {}", nearbyArea.uid);
+            }
             ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> requester), new ACSendNearbyArea(nearbyAreas));
             requester.displayClientMessage(new TranslatableComponent("area_control.claim.nearby", nearbyAreas.size()), false);
+            LOGGER.debug(MARKER, "End of the request");
         }
     }
 }
