@@ -351,7 +351,7 @@ public final class AreaManager {
                 Area area = this.areasById.get(uuid);
                 if (area == null || Area.GLOBAL_AREA_OWNER.equals(area.owner)) continue;
                 int xDiff = (area.maxX - area.minX) / 2 - center.getX(), zDiff = (area.maxZ - area.minZ) / 2 - center.getZ();
-                if (Mth.square(xDiff) + Mth.square(zDiff) < Mth.square(radius)) {
+                if (Math.abs(xDiff) < radius && Math.abs(zDiff) < radius) {
                     ret.add(area);
                 }
             }
