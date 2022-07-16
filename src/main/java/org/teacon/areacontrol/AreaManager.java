@@ -342,16 +342,16 @@ public final class AreaManager {
         }
     }
 
-    public List<Area.Summary> getAreaSummariesSurround(ResourceKey<Level> dim, BlockPos center, double radius) {
+    public List<Area> getAreaSummariesSurround(ResourceKey<Level> dim, BlockPos center, double radius) {
         var readLock = this.lock.readLock();
         try {
             readLock.lock();
-            var ret = new ArrayList<Area.Summary>();
+            var ret = new ArrayList<Area>();
             for (var uuid : this.areasByWorld.getOrDefault(dim, Collections.emptySet())) {
                 Area area = this.areasById.get(uuid);
                 if (area == null || Area.GLOBAL_AREA_OWNER.equals(area.owner)) continue;
                 if (center.closerThan(new Vec3i((area.maxX - area.minX) / 2, (area.maxY - area.minY) / 2, (area.maxZ - area.minZ) / 2), radius)) {
-                    ret.add(new Area.Summary(area));
+                    ret.add(area);
                 }
             }
             return ret;

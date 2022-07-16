@@ -17,6 +17,9 @@
   "area_control.claim.current.enclosed": "The area that you are currently in is enclosed by another area '%1$s', owned by %2$s",
   "area_control.claim.current.wildness": "You are in the wildness.",
   "area_control.claim.nearby": "There are %d area(s) within your sight. They are now temporarily highlighted as aquamarine- or azure-colored cuboid(s).",
+  "area_control.claim.nearby.detail": "  - Area '%s', %s %s",
+  "area_control.claim.nearby.detail.go_there": "[Go to there]",
+  "area_control.claim.nearby.visual": "Your client does not seem to have AreaControl installed, so enhanced area visualizer is not used. You can still use the short-cut to teleport there.",
 
   "area_control.claim.tag.added": "Successfully tagged area '%1$s' with '%2$s'.",
   "area_control.claim.tag.existed": "Area '%1$s' has already been tagged with %2$s!",
