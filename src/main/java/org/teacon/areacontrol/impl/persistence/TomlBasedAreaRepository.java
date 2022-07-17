@@ -84,6 +84,8 @@ public class TomlBasedAreaRepository implements AreaRepository {
         @SpecNotNull
         public String name;
         @SpecNotNull
+        public Set<String> tags;
+        @SpecNotNull
         public String dimension = "minecraft:overworld";
         @Conversion(UUIDConverter.class)
         @SpecNotNull
@@ -96,6 +98,11 @@ public class TomlBasedAreaRepository implements AreaRepository {
         @Conversion(BlockPosConverter.class)
         @SpecNotNull
         public BlockPos max = new BlockPos(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        @Conversion(UUIDConverter.class)
+        public UUID belongingArea;
+        @Conversion(UUIDCollectionConverter.class)
+        public Collection<UUID> subAreas = new HashSet<>();
+
 
         public Config properties;
 
@@ -105,11 +112,14 @@ public class TomlBasedAreaRepository implements AreaRepository {
         public AreaModel(Area realArea) {
             this.uid = realArea.uid;
             this.name = realArea.name;
+            this.tags = realArea.tags;
             this.dimension = realArea.dimension;
             this.owner = realArea.owner;
             this.friends = realArea.friends;
             this.min = new BlockPos(realArea.minX, realArea.minY, realArea.minZ);
             this.max = new BlockPos(realArea.maxX, realArea.maxY, realArea.maxZ);
+            this.belongingArea = realArea.belongingArea;
+            this.subAreas = realArea.subAreas;
             this.properties = Config.wrap(realArea.properties, InMemoryFormat.defaultInstance());
         }
 
@@ -117,6 +127,7 @@ public class TomlBasedAreaRepository implements AreaRepository {
             var area = new Area();
             area.uid = this.uid;
             area.name = this.name;
+            area.tags = new ObjectArraySet<>(this.tags);
             area.dimension = this.dimension;
             area.owner = this.owner;
             area.friends = new ObjectArraySet<>(this.friends);
@@ -126,6 +137,8 @@ public class TomlBasedAreaRepository implements AreaRepository {
             area.maxX = Math.max(this.min.getX(), this.max.getX());
             area.maxY = Math.max(this.min.getY(), this.max.getY());
             area.maxZ = Math.max(this.min.getZ(), this.max.getZ());
+            area.belongingArea = this.belongingArea;
+            area.subAreas = new ObjectArraySet<>(this.subAreas);
             area.properties.clear();
             area.properties.putAll(this.properties.valueMap());
             return area;
