@@ -40,6 +40,9 @@ public final class AreaControlCommand {
                         .then(Commands.literal("admin").executes(AreaControlCommand::admin))
                         .then(Commands.literal("nearby").executes(AreaControlCommand::nearby))
                         .then(Commands.literal("claim")
+                                .then(Commands.literal("cancel")
+                                        .requires(check(AreaControlPermissions.CLAIM_MARKED_AREA))
+                                        .executes(AreaControlCommand::clearMarked))
                                 .then(Commands.literal("marked")
                                         .requires(check(AreaControlPermissions.CLAIM_MARKED_AREA))
                                         .executes(AreaControlCommand::claimMarked))
@@ -160,7 +163,14 @@ public final class AreaControlCommand {
             src.sendFailure(new TranslatableComponent("area_control.error.no_selection"));
             return -1;
         }
+    }
 
+    private static int clearMarked(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var claimer = src.getPlayerOrException();
+        AreaControlPlayerTracker.INSTANCE.clearSelectionForClient(claimer);
+        AreaControlClaimHandler.popRecord(claimer);
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int displayCurrent(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
