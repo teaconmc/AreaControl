@@ -39,6 +39,8 @@ public final class AreaControlCommand {
                         .then(Commands.literal("help").executes(AreaControlCommand::help))
                         .then(Commands.literal("admin").executes(AreaControlCommand::admin))
                         .then(Commands.literal("nearby").executes(AreaControlCommand::nearby))
+                        .then(Commands.literal("desel").requires(check(AreaControlPermissions.CLAIM_MARKED_AREA)).executes(AreaControlCommand::clearMarked))
+                        .then(Commands.literal("deselect").requires(check(AreaControlPermissions.CLAIM_MARKED_AREA)).executes(AreaControlCommand::clearMarked))
                         .then(Commands.literal("claim")
                                 .then(Commands.literal("cancel")
                                         .requires(check(AreaControlPermissions.CLAIM_MARKED_AREA))
