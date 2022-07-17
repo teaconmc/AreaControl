@@ -10,8 +10,7 @@
   "area_control.claim.created": "AreaControl: Successfully created claimed area '%1$s', %2$s",
   "area_control.claim.abandoned": "AreaControl: Claim %s (internally as %s, %s) has now been abandoned",
   
-  "area_control.claim.list": "Currently known areas: ",
-  "area_control.claim.list.element": "- %s (%s)",
+  "area_control.claim.welcome": "Welcome to %s",
   
   "area_control.claim.current": "You are in an area named '%1$s', owned by %2$s",
   "area_control.claim.current.enclosed": "The area that you are currently in is enclosed by another area '%1$s', owned by %2$s",

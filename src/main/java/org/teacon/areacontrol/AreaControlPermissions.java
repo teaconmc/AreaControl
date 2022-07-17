@@ -25,6 +25,7 @@ public class AreaControlPermissions {
     public static final PermissionNode<Boolean> UNCLAIM_AREA = new PermissionNode<>("area_control", "command.unclaim", PermissionTypes.BOOLEAN, ANYONE);
     public static final PermissionNode<Boolean> INSPECT      = new PermissionNode<>("area_control", "admin.inspect", PermissionTypes.BOOLEAN, OP_ONLY);
 
+    public static final PermissionNode<Boolean> WELCOME_MSG = new PermissionNode<>("area_control", "welcome_message", PermissionTypes.BOOLEAN, areaSensitive("area.display_welcome_message"));
     public static final PermissionNode<Boolean> BYPASS_BREAK_BLOCK = new PermissionNode<>("area_control", "bypass.break_block", PermissionTypes.BOOLEAN, areaSensitive("area.allow_break_block"));
     public static final PermissionNode<Boolean> BYPASS_PLACE_BLOCK = new PermissionNode<>("area_control", "bypass.place_block", PermissionTypes.BOOLEAN, areaSensitive("area.allow_place_block"));
     public static final PermissionNode<Boolean> BYPASS_PVP = new PermissionNode<>("area_control", "bypass.pvp", PermissionTypes.BOOLEAN, areaSensitive("area.allow_pvp"));

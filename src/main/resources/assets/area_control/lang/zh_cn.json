@@ -9,9 +9,8 @@
   "area_control.claim.marked": "AreaControl：已选定位置 %s",
   "area_control.claim.created": "AreaControl：成功声明领地 '%1$s'（%2$s）",
   "area_control.claim.abandoned": "AreaControl: 成功放弃领地 %s（内部名称 %s，%s）",
-  
-  "area_control.claim.list": "目前已知领地列表：",
-  "area_control.claim.list.element": "- %s (%s)",
+
+  "area_control.claim.welcome": "欢迎来到%s",
   
   "area_control.claim.current": "你现在身在名为 %1$s 的领地中，这块领地由 %2$s 控制。",
   "area_control.claim.current.enclosed": "你所在的领地同时隶属于名为 '%1$s' 的领地，由 %2$s 控制。",

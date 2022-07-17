@@ -15,11 +15,13 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.server.permission.PermissionAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.teacon.areacontrol.api.Area;
+import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.network.ACNetworking;
 import org.teacon.areacontrol.network.ACSendCurrentSelection;
 import org.teacon.areacontrol.network.ACSendNearbyArea;
@@ -60,8 +62,9 @@ public enum AreaControlPlayerTracker {
                     var currentArea = AreaManager.INSTANCE.findBy(player.level, player.blockPosition());
                     if (!Area.GLOBAL_AREA_OWNER.equals(currentArea.owner)) {
                         INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
-                        // TODO Translatable
-                        player.displayClientMessage(new TextComponent("Welcome to " + currentArea.name), true);
+                        if (AreaProperties.getBool(currentArea, "area.display_welcome_message") || PermissionAPI.getPermission((ServerPlayer) player, AreaControlPermissions.WELCOME_MSG, AreaControlPermissions.KEY_AREA.createContext(currentArea))) {
+                            player.displayClientMessage(new TranslatableComponent("area_control.claim.welcome", currentArea.name), true);
+                        }
                     }
                 }
             }
