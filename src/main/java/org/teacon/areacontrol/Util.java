@@ -46,6 +46,14 @@ public final class Util {
         return a;
     }
 
+    public static boolean isInsideArea(Area area, int x, int y, int z) {
+        return area.minX <= x && x <= area.maxX && area.minY <= y && y <= area.maxY && area.minZ < z && z < area.maxZ;
+    }
+
+    public static boolean isInsideArea(Area area, double x, double y, double z) {
+        return area.minX <= x && x <= area.maxX && area.minY <= y && y <= area.maxY && area.minZ < z && z < area.maxZ;
+    }
+
     public static Component getOwnerName(Area area, GameProfileCache profileCache, PlayerList onlinePlayers) {
         final UUID owner = area.owner;
         return owner == null || SYSTEM.equals(owner) ? new TextComponent("System") : getPlayerDisplayName(owner, profileCache, onlinePlayers);

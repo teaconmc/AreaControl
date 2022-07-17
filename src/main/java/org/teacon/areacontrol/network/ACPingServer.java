@@ -2,6 +2,7 @@ package org.teacon.areacontrol.network;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
+import org.teacon.areacontrol.AreaControlPlayerTracker;
 
 import java.util.function.Supplier;
 
@@ -20,6 +21,8 @@ public class ACPingServer {
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-        contextSupplier.get().setPacketHandled(true);
+        var context = contextSupplier.get();
+        AreaControlPlayerTracker.INSTANCE.markPlayerAsSupportExt(context.getSender());
+        context.setPacketHandled(true);
     }
 }

@@ -9,6 +9,11 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,20 +25,60 @@ import org.teacon.areacontrol.network.ACSendCurrentSelection;
 import org.teacon.areacontrol.network.ACSendNearbyArea;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
+@Mod.EventBusSubscriber(modid = "area_control")
 public enum AreaControlPlayerTracker {
 
     INSTANCE;
 
     private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
     private static final Marker MARKER = MarkerFactory.getMarker("PlayerTracker");
-    private final Set<UUID> playersWithExt = new HashSet<>();
+    private final Map<UUID, UUID> playerLocation = new HashMap<>();
+    private final Set<UUID> playersWithExt = ConcurrentHashMap.newKeySet();
 
-    public void markPlayerAsSupportExt(UUID playerUid) {
-        this.playersWithExt.add(playerUid);
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        var player = event.getPlayer();
+        var currentArea = AreaManager.INSTANCE.findBy(player.level, player.blockPosition());
+        INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.side == LogicalSide.SERVER && event.phase == TickEvent.Phase.START) {
+            var player = event.player;
+            var prevAreaId = INSTANCE.playerLocation.get(player.getGameProfile().getId());
+            if (prevAreaId != null) {
+                var prevArea = AreaManager.INSTANCE.findBy(prevAreaId);
+                if (prevArea == null || Area.GLOBAL_AREA_OWNER.equals(prevArea.owner) || !Util.isInsideArea(prevArea, player.getX(), player.getY(), player.getZ())) {
+                    var currentArea = AreaManager.INSTANCE.findBy(player.level, player.blockPosition());
+                    if (!Area.GLOBAL_AREA_OWNER.equals(currentArea.owner)) {
+                        INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
+                        // TODO Translatable
+                        player.displayClientMessage(new TextComponent("Welcome to " + currentArea.name), true);
+                    }
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        var playerId = event.getPlayer().getGameProfile().getId();
+        INSTANCE.undoMarkPlayer(playerId);
+        INSTANCE.playerLocation.remove(playerId);
+    }
+
+    public void markPlayerAsSupportExt(ServerPlayer player) {
+        if (player != null) {
+            this.playersWithExt.add(player.getGameProfile().getId());
+        }
     }
 
     public void undoMarkPlayer(UUID playerUid) {

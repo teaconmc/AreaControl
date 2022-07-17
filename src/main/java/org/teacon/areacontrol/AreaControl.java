@@ -5,7 +5,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -97,16 +96,6 @@ public final class AreaControl {
                 LOGGER.warn("Failed to create data directory.", e);
             }
         }
-    }
-
-    @SubscribeEvent
-    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        AreaControlPlayerTracker.INSTANCE.markPlayerAsSupportExt(event.getPlayer().getGameProfile().getId());
-    }
-
-    @SubscribeEvent
-    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        AreaControlPlayerTracker.INSTANCE.undoMarkPlayer(event.getPlayer().getGameProfile().getId());
     }
 
     @SubscribeEvent
