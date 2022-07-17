@@ -62,7 +62,7 @@ public enum AreaControlPlayerTracker {
                     var currentArea = AreaManager.INSTANCE.findBy(player.level, player.blockPosition());
                     if (!Area.GLOBAL_AREA_OWNER.equals(currentArea.owner)) {
                         INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
-                        if (AreaProperties.getBool(currentArea, "area.display_welcome_message") || PermissionAPI.getPermission((ServerPlayer) player, AreaControlPermissions.WELCOME_MSG, AreaControlPermissions.KEY_AREA.createContext(currentArea))) {
+                        if (AreaProperties.getBool(currentArea, "area.display_welcome_message") || PermissionAPI.getPermission((ServerPlayer) player, AreaControlPermissions.WELCOME_MSG)) {
                             player.displayClientMessage(new TranslatableComponent("area_control.claim.welcome", currentArea.name), true);
                         }
                     }

@@ -34,12 +34,12 @@ public class ACEntityProtectionHandler {
         final var target = event.getTarget();
         final var targetArea = AreaManager.INSTANCE.findBy(target.getCommandSenderWorld().dimension(), target.blockPosition());
         if (target instanceof Player) {
-            if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_PVP, AreaControlPermissions.KEY_AREA.createContext(targetArea))) {
+            if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_PVP)) {
                 event.getPlayer().displayClientMessage(new TranslatableComponent("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY), true);
                 event.setCanceled(true);
             }
         } else {
-            if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_ATTACK, AreaControlPermissions.KEY_AREA.createContext(targetArea))) {
+            if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_ATTACK)) {
                 event.getPlayer().displayClientMessage(new TranslatableComponent("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY), true);
                 event.setCanceled(true);
             }
@@ -59,12 +59,12 @@ public class ACEntityProtectionHandler {
             final var target = event.getEntity();
             final var targetArea = AreaManager.INSTANCE.findBy(target.getCommandSenderWorld().dimension(), target.blockPosition());
             if (target instanceof Player) {
-                if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.getPermission((ServerPlayer) src, AreaControlPermissions.BYPASS_PVP, AreaControlPermissions.KEY_AREA.createContext(targetArea))) {
+                if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.getPermission((ServerPlayer) src, AreaControlPermissions.BYPASS_PVP)) {
                     ((Player) src).displayClientMessage(new TranslatableComponent("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY), true);
                     event.setCanceled(true);
                 }
             } else {
-                if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.getPermission((ServerPlayer) src, AreaControlPermissions.BYPASS_ATTACK, AreaControlPermissions.KEY_AREA.createContext(targetArea))) {
+                if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.getPermission((ServerPlayer) src, AreaControlPermissions.BYPASS_ATTACK)) {
                     ((Player) src).displayClientMessage(new TranslatableComponent("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY), true);
                     event.setCanceled(true);
                 }

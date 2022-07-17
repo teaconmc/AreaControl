@@ -63,7 +63,7 @@ public abstract class EntityMixin {
             if (!AreaProperties.getBool(area, propToCheck)) {
                 boolean bypass = false;
                 if (src.getEntity() instanceof ServerPlayer srcPlayer) {
-                    bypass = PermissionAPI.getPermission(srcPlayer, permissionToCheck, AreaControlPermissions.KEY_AREA.createContext(area));
+                    bypass = PermissionAPI.getPermission(srcPlayer, permissionToCheck);
                 }
                 if (!bypass) {
                     if (src.getEntity() instanceof Player p) {
