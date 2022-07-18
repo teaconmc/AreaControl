@@ -11,7 +11,7 @@
   "area_control.claim.abandoned": "AreaControl: 成功放弃领地 %s（内部名称 %s，%s）",
 
   "area_control.claim.welcome": "欢迎来到%s",
-  "area_control.claim.detail": "  - 领地 '%s', %s %s",
+  "area_control.claim.detail": "  - 领地 '%s'，位于维度 %s 中，%s %s",
   
   "area_control.claim.current": "你现在身在名为 %1$s 的领地中，这块领地由 %2$s 控制。",
   "area_control.claim.current.enclosed": "你所在的领地同时隶属于名为 '%1$s' 的领地，由 %2$s 控制。",

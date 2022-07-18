@@ -49,8 +49,8 @@ public final class Util {
             midY = level.getHeight(Heightmap.Types.WORLD_SURFACE, midX, midZ);
         }*/
         return new TranslatableComponent("area_control.claim.detail",
-                new TextComponent(area.name).setStyle(
-                        Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent(area.uid.toString())))),
+                new TextComponent(area.name).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent(area.uid.toString())))),
+                new TextComponent(area.dimension),
                 Util.toGreenText(area),
                 new TranslatableComponent("area_control.claim.nearby.detail.go_there").setStyle(
                         Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("chat.coordinates.tooltip")))
