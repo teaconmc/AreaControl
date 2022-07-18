@@ -67,7 +67,7 @@ public class TomlBasedAreaRepository implements AreaRepository {
         @Nullable var exception = (IOException) null;
         for (Area area : areas) {
             var model = new AreaModel(area);
-            try (FileConfig areasData = FileConfig.of(this.dataDirRoot.resolve("claim-%s.toml".formatted(area.uid)))) {
+            try (FileConfig areasData = FileConfig.builder(this.dataDirRoot.resolve("claim-%s.toml".formatted(area.uid))).sync().build()) {
                 var converter = new ObjectConverter();
                 converter.toConfig(model, areasData);
                 areasData.save();
@@ -89,8 +89,8 @@ public class TomlBasedAreaRepository implements AreaRepository {
         public UUID uid;
         @SpecNotNull
         public String name;
-        @SpecNotNull
-        public Set<String> tags;
+        // Can be null for legacy areas
+        public List<String> tags = new ArrayList<>();
         @SpecNotNull
         public String dimension = "minecraft:overworld";
         @Conversion(UUIDConverter.class)
@@ -104,11 +104,10 @@ public class TomlBasedAreaRepository implements AreaRepository {
         @Conversion(BlockPosConverter.class)
         @SpecNotNull
         public BlockPos max = new BlockPos(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-        @Conversion(UUIDConverter.class)
+        @Conversion(NullableUUIDConverter.class)
         public UUID belongingArea;
         @Conversion(UUIDCollectionConverter.class)
         public Collection<UUID> subAreas = new HashSet<>();
-
 
         public Config properties;
 
@@ -118,7 +117,7 @@ public class TomlBasedAreaRepository implements AreaRepository {
         public AreaModel(Area realArea) {
             this.uid = realArea.uid;
             this.name = realArea.name;
-            this.tags = realArea.tags;
+            this.tags = new ArrayList<>(realArea.tags);
             this.dimension = realArea.dimension;
             this.owner = realArea.owner;
             this.friends = realArea.friends;
@@ -133,7 +132,10 @@ public class TomlBasedAreaRepository implements AreaRepository {
             var area = new Area();
             area.uid = this.uid;
             area.name = this.name;
-            area.tags = new ObjectArraySet<>(this.tags);
+            area.tags = new ObjectArraySet<>();
+            if (this.tags != null) {
+                area.tags.addAll(this.tags);
+            }
             area.dimension = this.dimension;
             area.owner = this.owner;
             area.friends = new ObjectArraySet<>(this.friends);
@@ -177,11 +179,24 @@ public class TomlBasedAreaRepository implements AreaRepository {
         }
     }
 
+    private static final class NullableUUIDConverter implements Converter<UUID, String> {
+
+        @Override
+        public UUID convertToField(String value) {
+            return value == null || "null".equals(value) ? null : UUID.fromString(value);
+        }
+
+        @Override
+        public String convertFromField(UUID value) {
+            return Objects.toString(value);
+        }
+    }
+
     private static final class UUIDCollectionConverter implements Converter<Collection<UUID>, List<String>> {
 
         @Override
         public Collection<UUID> convertToField(List<String> value) {
-            return value.stream().map(UUID::fromString).toList();
+            return value == null ? new ArrayList<>() : value.stream().map(UUID::fromString).toList();
         }
 
         @Override
