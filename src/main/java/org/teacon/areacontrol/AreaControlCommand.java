@@ -79,6 +79,8 @@ public final class AreaControlCommand {
                                                         .executes(AreaControlCommand::removeTag)))
                                         .executes(AreaControlCommand::listTags))
                                 .executes(AreaControlCommand::displayCurrent))
+                         .then(Commands.literal("mine")
+                                 .executes(AreaControlCommand::displayMine))
                         .then(Commands.literal("mark").requires(check(AreaControlPermissions.MARK_AREA)).then(
                                 Commands.argument("pos", Vec3Argument.vec3()).executes(AreaControlCommand::mark)))
                         .then(Commands.literal("unclaim").executes(AreaControlCommand::unclaim))
@@ -331,6 +333,17 @@ public final class AreaControlCommand {
             src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
             return -1;
         }
+    }
+
+    private static int displayMine(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var player = src.getPlayerOrException();
+        var areas = AreaManager.INSTANCE.findByOwner(player.getGameProfile().getId());
+        src.sendSuccess(new TranslatableComponent("area_control.claim.mine", areas.size()), false);
+        for (Area area : areas) {
+            src.sendSuccess(Util.describe(area), false);
+        }
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int unclaim(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

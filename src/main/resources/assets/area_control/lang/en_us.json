@@ -11,12 +11,13 @@
   "area_control.claim.abandoned": "AreaControl: Claim %s (internally as %s, %s) has now been abandoned",
   
   "area_control.claim.welcome": "Welcome to %s",
-  
+  "area_control.claim.detail": "  - Area '%s', %s %s",
+
   "area_control.claim.current": "You are in an area named '%1$s', owned by %2$s",
   "area_control.claim.current.enclosed": "The area that you are currently in is enclosed by another area '%1$s', owned by %2$s",
   "area_control.claim.current.wildness": "You are in the wildness.",
+  "area_control.claim.mine": "You have %d area(s). They are: ",
   "area_control.claim.nearby": "There are %d area(s) within your sight. They are now temporarily highlighted as aquamarine- or azure-colored cuboid(s).",
-  "area_control.claim.nearby.detail": "  - Area '%s', %s %s",
   "area_control.claim.nearby.detail.go_there": "[Go to there]",
   "area_control.claim.nearby.visual": "Your client does not seem to have AreaControl installed, so enhanced area visualizer is not used. You can still use the short-cut to teleport there.",
 

@@ -98,15 +98,7 @@ public enum AreaControlPlayerTracker {
             LOGGER.debug(MARKER, "Nearby area: {}", nearbyArea.uid);
             var summary = new Area.Summary(nearbyArea);
             summaries.add(summary);
-            requester.displayClientMessage(new TranslatableComponent("area_control.claim.nearby.detail",
-                    new TextComponent(nearbyArea.name).setStyle(
-                            Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent(nearbyArea.uid.toString())))),
-                    Util.toGreenText(nearbyArea),
-                    new TranslatableComponent("area_control.claim.nearby.detail.go_there").setStyle(
-                            Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("chat.coordinates.tooltip")))
-                                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tp @s " + summary.midX + " " + summary.midY + " " + summary.midZ))
-                                    .withColor(ChatFormatting.DARK_AQUA)
-                    )), false);
+            requester.displayClientMessage(Util.describe(nearbyArea), false);
         }
         if (this.playersWithExt.contains(requester.getGameProfile().getId())) {
             ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> requester), new ACSendNearbyArea(summaries));

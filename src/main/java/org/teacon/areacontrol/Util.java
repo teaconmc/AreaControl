@@ -3,6 +3,7 @@ package org.teacon.areacontrol;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
@@ -11,6 +12,8 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.levelgen.Heightmap;
 import org.teacon.areacontrol.api.Area;
 
 import java.util.Random;
@@ -33,6 +36,27 @@ public final class Util {
         var max = new TranslatableComponent("area_control.claim.pos", area.maxX, area.maxY, area.maxZ)
                 .withStyle(ChatFormatting.GREEN);
         return new TranslatableComponent("area_control.claim.range", min, max);
+    }
+
+    public static Component describe(Area area) {
+        return describe(area, null);
+    }
+    public static Component describe(Area area, LevelAccessor level) {
+        var midX = (area.minX + area.maxX) / 2;
+        var midY = (area.minY + area.maxY) / 2;
+        var midZ = (area.minZ + area.maxZ) / 2;
+        /*if (level != null) {
+            midY = level.getHeight(Heightmap.Types.WORLD_SURFACE, midX, midZ);
+        }*/
+        return new TranslatableComponent("area_control.claim.detail",
+                new TextComponent(area.name).setStyle(
+                        Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent(area.uid.toString())))),
+                Util.toGreenText(area),
+                new TranslatableComponent("area_control.claim.nearby.detail.go_there").setStyle(
+                        Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("chat.coordinates.tooltip")))
+                                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/execute in " + area.dimension + " run tp @s " + midX + " " + midY + " " + midZ))
+                                .withColor(ChatFormatting.DARK_AQUA)
+                ));
     }
 
     public static Area createArea(BlockPos start, BlockPos end) {

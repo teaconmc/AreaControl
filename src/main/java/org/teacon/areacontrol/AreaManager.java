@@ -1,6 +1,7 @@
 package org.teacon.areacontrol;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -330,6 +331,10 @@ public final class AreaManager {
         } finally {
             readLock.unlock();
         }
+    }
+
+    public Collection<Area> findByOwner(UUID ownerId) {
+        return this.areasById.values().stream().filter(area -> ownerId.equals(area.owner)).toList();
     }
 
     public Area findBy(String name) {
