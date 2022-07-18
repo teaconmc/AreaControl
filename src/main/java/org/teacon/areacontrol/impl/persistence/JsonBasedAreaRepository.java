@@ -75,6 +75,11 @@ public class JsonBasedAreaRepository implements AreaRepository {
     }
 
     @Override
+    public void remove(Area areaToRemove) throws Exception {
+        Files.deleteIfExists(this.dataDirRoot.resolve("claim-%s.json".formatted(areaToRemove.uid)));
+    }
+
+    @Override
     public void save(Collection<Area> areas) throws Exception {
         @Nullable var exception = (IOException) null;
         for (Area area : areas) {

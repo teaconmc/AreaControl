@@ -16,6 +16,7 @@ import org.teacon.areacontrol.api.Area;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -54,6 +55,11 @@ public class TomlBasedAreaRepository implements AreaRepository {
             throw exception;
         }
         return Collections.unmodifiableCollection(areas.values());
+    }
+
+    @Override
+    public void remove(Area areaToRemove) throws Exception {
+        Files.deleteIfExists(this.dataDirRoot.resolve("claim-%s.toml".formatted(areaToRemove.uid)));
     }
 
     @Override

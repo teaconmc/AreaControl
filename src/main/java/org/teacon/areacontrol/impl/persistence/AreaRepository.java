@@ -9,6 +9,8 @@ public interface AreaRepository {
 
     Collection<Area> load() throws Exception;
 
+    void remove(Area areaToRemove) throws Exception;
+
     void save(Collection<Area> areas) throws Exception;
 
     interface Factory {

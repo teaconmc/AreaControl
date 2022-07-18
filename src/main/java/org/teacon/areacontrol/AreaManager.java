@@ -24,7 +24,6 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -202,6 +201,11 @@ public final class AreaManager {
             if (area.belongingArea != null) {
                 Area enclosing = this.areasById.get(area.belongingArea);
                 enclosing.subAreas.remove(area.uid);
+            }
+            try {
+                this.repository.remove(area);
+            } catch (Exception e) {
+                LOGGER.error("Failed to remove data for area " + area.uid, e);
             }
         } finally {
             writeLock.unlock();
