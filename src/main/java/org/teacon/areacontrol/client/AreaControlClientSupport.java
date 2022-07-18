@@ -83,7 +83,9 @@ public final class AreaControlClientSupport {
         if (System.currentTimeMillis() < knownAreasExpiresAt) {
             for (var area : knownAreas) {
                 if (playerPos.closerThan(new Vec3i(area.midX, area.midY, area.midZ), renderDistance)) {
-                    box(transform, builder, area.enclosed ? 0x8826619C : 0x887FFFD4, area.minX, area.minY, area.minZ, area.maxX + 1, area.maxY + 1, area.maxZ + 1);
+                    int minY = Math.max(-128, area.minY);
+                    int maxY = Math.min(320, area.maxY);
+                    box(transform, builder, area.enclosed ? 0x8826619C : 0x887FFFD4, area.minX, minY, area.minZ, area.maxX + 1, maxY + 1, area.maxZ + 1);
                 }
             }
         }
