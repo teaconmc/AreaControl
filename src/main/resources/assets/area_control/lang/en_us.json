@@ -40,6 +40,7 @@
   
   "area_control.notice.break_block_disabled": "AreaControl: this area has disabled breaking blocks, contact admin if you think it is an error",
   "area_control.notice.click_block_disabled": "AreaControl: this area has disabled clicking blocks, contact admin if you think it is an error",
+  "area_control.notice.activate_block_disabled": "AreaControl: this area has disabled activating blocks, contact admin if you think it is an error",
   "area_control.notice.pvp_disabled": "AreaControl: this area has disabled PvP, contact admin if you think it is an error",
   "area_control.notice.pve_disabled": "AreaControl: this area has disabled PvE, contact admin if you think it is an error",
   "area_control.notice.use_item_disabled": "AreaControl: this area has disabled item using, contact admin if you think it is an error",

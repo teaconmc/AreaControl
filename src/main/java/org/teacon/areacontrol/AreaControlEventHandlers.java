@@ -108,9 +108,11 @@ public final class AreaControlEventHandlers {
         if (event.getWorld().isClientSide) {
             return;
         }
+        final var player = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
-        if (!AreaProperties.getBool(targetArea, "area.allow_activate_block") && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(),
+        if (!AreaProperties.getBool(targetArea, "area.allow_activate_block") && !PermissionAPI.getPermission((ServerPlayer) player,
                 AreaControlPermissions.BYPASS_ACTIVATE_BLOCK)) {
+            player.displayClientMessage(new TranslatableComponent("area_control.notice.activate_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
         }
     }

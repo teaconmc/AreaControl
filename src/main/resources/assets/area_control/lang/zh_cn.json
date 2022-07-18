@@ -40,6 +40,7 @@
   
   "area_control.notice.break_block_disabled": "AreaControl：该区域已禁止破坏方块，如果你认为这是个错误，请联系管理员",
   "area_control.notice.click_block_disabled": "AreaControl：该区域已禁止点击方块，如果你认为这是个错误，请联系管理员",
+  "area_control.notice.activate_block_disabled": "AreaControl：该区域已禁止与方块角湖，如果你认为这是个错误，请联系管理员",
   "area_control.notice.pvp_disabled": "AreaControl：该区域已禁止 PvP，如果你认为这是个错误，请联系管理员",
   "area_control.notice.pve_disabled": "AreaControl：该区域已禁止 PvE，如果你认为这是个错误，请联系管理员",
   "area_control.notice.use_item_disabled": "AreaControl：该区域已禁止使用物品，如果你认为这是个错误，请联系管理员",
