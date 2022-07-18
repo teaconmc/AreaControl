@@ -10,12 +10,24 @@ public final class AreaProperties {
      * Adding a property to this Set is optional; it only enables command auto-completion.
      */
     public static final Set<String> KNOWN_PROPERTIES = new HashSet<>();   
-    
+
+    public static final String SHOW_WELCOME = register("area.display_welcome_message");
     public static final String ALLOW_SPAWN = register("area.allow_spawn");
     public static final String ALLOW_SPECIAL_SPAWN = register("area.allow_special_spawn");
-    public static final String ALLOW_PVE = register("area.allow_attack");
     public static final String ALLOW_PVP = register("area.allow_pvp");
-     
+    public static final String ALLOW_PVE = register("area.allow_attack");
+    public static final String ALLOW_INTERACT_ENTITY_SP = register("area.allow_interact_entity_specific");
+    public static final String ALLOW_INTERACT_ENTITY = register("area.allow_interact_entity");
+    public static final String ALLOW_BREAK = register("area.allow_break_block");
+    public static final String ALLOW_CLICK = register("area.allow_click_block");
+    public static final String ALLOW_ACTIVATE = register("area.allow_activate_block");
+    public static final String ALLOW_USE_ITEM = register("area.allow_use_item");
+    public static final String ALLOW_PLACE_BLOCK = register("area.allow_place_block");
+    public static final String ALLOW_TRAMPLE_FARMLAND = register("area.allow_trample_farmland");
+    public static final String ALLOW_EXPLOSION = register("area.allow_explosion");
+    public static final String ALLOW_EXPLOSION_AFFECT_BLOCKS = register("area.allow_explosion_affect_blocks");
+    public static final String ALLOW_EXPLOSION_AFFECT_ENTITIES = register("area.allow_explosion_affect_entities");
+
     static String register(String property) {
         KNOWN_PROPERTIES.add(property);
         return property;

@@ -25,6 +25,7 @@ import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
+import org.teacon.areacontrol.impl.AreaPropertyArgument;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -62,11 +63,11 @@ public final class AreaControlCommand {
                                         .executes(AreaControlCommand::listFriends))
                                 .then(Commands.literal("properties")
                                         .then(Commands.literal("set")
-                                                .then(Commands.argument("property", StringArgumentType.string())
+                                                .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
                                                         .then(Commands.argument("value", StringArgumentType.greedyString())
                                                                 .executes(AreaControlCommand::setProperty))))
                                         .then(Commands.literal("unset")
-                                                .then(Commands.argument("property", StringArgumentType.string())
+                                                .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
                                                         .executes(AreaControlCommand::unsetProperty)))
                                         .executes(AreaControlCommand::listProperties))
                                 .then(Commands.literal("tags")
