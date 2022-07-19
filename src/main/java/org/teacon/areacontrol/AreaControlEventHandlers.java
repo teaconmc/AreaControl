@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
@@ -215,6 +216,16 @@ public final class AreaControlEventHandlers {
         }
         if (!AreaProperties.getBool(targetArea, "area.allow_explosion_affect_entities")) {
             event.getAffectedEntities().clear();
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onLavaIgniteFire(BlockEvent.FluidPlaceBlockEvent event) {
+        if (event.getNewState().getBlock() == Blocks.FIRE) {
+            Area area = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
+            if (!AreaProperties.getBool(area, AreaProperties.ALLOW_FIRE_SPREAD)) {
+                event.setCanceled(true);
+            }
         }
     }
 }
