@@ -20,6 +20,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
@@ -130,6 +132,11 @@ public final class AreaControlCommand {
         final var chunkPos = new ChunkPos(new BlockPos(src.getPosition()));
         final var chunkStart = chunkPos.getBlockAt(0, Integer.MIN_VALUE, 0);
         final var chunkEnd = chunkPos.getBlockAt(15, Integer.MAX_VALUE, 15);
+        final var range = new AABB(Vec3.atCenterOf(chunkStart), Vec3.atCenterOf(chunkEnd));
+        if (!range.expandTowards(0.5, 0.5, 0.5).contains(claimer.position())) {
+            src.sendFailure(new TranslatableComponent("area_control.error.outside_selection"));
+            return -1;
+        }
         final Area area = Util.createArea(chunkStart, chunkEnd);
         final var worldIndex = src.getLevel().dimension();
         final UUID claimerUUID = claimer.getGameProfile().getId();
@@ -150,6 +157,11 @@ public final class AreaControlCommand {
         final var claimer = src.getPlayerOrException();
         final var recordPos = AreaControlClaimHandler.popRecord(claimer);
         if (recordPos != null) {
+            final var range = new AABB(Vec3.atCenterOf(recordPos.start()), Vec3.atCenterOf(recordPos.start()));
+            if (!range.expandTowards(0.5, 0.5, 0.5).contains(claimer.position())) {
+                src.sendFailure(new TranslatableComponent("area_control.error.outside_selection"));
+                return -1;
+            }
             AreaControlPlayerTracker.INSTANCE.clearSelectionForClient(claimer);
             final Area area = Util.createArea(recordPos.start(), recordPos.end());
             final UUID claimerUUID = claimer.getGameProfile().getId();
