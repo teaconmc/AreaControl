@@ -156,13 +156,13 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final var claimer = src.getPlayerOrException();
         final var recordPos = AreaControlClaimHandler.popRecord(claimer);
+        AreaControlPlayerTracker.INSTANCE.clearSelectionForClient(claimer);
         if (recordPos != null) {
-            final var range = new AABB(Vec3.atCenterOf(recordPos.start()), Vec3.atCenterOf(recordPos.start()));
+            final var range = new AABB(Vec3.atCenterOf(recordPos.start()), Vec3.atCenterOf(recordPos.end()));
             if (!range.expandTowards(0.5, 0.5, 0.5).contains(claimer.position())) {
                 src.sendFailure(new TranslatableComponent("area_control.error.outside_selection"));
                 return -1;
             }
-            AreaControlPlayerTracker.INSTANCE.clearSelectionForClient(claimer);
             final Area area = Util.createArea(recordPos.start(), recordPos.end());
             final UUID claimerUUID = claimer.getGameProfile().getId();
             if (claimerUUID != null) {
