@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -100,7 +101,18 @@ public final class AreaManager {
         var writeLock = this.lock.writeLock();
         try {
             writeLock.lock();
+            // Read all areas
             for (Area a : this.repository.load()) {
+                var dim = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension));
+                this.buildCacheFor(a, dim);
+            }
+            // Check for invalid areas.
+            // An area is invalid if:
+            //   1. Has exactly the same range as another area
+            //   2. Has intersection ("overlap") with one or more area(s), but not being a subset of that area/those areas.
+            var invalidArea = new ArrayList<Area>();
+            for (Iterator<Area> itr = this.areasById.values().iterator(); itr.hasNext(); ) {
+                Area a = itr.next();
                 var dim = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension));
                 var maybeOverlaps = Stream.of(
                         new BlockPos(a.minX, a.minY, a.minZ),
@@ -113,18 +125,30 @@ public final class AreaManager {
                         new BlockPos(a.maxX, a.maxY, a.maxZ)
                 ).map(cornerPos -> findBy(dim, cornerPos)).collect(Collectors.toCollection(() -> Collections.newSetFromMap(new IdentityHashMap<>())));
                 Area parent = maybeOverlaps.iterator().next();
-                if (maybeOverlaps.size() == 1 && (parent.minX != a.minX || parent.minY != a.minY || parent.minZ != a.minZ || parent.maxX != a.maxX || parent.maxY != a.maxY || parent.maxZ != a.maxZ)) {
-                    this.buildCacheFor(a, dim);
+                // An area ia invalid if and only if all of its 8 defining vertices fall into 2 or more
+                // different areas. To have a valid area, the size of maybeOverlaps must be exactly 1.
+                // If the area is the wildness (global area for a certain dimension), then both `parent`
+                // and `a` must point to the same reference.
+                // Finally, an area is invalid if and only if all 8 vertices are exactly the same as of
+                // another area.
+                if (maybeOverlaps.size() == 1 && (parent == a || parent.minX != a.minX || parent.minY != a.minY || parent.minZ != a.minZ || parent.maxX != a.maxX || parent.maxY != a.maxY || parent.maxZ != a.maxZ)) {
+                    if (a.belongingArea != null) {
+                        Area realParent = this.areasById.get(a.belongingArea);
+                        if (realParent != null) {
+                            realParent.subAreas.add(a.uid);
+                        } else {
+                            LOGGER.warn("Area with UID {}, which encloses area {} (UID {}), no longer exists. The enclosed area will forget that.", a.belongingArea, a.name, a.uid);
+                            a.belongingArea = null;
+                        }
+                    }
                 } else {
                     LOGGER.warn("Area {} (UID {}) has overlap with at least one existing area; it should not happen and will be removed.", a.name, a.uid);
-                    this.remove(a, dim);
+                    invalidArea.add(a);
+                    itr.remove();
                 }
             }
-            for (Area a : this.areasById.values()) {
-                if (a.belongingArea != null) {
-                    Area parent = this.areasById.get(a.belongingArea);
-                    parent.subAreas.add(a.uid);
-                }
+            for (var a : invalidArea) {
+                this.remove(a, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
             }
         } finally {
             writeLock.unlock();
