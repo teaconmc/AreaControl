@@ -143,10 +143,12 @@ public final class AreaManager {
                     }
                 } else {
                     LOGGER.warn("Area {} (UID {}) has overlap with at least one existing area; it should not happen and will be removed.", a.name, a.uid);
+                    LOGGER.warn("Overlapping areas: {}", maybeOverlaps.stream().map(overlap -> "Area " + overlap.name + " (" + overlap.uid + ")").toList());
                     invalidArea.add(a);
                     itr.remove();
                 }
             }
+            // TODO Make auto-remove optional
             for (var a : invalidArea) {
                 this.remove(a, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
             }
