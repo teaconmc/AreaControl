@@ -169,9 +169,9 @@ public final class AreaManager {
                 for (var uuid : this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet())) {
                     Area a = this.areasById.get(uuid);
                     if (a == null) continue;
-                    if (area.minX < a.minX && a.maxX < area.maxX) {
-                        if (area.minY < a.minY && a.maxY < area.maxY) {
-                            if (area.minZ < a.minZ && a.maxZ < area.maxZ) {
+                    if (area.minX <= a.minX && a.maxX <= area.maxX) {
+                        if (area.minY <= a.minY && a.maxY <= area.maxY) {
+                            if (area.minZ <= a.minZ && a.maxZ <= area.maxZ) {
                                 noEnclosing = false;
                                 break;
                             }
