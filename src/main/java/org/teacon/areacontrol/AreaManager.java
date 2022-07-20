@@ -103,6 +103,12 @@ public final class AreaManager {
             for (Area a : this.repository.load()) {
                 this.buildCacheFor(a, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
             }
+            for (Area a : this.areasById.values()) {
+                if (a.belongingArea != null) {
+                    Area parent = this.areasById.get(a.belongingArea);
+                    parent.subAreas.add(a.uid);
+                }
+            }
         } finally {
             writeLock.unlock();
         }

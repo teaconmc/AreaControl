@@ -31,7 +31,7 @@ public final class Area {
 
     public int minX, minY, minZ, maxX, maxY, maxZ;
     public UUID belongingArea = null;
-    public Set<UUID> subAreas = new HashSet<>();
+    public transient Set<UUID> subAreas = new HashSet<>();
 
     public final Map<String, Object> properties = new ConcurrentHashMap<>();
 

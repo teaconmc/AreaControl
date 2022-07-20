@@ -106,8 +106,6 @@ public class TomlBasedAreaRepository implements AreaRepository {
         public BlockPos max = new BlockPos(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
         @Conversion(NullableUUIDConverter.class)
         public UUID belongingArea;
-        @Conversion(UUIDCollectionConverter.class)
-        public Collection<UUID> subAreas = new HashSet<>();
 
         public Config properties;
 
@@ -124,7 +122,6 @@ public class TomlBasedAreaRepository implements AreaRepository {
             this.min = new BlockPos(realArea.minX, realArea.minY, realArea.minZ);
             this.max = new BlockPos(realArea.maxX, realArea.maxY, realArea.maxZ);
             this.belongingArea = realArea.belongingArea;
-            this.subAreas = realArea.subAreas;
             this.properties = Config.wrap(realArea.properties, InMemoryFormat.defaultInstance());
         }
 
@@ -146,7 +143,6 @@ public class TomlBasedAreaRepository implements AreaRepository {
             area.maxY = Math.max(this.min.getY(), this.max.getY());
             area.maxZ = Math.max(this.min.getZ(), this.max.getZ());
             area.belongingArea = this.belongingArea;
-            area.subAreas = new ObjectArraySet<>(this.subAreas);
             area.properties.clear();
             area.properties.putAll(this.properties.valueMap());
             return area;
