@@ -21,7 +21,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
-version = '0.5.17'
+version = '0.5.16'
 group = 'org.teacon'
 archivesBaseName = 'AreaControl-Forge-1.18'
 
