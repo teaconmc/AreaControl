@@ -101,24 +101,7 @@ public final class AreaManager {
         try {
             writeLock.lock();
             for (Area a : this.repository.load()) {
-                var dim = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension));
-                var maybeOverlaps = Stream.of(
-                        new BlockPos(a.minX, a.minY, a.minZ),
-                        new BlockPos(a.minX, a.minY, a.maxZ),
-                        new BlockPos(a.minX, a.maxY, a.minZ),
-                        new BlockPos(a.minX, a.maxY, a.maxZ),
-                        new BlockPos(a.maxX, a.minY, a.minZ),
-                        new BlockPos(a.maxX, a.minY, a.maxZ),
-                        new BlockPos(a.maxX, a.maxY, a.minZ),
-                        new BlockPos(a.maxX, a.maxY, a.maxZ)
-                ).map(cornerPos -> findBy(dim, cornerPos)).collect(Collectors.toCollection(() -> Collections.newSetFromMap(new IdentityHashMap<>())));
-                Area parent = maybeOverlaps.iterator().next();
-                if (maybeOverlaps.size() == 1 && (parent.minX != a.minX || parent.minY != a.minY || parent.minZ != a.minZ || parent.maxX != a.maxX || parent.maxY != a.maxY || parent.maxZ != a.maxZ)) {
-                    this.buildCacheFor(a, dim);
-                } else {
-                    LOGGER.warn("Area {} (UID {}) has overlap with at least one existing area; it should not happen and will be removed.", a.name, a.uid);
-                    this.remove(a, dim);
-                }
+                this.buildCacheFor(a, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
             }
             for (Area a : this.areasById.values()) {
                 if (a.belongingArea != null) {
@@ -223,9 +206,7 @@ public final class AreaManager {
             this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet()).remove(area.uid);
             if (area.belongingArea != null) {
                 Area enclosing = this.areasById.get(area.belongingArea);
-                if (enclosing != null) {
-                    enclosing.subAreas.remove(area.uid);
-                }
+                enclosing.subAreas.remove(area.uid);
             }
             try {
                 this.repository.remove(area);
