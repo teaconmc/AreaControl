@@ -7,12 +7,16 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
@@ -117,7 +121,13 @@ public final class AreaControlCommand {
     private static int help(CommandContext<CommandSourceStack> context) {
         var markerTool = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(AreaControlConfig.areaClaimTool.get())));
         var markerToolName = markerTool.getDisplayName();
-        context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.how_to", markerToolName), false);
+        var displayName = markerToolName.copy()
+                .withStyle(Style.EMPTY
+                        .withUnderlined(Boolean.TRUE)
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, markerTool.getHoverName().copy()
+                                .append(new TranslatableComponent("area_control.claim.how_to.give_item").withStyle(ChatFormatting.GRAY))))
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/give @s " + AreaControlConfig.areaClaimTool.get())));
+        context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.how_to", displayName), false);
         return Command.SINGLE_SUCCESS;
     }
 
