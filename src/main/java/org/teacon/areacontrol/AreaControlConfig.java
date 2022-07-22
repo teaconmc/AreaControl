@@ -1,5 +1,6 @@
 package org.teacon.areacontrol;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public class AreaControlConfig {
@@ -14,7 +15,14 @@ public class AreaControlConfig {
                 .define("persistenceMode", "toml");
         areaClaimTool = configSpec.comment("The item id of the item that should be used when marking areas for claiming. For example: minecraft:stick.")
                 .translation("area_control.config.area_claim_tool")
-                .define("areaClaimTool", "minecraft:stick");
+                .define("areaClaimTool", "minecraft:stick", input -> {
+                    try {
+                        new ResourceLocation(input.toString());
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                });
         return configSpec.build();
     }
 }
