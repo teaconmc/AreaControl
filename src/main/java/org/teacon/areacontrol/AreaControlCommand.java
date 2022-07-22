@@ -59,6 +59,11 @@ public final class AreaControlCommand {
                                                         .executes(AreaControlCommand::claimChunkWithSize)))
                                         .executes(AreaControlCommand::claimChunk)))
                         .then(Commands.literal("current")
+                                .then(Commands.literal("name")
+                                        .then(Commands.literal("set")
+                                                .then(Commands.argument("name", StringArgumentType.greedyString())
+                                                        .executes(AreaControlCommand::setAreaName)))
+                                        .executes(AreaControlCommand::displayAreaName))
                                 .then(Commands.literal("friends")
                                         .then(Commands.literal("add")
                                                 .then(Commands.argument("friend", GameProfileArgument.gameProfile())
@@ -287,6 +292,34 @@ public final class AreaControlCommand {
         AreaControlClaimHandler.pushRecord(context.getSource().getPlayerOrException(), marked);
         context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.marked", Util.toGreenText(marked)), true);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int displayAreaName(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var level = src.getLevel();
+        final var pos = src.getPosition();
+        final var area = AreaManager.INSTANCE.findBy(level, new BlockPos(pos));
+        src.sendSuccess(new TextComponent(area.name), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int setAreaName(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var requester = src.getPlayerOrException();
+        final var requesterId = requester.getGameProfile().getId();
+        final var level = src.getLevel();
+        final var pos = src.getPosition();
+        final var area = AreaManager.INSTANCE.findBy(level, new BlockPos(pos));
+        if (area.owner.equals(requesterId) || area.friends.contains(requesterId) || PermissionAPI.getPermission(requester, AreaControlPermissions.SET_PROPERTY)) {
+            final var newName = context.getArgument("name", String.class);
+            final var oldName = area.name;
+            area.name = newName;
+            src.sendSuccess(new TranslatableComponent("area_control.claim.name.update", oldName, newName), true);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
+            return -1;
+        }
     }
 
     private static int listTags(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

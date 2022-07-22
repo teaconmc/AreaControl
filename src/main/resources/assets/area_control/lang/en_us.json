@@ -21,6 +21,7 @@
   "area_control.claim.nearby.detail.go_there": "[Go to there]",
   "area_control.claim.nearby.visual": "Your client does not seem to have AreaControl installed, so enhanced area visualizer is not used. You can still use the short-cut to teleport there.",
 
+  "area_control.claim.name.update": "Successfully changed current area name from %1$s to %2$s",
   "area_control.claim.tag.added": "Successfully tagged area '%1$s' with '%2$s'.",
   "area_control.claim.tag.existed": "Area '%1$s' has already been tagged with %2$s!",
   "area_control.claim.tag.removed": "Successfully untagged area '$1$s' with '%2$s'",

@@ -21,6 +21,7 @@
   "area_control.claim.nearby.detail.go_there": "[传送]",
   "area_control.claim.nearby.visual": "你的客户端看上去没有 AreaControl，所以无法使用领地可视化增强。你仍然可以点击上面的“传送”快速传送到目标领地。",
 
+  "area_control.claim.name.update": "已成功将当前领地名从 %1$s 改为 %2$s",
   "area_control.claim.tag.added": "已成功为领地 '%1$s' 添加标签 '%2$s'.",
   "area_control.claim.tag.existed": "领地 '%1$s' 已有标签 %2$s!",
   "area_control.claim.tag.removed": "已成功为领地 '$1$s' 移除标签 '%2$s'",
