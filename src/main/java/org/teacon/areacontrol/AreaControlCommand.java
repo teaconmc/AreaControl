@@ -3,6 +3,7 @@ package org.teacon.areacontrol;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -53,6 +54,9 @@ public final class AreaControlCommand {
                                         .executes(AreaControlCommand::claimMarked))
                                 .then(Commands.literal("chunk")
                                         .requires(check(AreaControlPermissions.CLAIM_CHUNK_AREA))
+                                        .then(Commands.argument("x", IntegerArgumentType.integer())
+                                                .then(Commands.argument("z", IntegerArgumentType.integer())
+                                                        .executes(AreaControlCommand::claimChunkWithSize)))
                                         .executes(AreaControlCommand::claimChunk)))
                         .then(Commands.literal("current")
                                 .then(Commands.literal("friends")
@@ -132,6 +136,75 @@ public final class AreaControlCommand {
         final var chunkPos = new ChunkPos(new BlockPos(src.getPosition()));
         final var chunkStart = chunkPos.getBlockAt(0, Integer.MIN_VALUE, 0);
         final var chunkEnd = chunkPos.getBlockAt(15, Integer.MAX_VALUE, 15);
+        final var range = new AABB(Vec3.atCenterOf(chunkStart), Vec3.atCenterOf(chunkEnd));
+        if (!range.expandTowards(0.5, 0.5, 0.5).contains(claimer.position())) {
+            src.sendFailure(new TranslatableComponent("area_control.error.outside_selection"));
+            return -1;
+        }
+        final Area area = Util.createArea(chunkStart, chunkEnd);
+        final var worldIndex = src.getLevel().dimension();
+        final UUID claimerUUID = claimer.getGameProfile().getId();
+        if (claimerUUID != null) {
+            area.owner = claimerUUID;
+        }
+        if (AreaManager.INSTANCE.add(area, worldIndex)) {
+            src.sendSuccess(new TranslatableComponent("area_control.claim.created", area.name, Util.toGreenText(area)), true);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(new TranslatableComponent("area_control.error.overlap"));
+            return -2;
+        }
+    }
+
+    private static int claimChunkWithSize(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var claimer = src.getPlayerOrException();
+        final var corner = new ChunkPos(new BlockPos(src.getPosition()));
+        int xOffset = context.getArgument("x", Integer.class), zOffset = context.getArgument("z", Integer.class);
+        final BlockPos chunkStart, chunkEnd;
+        if (xOffset > 0) {
+            if (zOffset > 0) {
+                // Corner is at northwest
+                chunkStart = corner.getBlockAt(0, Integer.MIN_VALUE, 0);
+                chunkEnd = new ChunkPos(corner.x + xOffset - 1, corner.z + zOffset - 1).getBlockAt(15, Integer.MAX_VALUE, 15);
+            } else if (zOffset == 0) {
+                // Corner is at northwest
+                chunkStart = corner.getBlockAt(0, Integer.MIN_VALUE, 0);
+                chunkEnd = new ChunkPos(corner.x + xOffset - 1, corner.z).getBlockAt(15, Integer.MAX_VALUE, 15);
+            } else {
+                // Corner is at southwest
+                chunkStart = corner.getBlockAt(0, Integer.MIN_VALUE, 15);
+                chunkEnd = new ChunkPos(corner.x + xOffset - 1, corner.z + zOffset + 1).getBlockAt(15, Integer.MAX_VALUE, 0);
+            }
+        } else if (xOffset == 0) {
+            if (zOffset > 0) {
+                // Corner is at northwest
+                chunkStart = corner.getBlockAt(0, Integer.MIN_VALUE, 0);
+                chunkEnd = new ChunkPos(corner.x, corner.z + zOffset - 1).getBlockAt(15, Integer.MAX_VALUE, 15);
+            } else if (zOffset == 0) {
+                // Corner is at northwest, just one chunk
+                chunkStart = corner.getBlockAt(0, Integer.MIN_VALUE, 0);
+                chunkEnd = corner.getBlockAt(15, Integer.MAX_VALUE, 15);
+            } else {
+                // Corner is at southwest
+                chunkStart = corner.getBlockAt(0, Integer.MIN_VALUE, 15);
+                chunkEnd = new ChunkPos(corner.x, corner.z + zOffset + 1).getBlockAt(15, Integer.MAX_VALUE, 0);
+            }
+        } else {
+            if (zOffset > 0) {
+                // Corner is at northeast
+                chunkStart = corner.getBlockAt(15, Integer.MIN_VALUE, 0);
+                chunkEnd = new ChunkPos(corner.x + xOffset + 1, corner.z + zOffset - 1).getBlockAt(0, Integer.MAX_VALUE, 15);
+            } else if (zOffset == 0) {
+                // Corner is at northeast
+                chunkStart = corner.getBlockAt(15, Integer.MIN_VALUE, 0);
+                chunkEnd = new ChunkPos(corner.x + xOffset + 1, corner.z).getBlockAt(0, Integer.MAX_VALUE, 15);
+            } else {
+                // Corner is southeast
+                chunkStart = corner.getBlockAt(15, Integer.MIN_VALUE, 15);
+                chunkEnd = new ChunkPos(corner.x + xOffset + 1, corner.z + zOffset + 1).getBlockAt(0, Integer.MAX_VALUE, 0);
+            }
+        }
         final var range = new AABB(Vec3.atCenterOf(chunkStart), Vec3.atCenterOf(chunkEnd));
         if (!range.expandTowards(0.5, 0.5, 0.5).contains(claimer.position())) {
             src.sendFailure(new TranslatableComponent("area_control.error.outside_selection"));
