@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
@@ -123,6 +124,7 @@ public final class AreaControlCommand {
         var markerToolName = markerTool.getDisplayName();
         var displayName = markerToolName.copy()
                 .withStyle(Style.EMPTY
+                        .withColor(ChatFormatting.BLUE)
                         .withUnderlined(Boolean.TRUE)
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, markerTool.getHoverName().copy()
                                 .append(new TranslatableComponent("area_control.claim.how_to.give_item").withStyle(ChatFormatting.GRAY))))
