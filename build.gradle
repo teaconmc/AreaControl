@@ -21,7 +21,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
-version = '0.5.19'
+version = '0.5.20'
 group = 'org.teacon'
 archivesBaseName = 'AreaControl-Forge-1.18'
 
@@ -71,7 +71,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18.2-40.0.12'
+    minecraft 'net.minecraftforge:forge:1.18.2-40.1.59'
 
     // Yes you see this right, LuckPerms.
     // This is for our custom ContextCalculator support.
