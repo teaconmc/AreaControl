@@ -27,7 +27,7 @@ public class FireMixin {
      * @param rand Captured Random
      * @param ci The callback
      */
-    @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;I)V", shift = At.Shift.AFTER), cancellable = true)
     private void fireSpreadCheck(BlockState state, ServerLevel level, BlockPos pos, Random rand, CallbackInfo ci) {
         Area current = AreaManager.INSTANCE.findBy(level, pos);
         if (!AreaProperties.getBool(current, "area.allow_fire_spread")) {
