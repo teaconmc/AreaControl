@@ -82,6 +82,7 @@ public final class AreaManager {
             return;
         }
         final var areasInDim = this.perWorldAreaCache.computeIfAbsent(worldIndex, id -> new HashMap<>());
+
         ChunkPos.rangeClosed(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))
                 .map(cp -> areasInDim.computeIfAbsent(cp, _cp -> Collections.newSetFromMap(new IdentityHashMap<>())))
                 .forEach(list -> list.add(area.uid));
@@ -319,13 +320,21 @@ public final class AreaManager {
             if (results.size() == 1) {
                 return results.iterator().next();
             }
-            // Else, we find the area that does not contain any sub-area.
-            // Think about it like a tree (in data structure): leaf node does not have child node.
-            // Similarly, area that doesn't contain sub-area should be the deepest one on that location.
-            for (Area a : results) {
-                if (a.subAreas.isEmpty()) {
-                    return a;
+            // Else, we find the deepest area in our selected area.
+            // Such area must have no child area in the set of matched areas.
+            // Example: two areas, A and B, are matched. B is sub-area of A.
+            // Since one of A's sub-area is in the set of matches area,
+            // it would not be the deepest area. Regardless whether B has
+            // sub-areas or not, none of the areas other than B are sub-area
+            // of B, so B is the deepest area in our set.
+            // TODO This runs in O(n^2) at worst, can we be faster?
+            outer: for (Area a : results) {
+                for (Area maybeChild : results) {
+                    if (a != maybeChild && a.subAreas.contains(maybeChild.uid)) {
+                        continue outer;
+                    }
                 }
+                return a;
             }
         } finally {
             readLock.unlock();
