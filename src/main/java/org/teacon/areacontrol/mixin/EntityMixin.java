@@ -51,7 +51,8 @@ public abstract class EntityMixin {
             String propToCheck;
             PermissionNode<Boolean> permissionToCheck;
             Component deniedFeedback;
-            if (Player.class.isInstance(this) ) {
+            var damageSrc = src.getEntity();
+            if (Player.class.isInstance(this) && damageSrc instanceof Player) {
                 propToCheck = "area.allow_pvp";
                 permissionToCheck = AreaControlPermissions.BYPASS_PVP;
                 deniedFeedback = new TranslatableComponent("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY);
