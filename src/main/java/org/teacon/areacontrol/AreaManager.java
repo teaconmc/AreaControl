@@ -14,11 +14,11 @@ import java.util.UUID;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.impl.AreaFactory;
+import org.teacon.areacontrol.impl.AreaMath;
 import org.teacon.areacontrol.impl.persistence.AreaRepository;
 
 public final class AreaManager {
@@ -146,16 +147,9 @@ public final class AreaManager {
         try {
             writeLock.lock();
             // First we check if at least one vertex of the defining cuboid falls in an existing area
-            var maybeOverlaps = Stream.of(
-                    new BlockPos(area.minX, area.minY, area.minZ),
-                    new BlockPos(area.minX, area.minY, area.maxZ),
-                    new BlockPos(area.minX, area.maxY, area.minZ),
-                    new BlockPos(area.minX, area.maxY, area.maxZ),
-                    new BlockPos(area.maxX, area.minY, area.minZ),
-                    new BlockPos(area.maxX, area.minY, area.maxZ),
-                    new BlockPos(area.maxX, area.maxY, area.minZ),
-                    new BlockPos(area.maxX, area.maxY, area.maxZ)
-            ).map(cornerPos -> findBy(worldIndex, cornerPos)).collect(Collectors.toCollection(() -> Collections.newSetFromMap(new IdentityHashMap<>())));
+            var maybeOverlaps = Util.verticesOf(area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ)
+                    .map(cornerPos -> findBy(worldIndex, cornerPos))
+                    .collect(Collectors.toCollection(() -> Collections.newSetFromMap(new IdentityHashMap<>())));
             // We need to make sure that all 8 vertices fall into the same area.
             if (maybeOverlaps.size() != 1) {
                 return false;
@@ -217,6 +211,120 @@ public final class AreaManager {
         } finally {
             writeLock.unlock();
         }
+    }
+
+    public boolean changeRangeForArea(ResourceKey<Level> dim, Area area, Direction direction, int amount) {
+        if (amount == 0) { // Who would do that?!
+            return true;
+        }
+        if (direction == null || Area.GLOBAL_AREA_OWNER.equals(area.owner)) {
+            return false;
+        }
+        // Calculate the range after change
+        int minX = area.minX, minY = area.minY, minZ = area.minZ, maxX = area.maxX, maxY = area.maxY, maxZ = area.maxZ;
+        switch (direction) {
+            case DOWN -> {
+                if (minY == Integer.MIN_VALUE) {
+                    return false;
+                }
+                minY -= amount;
+                break;
+            }
+            case UP -> {
+                if (maxY == Integer.MAX_VALUE) {
+                    return false;
+                }
+                maxY += amount;
+                break;
+            }
+            case NORTH -> {
+                if (minZ == Integer.MIN_VALUE) {
+                    return false;
+                }
+                minZ -= amount;
+                break;
+            }
+            case SOUTH -> {
+                if (maxZ == Integer.MAX_VALUE) {
+                    return false;
+                }
+                maxZ += amount;
+                break;
+            }
+            case WEST -> {
+                if (minX == Integer.MIN_VALUE) {
+                    return false;
+                }
+                minX -= amount;
+                break;
+            }
+            case EAST -> {
+                if (maxX == Integer.MAX_VALUE) {
+                    return false;
+                }
+                maxX += amount;
+                break;
+            }
+        }
+        // Check if the change amount is positive/negative
+        if (amount > 0) {
+            // Positive means expansion.
+            // No existing areas should thus have overlap with this area, or being swallowed after expansion.
+            // TODO Allow automatic area "swallowing", this would require heavy calculation...
+            var areaByChunkPos = this.perWorldAreaCache.getOrDefault(dim, Collections.emptyMap());
+            var maybeOverlaps = ChunkPos.rangeClosed(new ChunkPos(minX >> 4, minZ >> 4), new ChunkPos(maxX >> 4, maxZ >> 4))
+                    .flatMap(cp -> areaByChunkPos.getOrDefault(cp, Collections.emptySet()).stream())
+                    .collect(Collectors.toSet());
+            for (var maybeOverlapId : maybeOverlaps) {
+                var maybeOverlap = this.findBy(maybeOverlapId);
+                if (maybeOverlap != area) {
+                    var relation = AreaMath.relationBetween(minX, minY, minZ, maxX, maxY, maxZ, maybeOverlap);
+                    if (relation == AreaMath.SetRelation.INTERSECT || relation == AreaMath.SetRelation.SAME) {
+                        // No overlap or being the same.
+                        return false;
+                    } else if (relation == AreaMath.SetRelation.SUPERSET) {
+                        // No swallowing.
+                        // If maybeOverlap is sub-area of current area, it must be known.
+                        if (!this.isSub(area, maybeOverlap)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        } else {
+            // Negative means contraction.
+            // No existing sub-areas should thus have overlap with this area, or become dangling.
+            // TODO Allow automatic dangling, this would require heavy calculation...
+            for (var subId : area.subAreas) {
+                var sub = this.findBy(subId);
+                if (minX > sub.minX || sub.maxX > maxX || minY > sub.minY || sub.maxY > maxY || minZ > sub.minZ || sub.maxZ > maxZ) {
+                    return false;
+                }
+            }
+        }
+        area.minX = minX;
+        area.minY = minY;
+        area.minZ = minZ;
+        area.maxX = maxX;
+        area.maxY = maxY;
+        area.maxZ = maxZ;
+        return true;
+    }
+
+    public boolean isSub(Area parent, Area sub) {
+        if (parent == sub) {
+            return false;
+        }
+        if (parent.subAreas.contains(sub.uid)) {
+            return true;
+        }
+        for (var subId : parent.subAreas) {
+            var directSub = this.findBy(subId);
+            if (directSub != null && this.isSub(directSub, sub)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -299,6 +407,11 @@ public final class AreaManager {
 
     @Nonnull
     public Area findBy(ResourceKey<Level> world, BlockPos pos) {
+        return findWithExclusion(world, pos, null);
+    }
+
+    @Nonnull
+    public Area findWithExclusion(ResourceKey<Level> world, BlockPos pos, Area excluded) {
         var readLock = this.lock.readLock();
         try {
             readLock.lock();
@@ -315,6 +428,9 @@ public final class AreaManager {
                         }
                     }
                 }
+            }
+            if (excluded != null) {
+                results.remove(excluded);
             }
             // If there is only one area, it will be our result.
             if (results.size() == 1) {

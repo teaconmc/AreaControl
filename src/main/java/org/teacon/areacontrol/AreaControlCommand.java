@@ -14,10 +14,10 @@ import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
@@ -29,11 +29,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.server.command.EnumArgument;
 import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.impl.AreaPropertyArgument;
+import org.teacon.areacontrol.impl.DirectionArgument;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -69,6 +71,11 @@ public final class AreaControlCommand {
                                                 .then(Commands.argument("name", StringArgumentType.greedyString())
                                                         .executes(AreaControlCommand::setAreaName)))
                                         .executes(AreaControlCommand::displayAreaName))
+                                .then(Commands.literal("range")
+                                        .then(Commands.literal("expand")
+                                                .then(Commands.argument("direction", DirectionArgument.direction())
+                                                        .then(Commands.argument("amount", IntegerArgumentType.integer())
+                                                                .executes(AreaControlCommand::changeAreaRange)))))
                                 .then(Commands.literal("friends")
                                         .then(Commands.literal("add")
                                                 .then(Commands.argument("friend", GameProfileArgument.gameProfile())
@@ -328,6 +335,31 @@ public final class AreaControlCommand {
             area.name = newName;
             src.sendSuccess(new TranslatableComponent("area_control.claim.name.update", oldName, newName), true);
             return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
+            return -1;
+        }
+    }
+
+    private static int changeAreaRange(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var requester = src.getPlayerOrException();
+        final var requesterId = requester.getGameProfile().getId();
+        final var level = src.getLevel();
+        final var pos = src.getPosition();
+        final var area = AreaManager.INSTANCE.findBy(level, new BlockPos(pos));
+        if (area.owner.equals(requesterId) || area.friends.contains(requesterId) || PermissionAPI.getPermission(requester, AreaControlPermissions.SET_PROPERTY)) {
+            final var direction = context.getArgument("direction", Direction.class);
+            final var amount = context.getArgument("amount", Integer.class);
+            if (AreaManager.INSTANCE.changeRangeForArea(level.dimension(), area, direction, amount)) {
+                src.sendSuccess(new TranslatableComponent("area_control.claim.range.update.success",
+                        Util.toGreenText(new BlockPos(area.minX, area.minY, area.minZ)),
+                        Util.toGreenText(new BlockPos(area.maxX, area.maxY, area.maxZ))), true);
+                return Command.SINGLE_SUCCESS;
+            } else {
+                src.sendFailure(new TranslatableComponent("area_control.error.cannot_change_range", area.name));
+                return -1;
+            }
         } else {
             src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
             return -1;

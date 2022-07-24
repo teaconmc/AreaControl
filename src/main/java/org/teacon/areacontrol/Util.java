@@ -13,11 +13,11 @@ import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.levelgen.Heightmap;
 import org.teacon.areacontrol.api.Area;
 
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public final class Util {
 
@@ -58,6 +58,20 @@ public final class Util {
                                 .withColor(ChatFormatting.DARK_AQUA)
                 ));
     }
+
+    public static Stream<BlockPos> verticesOf(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        return Stream.of(
+                new BlockPos(minX, minY, minZ),
+                new BlockPos(minX, minY, maxZ),
+                new BlockPos(minX, maxY, minZ),
+                new BlockPos(minX, maxY, maxZ),
+                new BlockPos(maxX, minY, minZ),
+                new BlockPos(maxX, minY, maxZ),
+                new BlockPos(maxX, maxY, minZ),
+                new BlockPos(maxX, maxY, maxZ)
+        );
+    }
+
 
     public static Area createArea(BlockPos start, BlockPos end) {
         final Area a = new Area();

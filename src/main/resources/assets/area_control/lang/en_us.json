@@ -23,6 +23,7 @@
   "area_control.claim.nearby.visual": "Your client does not seem to have AreaControl installed, so enhanced area visualizer is not used. You can still use the short-cut to teleport there.",
 
   "area_control.claim.name.update": "Successfully changed current area name from %1$s to %2$s",
+  "area_control.claim.range.update.success": "Successfully changed current area range, now from %1$s to %2$s",
   "area_control.claim.tag.added": "Successfully tagged area '%1$s' with '%2$s'.",
   "area_control.claim.tag.existed": "Area '%1$s' has already been tagged with %2$s!",
   "area_control.claim.tag.removed": "Successfully untagged area '$1$s' with '%2$s'",
@@ -48,9 +49,11 @@
   "area_control.notice.use_item_disabled": "AreaControl: this area has disabled item using, contact admin if you think it is an error",
   "area_control.notice.place_block_disabled": "AreaControl: this area has disabled block placing, contact admin if you think it is an error",
 
+  "area_control.error.direction_argument": "Direction must be one of: up, down, north, south, west, east, but you have %s",
   "area_control.error.outside_selection": "AreaControl: You should stand inside the selection of the area you are tried for claiming.",
   "area_control.error.overlap": "AreaControl: Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?",
   "area_control.error.no_selection": "AreaControl: Cannot determine what area you want to claim. Did you forget to select an area?",
+  "area_control.error.cannot_change_range": "Cannot change range for area %s because it would cause area overlapping",
   "area_control.error.cannot_set_property": "AreaControl: Cannot set property for area %s because you are not authorized to do so.",
   "area_control.error.cannot_set_friend": "AreaControl: Cannot add/remove friend for area %s because you are not authorized to do so.",
   "area_control.error.cannot_set_tag": "AreaControl: Cannot add/remove tag for area %s because you are not authorized to do so.",
