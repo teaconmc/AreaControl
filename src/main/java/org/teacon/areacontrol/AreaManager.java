@@ -308,6 +308,11 @@ public final class AreaManager {
         area.maxX = maxX;
         area.maxY = maxY;
         area.maxZ = maxZ;
+        this.perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(uid -> uid == area.uid)));
+        final var areasInDim = this.perWorldAreaCache.computeIfAbsent(dim, id -> new HashMap<>());
+        ChunkPos.rangeClosed(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))
+                .map(cp -> areasInDim.computeIfAbsent(cp, _cp -> Collections.newSetFromMap(new IdentityHashMap<>())))
+                .forEach(list -> list.add(area.uid));
         return true;
     }
 
