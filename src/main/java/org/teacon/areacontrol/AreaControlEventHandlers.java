@@ -4,7 +4,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
@@ -14,9 +13,9 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.permission.PermissionAPI;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
+import org.teacon.areacontrol.impl.AreaChecks;
 
 @Mod.EventBusSubscriber(modid = "area_control")
 public final class AreaControlEventHandlers {
@@ -45,7 +44,7 @@ public final class AreaControlEventHandlers {
         }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         if (!AreaProperties.getBool(targetArea, "area.allow_interact_entity_specific")
-                && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_INTERACT_ENTITY_SPECIFIC)) {
+                && !AreaChecks.allow(event.getPlayer(), targetArea, AreaControlPermissions.BYPASS_INTERACT_ENTITY_SPECIFIC)) {
                 event.setCanceled(true);
         }
     }
@@ -57,7 +56,7 @@ public final class AreaControlEventHandlers {
         }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         if (!AreaProperties.getBool(targetArea, "area.allow_interact_entity")
-                && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_INTERACT_ENTITY)) {
+                && !AreaChecks.allow(event.getPlayer(), targetArea, AreaControlPermissions.BYPASS_INTERACT_ENTITY)) {
                 event.setCanceled(true);
         }
     }
@@ -81,9 +80,7 @@ public final class AreaControlEventHandlers {
         } else {
             allowed = AreaProperties.getBool(targetArea, "area.allow_break_block");
         }
-        allowed |= PermissionAPI.getPermission(
-                (ServerPlayer) event.getPlayer(),
-                AreaControlPermissions.BYPASS_BREAK_BLOCK);
+        allowed |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_BREAK_BLOCK);
         if (!allowed) {
             p.displayClientMessage(new TranslatableComponent("area_control.notice.break_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
@@ -109,9 +106,7 @@ public final class AreaControlEventHandlers {
         } else {
             allowed = AreaProperties.getBool(targetArea, "area.allow_click_block");
         }
-        allowed |= PermissionAPI.getPermission(
-                (ServerPlayer) event.getPlayer(),
-                AreaControlPermissions.BYPASS_BREAK_BLOCK);
+        allowed |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_BREAK_BLOCK);
         if (!allowed) {
             p.displayClientMessage(new TranslatableComponent("area_control.notice.click_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
@@ -137,9 +132,7 @@ public final class AreaControlEventHandlers {
         } else {
             allowed = AreaProperties.getBool(targetArea, "area.allow_activate_block");
         }
-        allowed |= PermissionAPI.getPermission(
-                (ServerPlayer) event.getPlayer(),
-                AreaControlPermissions.BYPASS_BREAK_BLOCK);
+        allowed |= AreaChecks.allow(player, targetArea, AreaControlPermissions.BYPASS_BREAK_BLOCK);
         if (!allowed) {
             player.displayClientMessage(new TranslatableComponent("area_control.notice.activate_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
@@ -164,7 +157,7 @@ public final class AreaControlEventHandlers {
         } else {
             allow = AreaProperties.getBool(targetArea, "area.allow_use_item");
         }
-        allow |= PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_USE_ITEM);
+        allow |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_USE_ITEM);
         if (!allow) {
             p.displayClientMessage(new TranslatableComponent("area_control.notice.use_item_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
@@ -203,7 +196,7 @@ public final class AreaControlEventHandlers {
         }
         final var placer = event.getEntity();
         if (placer instanceof ServerPlayer p) {
-            allowed |= PermissionAPI.getPermission(p, AreaControlPermissions.BYPASS_BREAK_BLOCK);
+            allowed |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_BREAK_BLOCK);
         }
         if (!allowed) {
             // TODO Client will falsely report item being consumed; however it will return to normal if you click again in inventory GUI
