@@ -1,15 +1,17 @@
 package org.teacon.areacontrol.api;
 
+import javax.annotation.Nonnull;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public final class AreaProperties {
 
-    /** 
+    /**
      * Set of area properties that are known by the AreaControl mod.
      * Adding a property to this Set is optional; it only enables command auto-completion.
      */
-    public static final Set<String> KNOWN_PROPERTIES = new HashSet<>();   
+    public static final Set<String> KNOWN_PROPERTIES = new HashSet<>();
 
     public static final String SHOW_WELCOME = register("area.display_welcome_message");
     public static final String ALLOW_SPAWN = register("area.allow_spawn");
@@ -27,7 +29,7 @@ public final class AreaProperties {
     public static final String ALLOW_EXPLOSION = register("area.allow_explosion");
     public static final String ALLOW_EXPLOSION_AFFECT_BLOCKS = register("area.allow_explosion_affect_blocks");
     public static final String ALLOW_EXPLOSION_AFFECT_ENTITIES = register("area.allow_explosion_affect_entities");
-    public static final String ALLOW_FIRE_SPREAD= register("area.allow_fire_spread");
+    public static final String ALLOW_FIRE_SPREAD = register("area.allow_fire_spread");
 
     static String register(String property) {
         KNOWN_PROPERTIES.add(property);
@@ -42,7 +44,25 @@ public final class AreaProperties {
         Object o = area.properties.get(key);
         if (o == null) {
             return false;
-        } else if (o instanceof Boolean) {
+        } else {
+            return getBool(o);
+        }
+    }
+
+    /**
+     * @return null if the property is not specified by AC, so you can seek it in gameRule.
+     */
+    public static Optional<Boolean> getBoolOptional(Area area, String key) {
+        Object o = area.properties.get(key);
+        if (o == null) {
+            return Optional.empty();
+        } else {
+            return Optional.of(getBool(o));
+        }
+    }
+
+    private static boolean getBool(@Nonnull Object o) {
+        if (o instanceof Boolean) {
             return (Boolean) o;
         } else if (o instanceof Number) {
             return ((Number) o).intValue() != 0;
