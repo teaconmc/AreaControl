@@ -1,5 +1,6 @@
 package org.teacon.areacontrol;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -105,11 +106,46 @@ public final class AreaManager {
             for (Area a : this.repository.load()) {
                 this.buildCacheFor(a, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
             }
+            var danglingAreas = new ArrayList<Area>();
             for (Area a : this.areasById.values()) {
                 if (a.belongingArea != null) {
                     Area parent = this.areasById.get(a.belongingArea);
-                    parent.subAreas.add(a.uid);
+                    if (parent != null) {
+                        parent.subAreas.add(a.uid);
+                    } else {
+                        LOGGER.warn("Found a dangling area " + a.uid + ", will try to auto-fix this...");
+                        danglingAreas.add(a);
+                    }
                 }
+            }
+            // Try fixing dangling areas.
+            // The assumption is that the correct parent would have the smallest volume.
+            // The algorithm here is to find all areas that are superset of the dangling area,
+            // then find the area with the smallest volume.
+            // If no parent area found, assuming the parent is the wildness, i.e. parent UID is null.
+            for (Area dangling : danglingAreas) {
+                List<Area> possibleParents = new ArrayList<>();
+                var dimKey = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(dangling.dimension));
+                for (var maybeParentUid : this.areasByWorld.getOrDefault(dimKey, Collections.emptySet())) {
+                    var maybeParent = this.areasById.get(maybeParentUid);
+                    if (maybeParent != null && AreaMath.isEnclosing(maybeParent, dangling) && !AreaMath.isCoveringSameArea(maybeParent, dangling)) {
+                        possibleParents.add(maybeParent);
+                    }
+                }
+                var minVolume = BigInteger.valueOf(1L << 32).pow(3);
+                UUID theParent = null;
+                if (!possibleParents.isEmpty()) {
+                    for (var maybeParent : possibleParents) {
+                        var vol = BigInteger.valueOf(maybeParent.maxX).subtract(BigInteger.valueOf(maybeParent.minX))
+                                .multiply(BigInteger.valueOf(maybeParent.maxY).subtract(BigInteger.valueOf(maybeParent.minY)))
+                                .multiply(BigInteger.valueOf(maybeParent.maxZ).subtract(BigInteger.valueOf(maybeParent.minZ)));
+                        if (vol.compareTo(minVolume) < 0) {
+                            minVolume = vol;
+                            theParent = maybeParent.uid;
+                        }
+                    }
+                }
+                dangling.belongingArea = theParent;
             }
         } finally {
             writeLock.unlock();
@@ -202,6 +238,10 @@ public final class AreaManager {
             if (area.belongingArea != null) {
                 Area enclosing = this.areasById.get(area.belongingArea);
                 enclosing.subAreas.remove(area.uid);
+            }
+            for (var subAreaUid : area.subAreas) {
+                var subArea = this.findBy(subAreaUid);
+                subArea.belongingArea = area.belongingArea;
             }
             try {
                 this.repository.remove(area);

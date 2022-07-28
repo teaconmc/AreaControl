@@ -18,6 +18,16 @@ public class AreaMath {
         }
     }
 
+    public static boolean isEnclosing(Area parent, Area maybeChild) {
+        return parent.minX <= maybeChild.minX && maybeChild.maxX <= parent.maxX
+                && parent.minY <= maybeChild.minY && maybeChild.maxY <= parent.maxY
+                && parent.minZ <= maybeChild.minZ && maybeChild.maxZ <= parent.maxZ;
+    }
+
+    public static boolean isCoveringSameArea(Area a, Area b) {
+        return a.minX == b.minX && a.minY == b.minY && a.minZ == b.minZ && a.maxX == b.maxX && a.maxY == b.maxY && a.maxZ == b.maxZ;
+    }
+
     public static SetRelation relationBetween(Area left, Area right) {
         return relationBetween(left.minX, left.minY, left.minZ, left.maxX, left.maxY, left.maxZ,
                 right.minX, right.minY, right.minZ, right.maxX, right.maxY, right.maxZ);
