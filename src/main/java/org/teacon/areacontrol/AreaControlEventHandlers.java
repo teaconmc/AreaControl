@@ -218,17 +218,4 @@ public final class AreaControlEventHandlers {
             event.getAffectedEntities().clear();
         }
     }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onLavaIgniteFire(BlockEvent.FluidPlaceBlockEvent event) {
-        if (event.getNewState().getBlock() == Blocks.FIRE) {
-            Area area = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
-            if (!AreaProperties.getBool(area, AreaProperties.ALLOW_FIRE_SPREAD)) {
-                // TODO This setNewState call is a workaround - the cancelling only prevents
-                //   other handlers from being called, not the new block state being set.
-                event.setNewState(event.getOriginalState());
-                event.setCanceled(true);
-            }
-        }
-    }
 }

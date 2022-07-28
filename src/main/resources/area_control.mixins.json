@@ -6,7 +6,8 @@
   "refmap": "area_control.refmap.json",
   "mixins": [
     "EntityMixin",
-    "FireMixin"
+    "FireMixin",
+    "LavaMixin"
   ],
   "injectors": {
     "defaultRequire": 1
