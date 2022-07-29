@@ -1,10 +1,5 @@
 package org.teacon.areacontrol;
 
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,8 +22,8 @@ import org.teacon.areacontrol.network.ACSendCurrentSelection;
 import org.teacon.areacontrol.network.ACSendNearbyArea;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -88,7 +83,7 @@ public enum AreaControlPlayerTracker {
         this.playersWithExt.remove(playerUid);
     }
 
-    public void sendNearbyAreasToClient(ResourceKey<Level> dim, ServerPlayer requester, double radius) {
+    public void sendNearbyAreasToClient(ResourceKey<Level> dim, ServerPlayer requester, double radius, boolean permanent) {
         LOGGER.debug(MARKER, "Player {} has requested nearby area. Center: {}, radius: {}", requester.getGameProfile().getName(), requester.blockPosition(), radius);
         var nearbyAreas = AreaManager.INSTANCE.getAreaSummariesSurround(dim, requester.blockPosition(), radius);
         requester.displayClientMessage(new TranslatableComponent("area_control.claim.nearby", nearbyAreas.size()), false);
@@ -101,11 +96,16 @@ public enum AreaControlPlayerTracker {
             requester.displayClientMessage(Util.describe(nearbyArea), false);
         }
         if (this.playersWithExt.contains(requester.getGameProfile().getId())) {
-            ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> requester), new ACSendNearbyArea(summaries));
+            var expire = permanent ? Long.MAX_VALUE : System.currentTimeMillis() + 60000;
+            ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> requester), new ACSendNearbyArea(summaries, expire));
         } else {
             requester.displayClientMessage(new TranslatableComponent("area_control.claim.nearby.visual"), false);
         }
         LOGGER.debug(MARKER, "End of the request");
+    }
+
+    public void clearNearbyAreasForClient(ServerPlayer requester) {
+        ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> requester), new ACSendNearbyArea(Collections.emptyList(), 0L));
     }
 
     public void sendCurrentSelectionToClient(ServerPlayer receiver, AreaControlClaimHandler.RectangleRegion region) {

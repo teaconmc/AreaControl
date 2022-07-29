@@ -13,9 +13,11 @@ import java.util.function.Supplier;
 public class ACSendNearbyArea {
 
     private List<Area.Summary> areas = new ArrayList<>();
+    private long expireAfter = 0L;
 
-    public ACSendNearbyArea(List<Area.Summary> areas) {
+    public ACSendNearbyArea(List<Area.Summary> areas, long expireAfter) {
         this.areas.addAll(areas);
+        this.expireAfter = expireAfter;
     }
 
     public ACSendNearbyArea(FriendlyByteBuf buf) {
@@ -27,6 +29,7 @@ public class ACSendNearbyArea {
             boolean enclosed = buf.readBoolean();
             this.areas.add(new Area.Summary(uid, minX, minY, minZ, maxX, maxY, maxZ, enclosed));
         }
+        this.expireAfter = buf.readVarLong();
     }
 
     public void write(FriendlyByteBuf buf) {
@@ -35,11 +38,12 @@ public class ACSendNearbyArea {
             buf.writeUUID(area.uid).writeVarInt(area.minX).writeVarInt(area.minY).writeVarInt(area.minZ)
                     .writeVarInt(area.maxX).writeVarInt(area.maxY).writeVarInt(area.maxZ).writeBoolean(area.enclosed);
         }
+        buf.writeVarLong(this.expireAfter);
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
         AreaControlClientSupport.knownAreas = this.areas;
-        AreaControlClientSupport.knownAreasExpiresAt = System.currentTimeMillis() + 60000;
+        AreaControlClientSupport.knownAreasExpiresAt = this.expireAfter;
         contextSupplier.get().setPacketHandled(true);
     }
 

@@ -49,7 +49,10 @@ public final class AreaControlCommand {
                         .then(Commands.literal("about").executes(AreaControlCommand::about))
                         .then(Commands.literal("help").executes(AreaControlCommand::help))
                         .then(Commands.literal("admin").executes(AreaControlCommand::admin))
-                        .then(Commands.literal("nearby").executes(AreaControlCommand::nearby))
+                        .then(Commands.literal("nearby")
+                                .then(Commands.literal("on").executes(context -> AreaControlCommand.nearby(context, true)))
+                                .then(Commands.literal("off").executes(AreaControlCommand::nearbyClear))
+                                .executes(context -> AreaControlCommand.nearby(context, false)))
                         .then(Commands.literal("desel").requires(check(AreaControlPermissions.CLAIM_MARKED_AREA)).executes(AreaControlCommand::clearMarked))
                         .then(Commands.literal("deselect").requires(check(AreaControlPermissions.CLAIM_MARKED_AREA)).executes(AreaControlCommand::clearMarked))
                         .then(Commands.literal("claim")
@@ -145,12 +148,19 @@ public final class AreaControlCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int nearby(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int nearby(CommandContext<CommandSourceStack> context, boolean permanent) throws CommandSyntaxException {
         final var src = context.getSource();
         final var server = src.getServer();
         final var sender = src.getPlayerOrException();
         final var dim = src.getLevel().dimension();
-        AreaControlPlayerTracker.INSTANCE.sendNearbyAreasToClient(dim, sender, server.getPlayerList().getViewDistance() * 16);
+        AreaControlPlayerTracker.INSTANCE.sendNearbyAreasToClient(dim, sender, server.getPlayerList().getViewDistance() * 16, permanent);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int nearbyClear(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var sender = src.getPlayerOrException();
+        AreaControlPlayerTracker.INSTANCE.clearNearbyAreasForClient(sender);
         return Command.SINGLE_SUCCESS;
     }
 

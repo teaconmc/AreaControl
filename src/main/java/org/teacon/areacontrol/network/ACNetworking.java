@@ -11,9 +11,9 @@ public class ACNetworking {
 
     public static SimpleChannel acNetworkChannel = NetworkRegistry.newSimpleChannel(
             new ResourceLocation("area_control", "network"),
-            () -> "0.2.0",
-            remoteVer -> "0.2.0".equals(remoteVer) || NetworkRegistry.ABSENT.equals(remoteVer) || NetworkRegistry.ACCEPTVANILLA.equals(remoteVer),
-            clientVer -> "0.2.0".equals(clientVer) || NetworkRegistry.ABSENT.equals(clientVer) || NetworkRegistry.ACCEPTVANILLA.equals(clientVer)
+            () -> "0.3.0",
+            remoteVer -> "0.3.0".equals(remoteVer) || NetworkRegistry.ABSENT.equals(remoteVer) || NetworkRegistry.ACCEPTVANILLA.equals(remoteVer),
+            clientVer -> "0.3.0".equals(clientVer) || NetworkRegistry.ABSENT.equals(clientVer) || NetworkRegistry.ACCEPTVANILLA.equals(clientVer)
     );
 
     public static void init() {
