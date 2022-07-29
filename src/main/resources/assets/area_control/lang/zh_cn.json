@@ -3,7 +3,7 @@
   
   "area_control.owner.aka": "在游戏中又名 %s",
 
-  "area_control.claim.how_to": "你需要%1$s来声明领地。首先你要手持%1$s右击你要声明的区域的左下角。\n然后你要手持一样的物品右击你要声明的区域的右上角，然后执行命令 /ac claim marked 即可。\n你也可以使用 /ac claim chunk 来将一个或多个区块声明为你的领地。",
+  "area_control.claim.how_to": "你需要%1$s来声明领地。首先你要手持%1$s右击你要声明的区域的左下角。\n然后你要手持一样的物品右击你要声明的区域的右上角，然后执行命令 /ac claim marked 即可。\n你也可以使用 /ac claim chunk 来将一个或多个区块声明为你的领地。\n不同的服务器可能会附加不一样的规则，请以实际情况为准。",
   "area_control.claim.how_to.give_item": "\n点击这个可以执行给你这个物品的 /give 命令",
   "area_control.claim.pos": "[%d, %d, %d]",
   "area_control.claim.range": "范围为从 %1$s 到 %2$s", 
@@ -43,9 +43,9 @@
   
   "area_control.notice.break_block_disabled": "AreaControl：该区域已禁止破坏方块，如果你认为这是个错误，请联系管理员",
   "area_control.notice.click_block_disabled": "AreaControl：该区域已禁止点击方块，如果你认为这是个错误，请联系管理员",
-  "area_control.notice.activate_block_disabled": "AreaControl：该区域已禁止与方块角湖，如果你认为这是个错误，请联系管理员",
+  "area_control.notice.activate_block_disabled": "AreaControl：该区域已禁止与方块交互，如果你认为这是个错误，请联系管理员",
   "area_control.notice.pvp_disabled": "AreaControl：该区域已禁止 PvP，如果你认为这是个错误，请联系管理员",
-  "area_control.notice.pve_disabled": "AreaControl：该区域已禁止 PvE，如果你认为这是个错误，请联系管理员",
+  "area_control.notice.pve_disabled": "AreaControl：该区域已禁止攻击实体，如果你认为这是个错误，请联系管理员",
   "area_control.notice.use_item_disabled": "AreaControl：该区域已禁止使用物品，如果你认为这是个错误，请联系管理员",
   "area_control.notice.place_block_disabled": "AreaControl：该区域已禁止放置方块，如果你认为这是个错误，请联系管理员",
 
