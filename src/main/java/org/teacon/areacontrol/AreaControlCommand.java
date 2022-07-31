@@ -36,6 +36,7 @@ import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.impl.AreaPropertyArgument;
 import org.teacon.areacontrol.impl.DirectionArgument;
+import org.teacon.areacontrol.mixin.CommandSourceStackAccessor;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -117,10 +118,11 @@ public final class AreaControlCommand {
 
     private static Predicate<CommandSourceStack> check(PermissionNode<Boolean> permission) {
         return source -> {
-            if (source.getEntity() instanceof ServerPlayer) {
-                return PermissionAPI.getPermission((ServerPlayer) source.getEntity(), permission);
+            // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
+            if (((CommandSourceStackAccessor) source).getSource() instanceof ServerPlayer sp) {
+                return PermissionAPI.getPermission(sp, permission);
             }
-            return source.hasPermission(2);
+            return false;
         };
     }
 
