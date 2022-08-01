@@ -4,11 +4,11 @@ import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
-import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -20,15 +20,36 @@ import org.teacon.areacontrol.impl.AreaChecks;
 @Mod.EventBusSubscriber(modid = "area_control")
 public final class AreaControlEventHandlers {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onCheckSpawn(LivingSpawnEvent.CheckSpawn event) {
-        final BlockPos spawnPos = new BlockPos(event.getX(), event.getY(), event.getZ());
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), spawnPos);
-        if (!AreaProperties.getBool(targetArea, "area.allow_spawn")) {
-            event.setResult(Event.Result.DENY);
+    public static void onCheckSpawn(EntityJoinWorldEvent event) {
+        // Note from 3TUSK:
+        // This event may be fired off-thread, and thus this handler may cause deadlock.
+        // However, theoretically that could not happen:
+        //   1. We avoid doing anything when the entity is loaded from disk, which should
+        //      be the #1 source of off-thread spawning.
+        //   2. No operations here is modifying underlying states of any objects, unless
+        //      someone is overriding Entity.blockPosition (m_142538_).
+        // Further, AreaManager.findBy is synchronized.
+        if (!event.loadedFromDisk()) {
+            final var entityRegId = event.getEntity().getType().getRegistryName();
+            final var entitySpecificPerm = AreaProperties.ALLOW_SPAWN + "." + entityRegId;
+            final var modSpecificPerm = AreaProperties.ALLOW_SPAWN + "." + (entityRegId == null ? "null" : entityRegId.getNamespace());
+            final var pos = event.getEntity().blockPosition();
+            final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().dimension(), pos);
+            var allow = true;
+            if (AreaProperties.keyPresent(targetArea, entitySpecificPerm)) {
+                allow = AreaProperties.getBool(targetArea, entitySpecificPerm);
+            } else if (AreaProperties.keyPresent(targetArea, modSpecificPerm)) {
+                allow = AreaProperties.getBool(targetArea, modSpecificPerm);
+            } else {
+                allow = AreaProperties.getBool(targetArea, AreaProperties.ALLOW_SPAWN);
+            }
+            if (!allow) {
+                event.setCanceled(true);
+            }
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    //@SubscribeEvent(priority = EventPriority.HIGHEST) // TODO (3TUSK): Re-evaluate
     public static void onSpecialSpawn(LivingSpawnEvent.SpecialSpawn event) {
         final BlockPos spawnPos = new BlockPos(event.getX(), event.getY(), event.getZ());
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), spawnPos);
