@@ -5,10 +5,12 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "area_control.refmap.json",
   "mixins": [
+    "CommandSourceStackAccessor",
     "EntityMixin",
     "FireMixin",
     "LavaMixin",
-    "CommandSourceStackAccessor"
+    "LecternContainerAccessor",
+    "LecternMenuMixin"
   ],
   "injectors": {
     "defaultRequire": 1
