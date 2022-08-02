@@ -33,7 +33,7 @@
   "area_control.claim.friend.list.footer": "------ 总计 %1$s ------",
   "area_control.claim.friend.added": "已成功将 %2$s 设定为领地 %1$s 的成员。",
   "area_control.claim.friend.existed": "%2$s 已经是领地 %1$s 的成员了！",
-  "area_control.claim.friend.removed": "已成功将 %2$s 从领地 $1$s 的成员列表中移除",
+  "area_control.claim.friend.removed": "已成功将 %2$s 从领地 %1$s 的成员列表中移除",
   "area_control.claim.friend.not_yet": "%2$s 还不是领地 %1$s 的成员！",
   "area_control.claim.property.list.header": "------ 领地 %1$s 当前属性列表------",
   "area_control.claim.property.list.entry": "  - %1$s: %2$s",

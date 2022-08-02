@@ -33,7 +33,7 @@
   "area_control.claim.friend.list.footer": "------ Total %1$s ------",
   "area_control.claim.friend.added": "Successfully added %2$s as a friend to area %1$s.",
   "area_control.claim.friend.existed": "%2$s is already a friend for area %1$s!",
-  "area_control.claim.friend.removed": "Successfully removed %2$s as a friend to area $1$s",
+  "area_control.claim.friend.removed": "Successfully removed %2$s as a friend to area %1$s",
   "area_control.claim.friend.not_yet": "%2$s has not been a friend for area %1$s yet!",
   "area_control.claim.property.list.header": "------ List of properties set in %1$s ------",
   "area_control.claim.property.list.entry": "  - %1$s: %2$s",
