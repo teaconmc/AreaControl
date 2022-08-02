@@ -439,10 +439,14 @@ public final class AreaControlCommand {
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
         final var player = src.getPlayerOrException();
         if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
-            final var friendProfile = context.getArgument("friend", GameProfile.class);
-            String message = area.friends.add(friendProfile.getId()) ? "area_control.claim.friend.added" : "area_control.claim.friend.existed";
-            src.sendSuccess(new TranslatableComponent(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
-            return Command.SINGLE_SUCCESS;
+            final var friendProfiles = GameProfileArgument.getGameProfiles(context, "friend");
+            int count = 0;
+            for (var friendProfile : friendProfiles) {
+                var uid = friendProfile.getId();
+                String message = !area.owner.equals(uid) && area.friends.add(uid) ? "area_control.claim.friend.added" : "area_control.claim.friend.existed";
+                src.sendSuccess(new TranslatableComponent(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
+            }
+            return count;
         } else {
             src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_friend", area.name));
             return -1;
@@ -454,10 +458,13 @@ public final class AreaControlCommand {
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
         final var player = src.getPlayerOrException();
         if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
-            final var friendProfile = context.getArgument("friend", GameProfile.class);
-            String message = area.friends.remove(friendProfile.getId()) ? "area_control.claim.friend.removed" : "area_control.claim.friend.not_yet";
-            src.sendSuccess(new TranslatableComponent(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
-            return Command.SINGLE_SUCCESS;
+            final var friendProfiles = GameProfileArgument.getGameProfiles(context, "friend");
+            int count = 0;
+            for (var friendProfile : friendProfiles) {
+                String message = area.friends.remove(friendProfile.getId()) ? "area_control.claim.friend.removed" : "area_control.claim.friend.not_yet";
+                src.sendSuccess(new TranslatableComponent(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
+            }
+            return count;
         } else {
             src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_friend", area.name));
             return -1;
