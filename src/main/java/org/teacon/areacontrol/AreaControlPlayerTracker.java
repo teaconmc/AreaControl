@@ -93,7 +93,7 @@ public enum AreaControlPlayerTracker {
             LOGGER.debug(MARKER, "Nearby area: {}", nearbyArea.uid);
             var summary = new Area.Summary(nearbyArea);
             summaries.add(summary);
-            requester.displayClientMessage(Util.describe(nearbyArea), false);
+            requester.displayClientMessage(Util.describe(nearbyArea, requester.level), false);
         }
         if (this.playersWithExt.contains(requester.getGameProfile().getId())) {
             var expire = permanent ? Long.MAX_VALUE : System.currentTimeMillis() + 60000;

@@ -13,6 +13,7 @@ import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.levelgen.Heightmap;
 import org.teacon.areacontrol.api.Area;
 
 import java.util.Random;
@@ -45,9 +46,9 @@ public final class Util {
         var midX = (area.minX + area.maxX) / 2;
         var midY = (area.minY + area.maxY) / 2;
         var midZ = (area.minZ + area.maxZ) / 2;
-        /*if (level != null) {
+        if (level != null) {
             midY = level.getHeight(Heightmap.Types.WORLD_SURFACE, midX, midZ);
-        }*/
+        }
         return new TranslatableComponent("area_control.claim.detail",
                 new TextComponent(area.name).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent(area.uid.toString())))),
                 new TextComponent(area.dimension),
