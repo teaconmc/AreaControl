@@ -114,7 +114,7 @@ public final class Util {
             Player p = onlinePlayers.getPlayer(profile.getId());
             if (p != null) {
                 ownerName.setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)
-                        .setUnderlined(Boolean.TRUE)
+                        .withUnderlined(Boolean.TRUE)
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.owner.aka", p.getDisplayName())))
                 );
             }
