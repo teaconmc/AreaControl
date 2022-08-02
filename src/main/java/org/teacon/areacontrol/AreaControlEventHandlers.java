@@ -30,7 +30,7 @@ public final class AreaControlEventHandlers {
         //   2. No operations here is modifying underlying states of any objects, unless
         //      someone is overriding Entity.blockPosition (m_142538_).
         // Further, AreaManager.findBy is synchronized.
-        if (!event.loadedFromDisk()) {
+        if (!event.loadedFromDisk() && !event.getWorld().isClientSide()) {
             final var entityInQuestion = event.getEntity();
             if (entityInQuestion instanceof Player) {
                 return;
