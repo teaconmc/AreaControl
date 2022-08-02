@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -30,7 +31,11 @@ public final class AreaControlEventHandlers {
         //      someone is overriding Entity.blockPosition (m_142538_).
         // Further, AreaManager.findBy is synchronized.
         if (!event.loadedFromDisk()) {
-            final var entityRegId = event.getEntity().getType().getRegistryName();
+            final var entityInQuestion = event.getEntity();
+            if (entityInQuestion instanceof Player) {
+                return;
+            }
+            final var entityRegId = entityInQuestion.getType().getRegistryName();
             final var entitySpecificPerm = AreaProperties.ALLOW_SPAWN + "." + entityRegId;
             final var modSpecificPerm = AreaProperties.ALLOW_SPAWN + "." + (entityRegId == null ? "null" : entityRegId.getNamespace());
             final var pos = event.getEntity().blockPosition();
