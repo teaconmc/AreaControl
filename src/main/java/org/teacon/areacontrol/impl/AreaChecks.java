@@ -1,9 +1,11 @@
 package org.teacon.areacontrol.impl;
 
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.IForgeRegistryEntry;
 import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.teacon.areacontrol.api.Area;
@@ -49,6 +51,25 @@ public class AreaChecks {
             }
         }
         return seized;
+    }
+
+    public static boolean checkProp(Area area, String prop, IForgeRegistryEntry<?> target) {
+        return checkProp(area, prop, target.getRegistryName());
+    }
+
+    public static boolean checkProp(Area area, String prop, ResourceLocation targetId) {
+        if (targetId != null) {
+            var objSpecific = AreaProperties.getBoolOptional(area, prop + "." + targetId);
+            if (objSpecific.isPresent()) {
+                return objSpecific.get();
+            } else {
+                var modSpecific = AreaProperties.getBoolOptional(area, prop + "." + targetId.getNamespace());
+                if (modSpecific.isPresent()) {
+                    return modSpecific.get();
+                }
+            }
+        }
+        return AreaProperties.getBool(area, prop);
     }
 
 }

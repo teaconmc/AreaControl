@@ -13,7 +13,6 @@ import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.impl.AreaChecks;
@@ -35,20 +34,9 @@ public final class AreaControlEventHandlers {
             if (entityInQuestion instanceof Player) {
                 return;
             }
-            final var entityRegId = entityInQuestion.getType().getRegistryName();
-            final var entitySpecificPerm = AreaProperties.ALLOW_SPAWN + "." + entityRegId;
-            final var modSpecificPerm = AreaProperties.ALLOW_SPAWN + "." + (entityRegId == null ? "null" : entityRegId.getNamespace());
             final var pos = event.getEntity().blockPosition();
             final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld().dimension(), pos);
-            var allow = true;
-            if (AreaProperties.keyPresent(targetArea, entitySpecificPerm)) {
-                allow = AreaProperties.getBool(targetArea, entitySpecificPerm);
-            } else if (AreaProperties.keyPresent(targetArea, modSpecificPerm)) {
-                allow = AreaProperties.getBool(targetArea, modSpecificPerm);
-            } else {
-                allow = AreaProperties.getBool(targetArea, AreaProperties.ALLOW_SPAWN);
-            }
-            if (!allow) {
+            if (!AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_SPAWN, entityInQuestion.getType())) {
                 event.setCanceled(true);
             }
         }
@@ -95,17 +83,7 @@ public final class AreaControlEventHandlers {
         final var p = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         final var block = event.getWorld().getBlockState(event.getPos());
-        final var blockName = ForgeRegistries.BLOCKS.getKey(block.getBlock());
-        final var blockSpecificPerm = blockName != null ? "area.allow_break_block." + blockName : null;
-        final var modSpecificPerm = blockName != null ? "area.allow_break_block." + blockName.getNamespace() : null;
-        var allowed = true;
-        if (AreaProperties.keyPresent(targetArea, blockSpecificPerm)) {
-            allowed = AreaProperties.getBool(targetArea, blockSpecificPerm);
-        } else if (AreaProperties.keyPresent(targetArea, modSpecificPerm)) {
-            allowed = AreaProperties.getBool(targetArea, modSpecificPerm);
-        } else {
-            allowed = AreaProperties.getBool(targetArea, "area.allow_break_block");
-        }
+        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_BREAK, block.getBlock());
         allowed |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_BREAK_BLOCK);
         if (!allowed) {
             p.displayClientMessage(new TranslatableComponent("area_control.notice.break_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
@@ -121,17 +99,7 @@ public final class AreaControlEventHandlers {
         final var  p = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         final var block = event.getWorld().getBlockState(event.getPos());
-        final var blockName = ForgeRegistries.BLOCKS.getKey(block.getBlock());
-        final var blockSpecificPerm = blockName != null ? "area.allow_click_block." + blockName : null;
-        final var modSpecificPerm = blockName != null ? "area.allow_click_block." + blockName.getNamespace() : null;
-        var allowed = true;
-        if (AreaProperties.keyPresent(targetArea, blockSpecificPerm)) {
-            allowed = AreaProperties.getBool(targetArea, blockSpecificPerm);
-        } else if (AreaProperties.keyPresent(targetArea, modSpecificPerm)) {
-            allowed = AreaProperties.getBool(targetArea, modSpecificPerm);
-        } else {
-            allowed = AreaProperties.getBool(targetArea, "area.allow_click_block");
-        }
+        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_BREAK, block.getBlock());
         allowed |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_BREAK_BLOCK);
         if (!allowed) {
             p.displayClientMessage(new TranslatableComponent("area_control.notice.click_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
@@ -147,17 +115,7 @@ public final class AreaControlEventHandlers {
         final var player = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         final var block = event.getWorld().getBlockState(event.getPos());
-        final var blockName = ForgeRegistries.BLOCKS.getKey(block.getBlock());
-        final var blockSpecificPerm = blockName != null ? "area.allow_activate_block." + blockName : null;
-        final var modSpecificPerm = blockName != null ? "area.allow_activate_block." + blockName.getNamespace() : null;
-        var allowed = true;
-        if (AreaProperties.keyPresent(targetArea, blockSpecificPerm)) {
-            allowed = AreaProperties.getBool(targetArea, blockSpecificPerm);
-        } else if (AreaProperties.keyPresent(targetArea, modSpecificPerm)) {
-            allowed = AreaProperties.getBool(targetArea, modSpecificPerm);
-        } else {
-            allowed = AreaProperties.getBool(targetArea, "area.allow_activate_block");
-        }
+        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_BREAK, block.getBlock());
         allowed |= AreaChecks.allow(player, targetArea, AreaControlPermissions.BYPASS_BREAK_BLOCK);
         if (!allowed) {
             player.displayClientMessage(new TranslatableComponent("area_control.notice.activate_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
@@ -172,19 +130,10 @@ public final class AreaControlEventHandlers {
         }
         final var p = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
-        final var itemName = event.getItemStack().getItem().getRegistryName();
-        final var itemSpecificPerm = itemName != null ? "area.allow_use_item." + itemName : null;
-        final var modSpecificPerm = itemName != null ? "area.allow_use_item." + itemName.getNamespace() : null;
-        var allow = true;
-        if (AreaProperties.keyPresent(targetArea, itemSpecificPerm)) {
-            allow = AreaProperties.getBool(targetArea, itemSpecificPerm);
-        } else if (AreaProperties.keyPresent(targetArea, modSpecificPerm)) {
-            allow = AreaProperties.getBool(targetArea, modSpecificPerm);
-        } else {
-            allow = AreaProperties.getBool(targetArea, "area.allow_use_item");
-        }
-        allow |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_USE_ITEM);
-        if (!allow) {
+        final var theItem = event.getItemStack().getItem();
+        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_BREAK, theItem);
+        allowed |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_USE_ITEM);
+        if (!allowed) {
             p.displayClientMessage(new TranslatableComponent("area_control.notice.use_item_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
         }
@@ -209,17 +158,7 @@ public final class AreaControlEventHandlers {
         }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         final var block = event.getWorld().getBlockState(event.getPos());
-        final var blockName = ForgeRegistries.BLOCKS.getKey(block.getBlock());
-        final var blockSpecificPerm = blockName != null ? "area.allow_place_block." + blockName : null;
-        final var modSpecificPerm = blockName != null ? "area.allow_place_block." + blockName.getNamespace() : null;
-        var allowed = true;
-        if (AreaProperties.keyPresent(targetArea, blockSpecificPerm)) {
-            allowed = AreaProperties.getBool(targetArea, blockSpecificPerm);
-        } else if (AreaProperties.keyPresent(targetArea, modSpecificPerm)) {
-            allowed = AreaProperties.getBool(targetArea, modSpecificPerm);
-        } else {
-            allowed = AreaProperties.getBool(targetArea, "area.allow_place_block");
-        }
+        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_BREAK, block.getBlock());
         final var placer = event.getEntity();
         if (placer instanceof ServerPlayer p) {
             allowed |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_BREAK_BLOCK);
