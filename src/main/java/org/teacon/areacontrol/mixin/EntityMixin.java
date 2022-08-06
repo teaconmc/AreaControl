@@ -7,6 +7,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -28,6 +29,9 @@ public abstract class EntityMixin {
 
     @Shadow
     public abstract Level getLevel();
+
+    @Shadow
+    public abstract EntityType<?> getType();
 
     /*
      * This is probably one of the most universal ways to prevent edge cases such as
@@ -57,7 +61,15 @@ public abstract class EntityMixin {
                 permissionToCheck = AreaControlPermissions.BYPASS_PVP;
                 deniedFeedback = new TranslatableComponent("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY);
             } else {
-                propToCheck = "area.allow_attack";
+                propToCheck = AreaProperties.ALLOW_PVE;
+                var entityTypeRegName = this.getType().getRegistryName();
+                var entitySpecificProp = AreaProperties.ALLOW_PVE + "." + entityTypeRegName;
+                var modSpecificProp = AreaProperties.ALLOW_PVE + "." + entityTypeRegName.getNamespace();
+                if (AreaProperties.keyPresent(area, entitySpecificProp)) {
+                    propToCheck = entitySpecificProp;
+                } else if (AreaProperties.keyPresent(area, modSpecificProp)) {
+                    propToCheck = modSpecificProp;
+                }
                 permissionToCheck = AreaControlPermissions.BYPASS_ATTACK;
                 deniedFeedback = new TranslatableComponent("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY);
             }
