@@ -17,6 +17,7 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
+import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.network.ACNetworking;
 import org.teacon.areacontrol.network.ACSendCurrentSelection;
 import org.teacon.areacontrol.network.ACSendNearbyArea;
@@ -53,15 +54,17 @@ public enum AreaControlPlayerTracker {
             var prevAreaId = INSTANCE.playerLocation.get(player.getGameProfile().getId());
             if (prevAreaId != null) {
                 var prevArea = AreaManager.INSTANCE.findBy(prevAreaId);
-                if (prevArea == null || Area.GLOBAL_AREA_OWNER.equals(prevArea.owner) || !Util.isInsideArea(prevArea, player.getX(), player.getY(), player.getZ())) {
-                    var currentArea = AreaManager.INSTANCE.findBy(player.level, player.blockPosition());
-                    if (!Area.GLOBAL_AREA_OWNER.equals(currentArea.owner)) {
-                        INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
-                        if (AreaProperties.getBool(currentArea, "area.display_welcome_message") || PermissionAPI.getPermission((ServerPlayer) player, AreaControlPermissions.WELCOME_MSG)) {
-                            player.displayClientMessage(new TranslatableComponent("area_control.claim.welcome", currentArea.name), true);
-                        }
+                var currentArea = AreaManager.INSTANCE.findBy(player.level, player.blockPosition());
+                if (prevArea != currentArea) {
+                    INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
+                    if (AreaProperties.getBool(currentArea, "area.display_welcome_message") || PermissionAPI.getPermission((ServerPlayer) player, AreaControlPermissions.WELCOME_MSG)) {
+                        player.displayClientMessage(new TranslatableComponent("area_control.claim.welcome", currentArea.name), true);
                     }
                 }
+                var mainInv = player.getInventory();
+                AreaChecks.checkInv(mainInv.items, currentArea, player);
+                AreaChecks.checkInv(mainInv.armor, currentArea, player);
+                AreaChecks.checkInv(mainInv.offhand, currentArea, player);
             }
         }
     }
