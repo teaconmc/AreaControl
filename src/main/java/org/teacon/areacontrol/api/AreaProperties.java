@@ -12,6 +12,11 @@ public final class AreaProperties {
      * Adding a property to this Set is optional; it only enables command auto-completion.
      */
     public static final Set<String> KNOWN_PROPERTIES = new HashSet<>();
+    /**
+     * Set of area properties that should be synced to client whenever the area information
+     * is about to be sent to client.
+     */
+    public static final Set<String> SYNCED_PROPERTIES = new HashSet<>();
 
     public static final String SHOW_WELCOME = register("area.display_welcome_message");
     public static final String ALLOW_SPAWN = register("area.allow_spawn");
@@ -43,8 +48,13 @@ public final class AreaProperties {
 
     public static boolean getBool(Area area, String key) {
         Object o = area.properties.get(key);
-        if (o == null) {
-            return false;
+        if (o == null || "null".equals(o)) {
+            if (area.belongingArea != null) {
+                var parent = AreaControlAPI.areaLookup.findBy(area.belongingArea);
+                return getBool(parent, key);
+            } else {
+                return false;
+            }
         } else {
             return getBool(o);
         }
@@ -55,8 +65,13 @@ public final class AreaProperties {
      */
     public static Optional<Boolean> getBoolOptional(Area area, String key) {
         Object o = area.properties.get(key);
-        if (o == null) {
-            return Optional.empty();
+        if (o == null || "null".equals(o)) {
+            if (area.belongingArea != null) {
+                var parent = AreaControlAPI.areaLookup.findBy(area.belongingArea);
+                return getBoolOptional(parent, key);
+            } else {
+                return Optional.empty();
+            }
         } else {
             return Optional.of(getBool(o));
         }

@@ -10,7 +10,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.teacon.areacontrol.AreaControlPermissions;
 import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.AreaProperties;
+import org.teacon.areacontrol.impl.AreaChecks;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {
@@ -52,38 +52,35 @@ public abstract class EntityMixin {
     private void damageSrcCheck(DamageSource src, CallbackInfoReturnable<Boolean> cir) {
         if (!src.isBypassInvul() && !cir.getReturnValueZ() && !this.getLevel().isClientSide()) {
             var area = AreaManager.INSTANCE.findBy(this.getLevel(), this.blockPosition());
-            String propToCheck;
+            boolean allow;
             PermissionNode<Boolean> permissionToCheck;
             Component deniedFeedback;
             var damageSrc = src.getEntity();
             if (Player.class.isInstance(this) && damageSrc instanceof Player) {
-                propToCheck = "area.allow_pvp";
+                allow = AreaProperties.getBool(area, AreaProperties.ALLOW_PVP);
                 permissionToCheck = AreaControlPermissions.BYPASS_PVP;
                 deniedFeedback = new TranslatableComponent("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY);
             } else {
-                propToCheck = AreaProperties.ALLOW_PVE;
                 var entityTypeRegName = this.getType().getRegistryName();
-                var entitySpecificProp = AreaProperties.ALLOW_PVE + "." + entityTypeRegName;
-                var modSpecificProp = AreaProperties.ALLOW_PVE + "." + entityTypeRegName.getNamespace();
-                if (AreaProperties.keyPresent(area, entitySpecificProp)) {
-                    propToCheck = entitySpecificProp;
-                } else if (AreaProperties.keyPresent(area, modSpecificProp)) {
-                    propToCheck = modSpecificProp;
+                var entitySpecificProp = AreaProperties.getBoolOptional(area, AreaProperties.ALLOW_PVE + "." + entityTypeRegName);
+                if (entitySpecificProp.isPresent()) {
+                    allow = entitySpecificProp.get();
+                } else {
+                    var modSpecificProp = AreaProperties.getBoolOptional(area, AreaProperties.ALLOW_PVE + "." + entityTypeRegName.getNamespace());
+                    allow = modSpecificProp.orElse(AreaProperties.getBool(area, AreaProperties.ALLOW_PVE));
                 }
                 permissionToCheck = AreaControlPermissions.BYPASS_ATTACK;
                 deniedFeedback = new TranslatableComponent("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY);
             }
-            if (!AreaProperties.getBool(area, propToCheck)) {
-                boolean bypass = false;
+            if (!allow) {
                 if (src.getEntity() instanceof ServerPlayer srcPlayer) {
-                    bypass = PermissionAPI.getPermission(srcPlayer, permissionToCheck);
-                }
-                if (!bypass) {
-                    if (src.getEntity() instanceof Player p) {
-                        p.displayClientMessage(deniedFeedback, true);
+                    if (!AreaChecks.allow(srcPlayer, area, permissionToCheck)) {
+                        srcPlayer.displayClientMessage(deniedFeedback, true);
+                    } else {
+                        return;
                     }
-                    cir.setReturnValue(true);
                 }
+                cir.setReturnValue(true);
             }
         }
     }
