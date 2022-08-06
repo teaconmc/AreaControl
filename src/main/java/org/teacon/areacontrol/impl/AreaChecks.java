@@ -37,18 +37,15 @@ public class AreaChecks {
         return !AreaProperties.keyPresent(currentArea, modSpecificPerm) || AreaProperties.getBool(currentArea, modSpecificPerm);
     }
 
-    public static int checkInv(List<ItemStack> inv, Area currentArea, Player player) {
+    public static void checkInv(List<ItemStack> inv, Area currentArea, Player player) {
         var invSize = inv.size();
-        int seized = 0;
         for (int i = 0; i < invSize; i++) {
             var item = inv.get(i);
             if (!item.isEmpty() && !allowPossession(item, currentArea)) {
                 inv.set(i, ItemStack.EMPTY);
                 player.displayClientMessage(new TranslatableComponent("area_control.notice.possess_disabled_item", item.getHoverName()), true);
-                seized += item.getCount();
             }
         }
-        return seized;
     }
 
 }
