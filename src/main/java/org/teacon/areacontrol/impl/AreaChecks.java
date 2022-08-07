@@ -4,6 +4,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -34,13 +35,30 @@ public class AreaChecks {
         int seized = 0;
         for (int i = 0; i < invSize; i++) {
             var item = inv.get(i);
-            if (!item.isEmpty() && !checkProp(currentArea, AreaProperties.ALLOW_POSSESS, item.getItem())) {
+            if (!item.isEmpty() && !checkPossess(currentArea, AreaProperties.ALLOW_POSSESS, item.getItem())) {
                 inv.set(i, ItemStack.EMPTY);
                 player.displayClientMessage(new TranslatableComponent("area_control.notice.possess_disabled_item", item.getHoverName()), true);
                 seized += item.getCount();
             }
         }
         return seized;
+    }
+
+    // This is a separate method because area.allow_possess currently has a different logic
+    private static boolean checkPossess(Area area, String prop, Item item) {
+        var targetId = item.getRegistryName();
+        if (targetId != null) {
+            var objSpecific = AreaProperties.getBoolOptional(area, prop + "." + targetId);
+            if (objSpecific.isPresent()) {
+                return objSpecific.get();
+            } else {
+                var modSpecific = AreaProperties.getBoolOptional(area, prop + "." + targetId.getNamespace());
+                if (modSpecific.isPresent()) {
+                    return modSpecific.get();
+                }
+            }
+        }
+        return true;
     }
 
     public static boolean checkProp(Area area, String prop, IForgeRegistryEntry<?> target) {
