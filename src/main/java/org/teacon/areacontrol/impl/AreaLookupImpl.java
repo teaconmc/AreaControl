@@ -15,6 +15,12 @@ public enum AreaLookupImpl implements AreaLookup {
     INSTANCE;
 
     @Override
+    public Area findWildnessOf(String dimKey) {
+        var dimResKey = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(dimKey));
+        return AreaManager.INSTANCE.findDefaultBy(dimResKey);
+    }
+
+    @Override
     public Area findBy(UUID areaUid) {
         return AreaManager.INSTANCE.findBy(areaUid);
     }

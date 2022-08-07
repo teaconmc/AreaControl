@@ -435,7 +435,7 @@ public final class AreaManager {
     }
 
     @Nonnull
-    private Area findDefaultBy(ResourceKey<Level> key) {
+    public Area findDefaultBy(ResourceKey<Level> key) {
         var writeLock = this.lock.writeLock();
         try {
             writeLock.lock();

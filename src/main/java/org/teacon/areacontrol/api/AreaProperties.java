@@ -48,11 +48,20 @@ public final class AreaProperties {
     }
 
     public static boolean getBool(Area area, String key) {
+        return getBool(area, key, true);
+    }
+
+    public static boolean getBool(Area area, String key, boolean recursive) {
         Object o = area.properties.get(key);
         if (o == null || "null".equals(o)) {
-            if (area.belongingArea != null) {
-                var parent = AreaControlAPI.areaLookup.findBy(area.belongingArea);
-                return getBool(parent, key);
+            if (recursive) {
+                if (area.belongingArea != null) {
+                    var parent = AreaControlAPI.areaLookup.findBy(area.belongingArea);
+                    return getBool(parent, key, true);
+                } else {
+                    var wildness = AreaControlAPI.areaLookup.findWildnessOf(area.dimension);
+                    return getBool(wildness, key, false);
+                }
             } else {
                 return false;
             }
@@ -65,11 +74,20 @@ public final class AreaProperties {
      * @return null if the property is not specified by AC, so you can seek it in gameRule.
      */
     public static Optional<Boolean> getBoolOptional(Area area, String key) {
+        return getBoolOptional(area, key, true);
+    }
+
+    public static Optional<Boolean> getBoolOptional(Area area, String key, boolean recursive) {
         Object o = area.properties.get(key);
         if (o == null || "null".equals(o)) {
-            if (area.belongingArea != null) {
-                var parent = AreaControlAPI.areaLookup.findBy(area.belongingArea);
-                return getBoolOptional(parent, key);
+            if (recursive) {
+                if (area.belongingArea != null) {
+                    var parent = AreaControlAPI.areaLookup.findBy(area.belongingArea);
+                    return getBoolOptional(parent, key, true);
+                } else {
+                    var wildness = AreaControlAPI.areaLookup.findWildnessOf(area.dimension);
+                    return getBoolOptional(wildness, key, false);
+                }
             } else {
                 return Optional.empty();
             }

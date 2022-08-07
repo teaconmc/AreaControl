@@ -4,6 +4,8 @@ import java.util.UUID;
 
 public interface AreaLookup {
 
+    Area findWildnessOf(String dimKey);
+
     Area findBy(UUID areaUid);
 
     Area findBy(String dimKey, double x, double y, double z);
