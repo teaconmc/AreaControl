@@ -1,6 +1,5 @@
 package org.teacon.areacontrol;
 
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -29,11 +28,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.command.EnumArgument;
 import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
+import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.impl.AreaPropertyArgument;
 import org.teacon.areacontrol.impl.DirectionArgument;
 import org.teacon.areacontrol.mixin.CommandSourceStackAccessor;
@@ -337,11 +336,10 @@ public final class AreaControlCommand {
     private static int setAreaName(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final var requester = src.getPlayerOrException();
-        final var requesterId = requester.getGameProfile().getId();
         final var level = src.getLevel();
         final var pos = src.getPosition();
         final var area = AreaManager.INSTANCE.findBy(level, new BlockPos(pos));
-        if (area.owner.equals(requesterId) || area.friends.contains(requesterId) || PermissionAPI.getPermission(requester, AreaControlPermissions.SET_PROPERTY)) {
+        if (AreaChecks.allow(requester, area, AreaControlPermissions.SET_PROPERTY)) {
             final var newName = context.getArgument("name", String.class);
             final var oldName = area.name;
             area.name = newName;
@@ -392,7 +390,7 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
         final var player = src.getPlayerOrException();
-        if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+        if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
             final var tag = ResourceLocationArgument.getId(context, "tag");
             String message = area.tags.add(tag.toString()) ? "area_control.claim.tag.added" : "area_control.claim.tag.existed";
             src.sendSuccess(new TranslatableComponent(message, area.name, tag), false);
@@ -407,7 +405,7 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
         final var player = src.getPlayerOrException();
-        if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+        if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
             final var tag = ResourceLocationArgument.getId(context, "tag");
             String message = area.tags.remove(tag.toString()) ? "area_control.claim.friend.removed" : "area_control.claim.friend.not_yet";
             src.sendSuccess(new TranslatableComponent(message, area.name, tag), false);
@@ -487,7 +485,7 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
         final var player = src.getPlayerOrException();
-        if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_PROPERTY)) {
+        if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
             final String prop = context.getArgument("property", String.class);
             final String value = context.getArgument("value", String.class);
             final Object oldValue = area.properties.put(prop, value);
@@ -504,7 +502,7 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
         final var player = src.getPlayerOrException();
-        if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_PROPERTY)) {
+        if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
             final String prop = context.getArgument("property", String.class);
             final Object oldValue = area.properties.remove(prop);
             src.sendSuccess(new TranslatableComponent("area_control.claim.property.unset",
