@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -492,12 +491,15 @@ public final class AreaManager {
             // TODO I still don't believe this is correct, but I am bugged everyday for this.
             //   Need to find some time to verify.
             Area result = null;
-            long maxVolume = 0L;
+            long minVolume = Long.MAX_VALUE;
             for (var a : results) {
-                long vol = (long)(a.maxX - a.minX) * (long)(a.maxY - a.minY) * (long)(a.maxZ - a.minZ);
-                if (vol > maxVolume) {
+                long x = Math.min(a.maxX, 3000_0000) - Math.max(a.minX, -3000_0000);
+                long y = Math.min(a.maxY, 320) - Math.max(a.minY, -64);
+                long z = Math.min(a.maxZ, 3000_0000) - Math.max(a.minZ, -3000_0000);
+                long vol = x * y * z;
+                if (vol < minVolume) {
                     result = a;
-                    maxVolume = vol;
+                    minVolume = vol;
                 }
             }
             if (result != null) {
