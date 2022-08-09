@@ -357,19 +357,9 @@ public final class AreaManager {
     }
 
     public boolean isSub(Area parent, Area sub) {
-        if (parent == sub) {
-            return false;
-        }
-        if (parent.subAreas.contains(sub.uid)) {
-            return true;
-        }
-        for (var subId : parent.subAreas) {
-            var directSub = this.findBy(subId);
-            if (directSub != null && this.isSub(directSub, sub)) {
-                return true;
-            }
-        }
-        return false;
+        return parent.minX <= sub.minX && sub.maxX <= parent.maxX
+                && parent.minY <= sub.minY && sub.maxY <= parent.maxY
+                && parent.minZ <= sub.minZ && sub.maxZ <= parent.maxZ;
     }
 
     /**
@@ -439,12 +429,16 @@ public final class AreaManager {
         var writeLock = this.lock.writeLock();
         try {
             writeLock.lock();
-            var def = this.areasById.get(this.wildnessByWorld.getOrDefault(key, UUID.randomUUID()));
-            return Objects.requireNonNullElseGet(def, () -> {
-                var newCreated = AreaFactory.defaultWildness(key);
-                buildCacheFor(newCreated, key);
-                return newCreated;
-            });
+            var areaUid = this.wildnessByWorld.get(key);
+            if (areaUid != null) {
+                var area = this.areasById.get(areaUid);
+                if (area != null) {
+                    return area;
+                }
+            }
+            var newCreated = AreaFactory.defaultWildness(key);
+            buildCacheFor(newCreated, key);
+            return newCreated;
         } finally {
             writeLock.unlock();
         }
@@ -460,12 +454,14 @@ public final class AreaManager {
         var readLock = this.lock.readLock();
         try {
             readLock.lock();
-            Set<Area> results = Collections.newSetFromMap(new IdentityHashMap<>());
+            var results = new ArrayList<Area>();
             // Locate all areas that contain the specified position
             for (var uuid : this.perWorldAreaCache.getOrDefault(
                     world, Collections.emptyMap()).getOrDefault(new ChunkPos(pos), Collections.emptySet())) {
                 Area area = this.areasById.get(uuid);
-                if (area == null) continue;
+                if (area == null || area == excluded) {
+                    continue;
+                }
                 if (area.minX <= pos.getX() && pos.getX() <= area.maxX) {
                     if (area.minY <= pos.getY() && pos.getY() <= area.maxY) {
                         if (area.minZ <= pos.getZ() && pos.getZ() <= area.maxZ) {
@@ -473,9 +469,6 @@ public final class AreaManager {
                         }
                     }
                 }
-            }
-            if (excluded != null) {
-                results.remove(excluded);
             }
             // If there is only one area, it will be our result.
             if (results.size() == 1) {
@@ -488,14 +481,27 @@ public final class AreaManager {
             // it would not be the deepest area. Regardless whether B has
             // sub-areas or not, none of the areas other than B are sub-area
             // of B, so B is the deepest area in our set.
-            // TODO This runs in O(n^2) at worst, can we be faster?
-            outer: for (Area a : results) {
+            /*outer: for (Area a : results) {
                 for (Area maybeChild : results) {
                     if (a != maybeChild && a.subAreas.contains(maybeChild.uid)) {
                         continue outer;
                     }
                 }
                 return a;
+            }*/
+            // TODO I still don't believe this is correct, but I am bugged everyday for this.
+            //   Need to find some time to verify.
+            Area result = null;
+            long maxVolume = 0L;
+            for (var a : results) {
+                long vol = (long)(a.maxX - a.minX) * (long)(a.maxY - a.minY) * (long)(a.maxZ - a.minZ);
+                if (vol > maxVolume) {
+                    result = a;
+                    maxVolume = vol;
+                }
+            }
+            if (result != null) {
+                return result;
             }
         } finally {
             readLock.unlock();
