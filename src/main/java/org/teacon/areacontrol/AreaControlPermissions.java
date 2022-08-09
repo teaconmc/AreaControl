@@ -40,7 +40,6 @@ public class AreaControlPermissions {
     public static final PermissionNode<Boolean> BYPASS_PVP = new PermissionNode<>("area_control", "bypass.pvp", PermissionTypes.BOOLEAN, OP_ONLY);
     public static final PermissionNode<Boolean> BYPASS_ATTACK = new PermissionNode<>("area_control", "bypass.attack", PermissionTypes.BOOLEAN, OP_ONLY);
 
-    public static final PermissionNode<Boolean> WELCOME_MSG = new PermissionNode<>("area_control", "welcome_message", PermissionTypes.BOOLEAN, ANYONE);
     public static final PermissionNode<Boolean> BYPASS_CLICK_BLOCK = new PermissionNode<>("area_control", "bypass.click_block", PermissionTypes.BOOLEAN, ANYONE);
     public static final PermissionNode<Boolean> BYPASS_ACTIVATE_BLOCK = new PermissionNode<>("area_control", "bypass.activate_block", PermissionTypes.BOOLEAN, ANYONE);
     public static final PermissionNode<Boolean> BYPASS_USE_ITEM = new PermissionNode<>("area_control", "bypass.use_item", PermissionTypes.BOOLEAN, ANYONE);
