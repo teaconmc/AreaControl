@@ -40,7 +40,6 @@ public final class AreaFactory {
         singlePlayerWildness.maxY = Integer.MAX_VALUE;
         singlePlayerWildness.maxZ = Integer.MAX_VALUE;
         singlePlayerWildness.properties.put("area.allow_spawn", Boolean.TRUE);
-        singlePlayerWildness.properties.put("area.allow_special_spawn", Boolean.TRUE);
         singlePlayerWildness.properties.put("area.allow_pvp", Boolean.TRUE);
         singlePlayerWildness.properties.put("area.allow_attack", Boolean.TRUE);
         singlePlayerWildness.properties.put("area.allow_click_block", Boolean.TRUE);
@@ -54,6 +53,7 @@ public final class AreaFactory {
         singlePlayerWildness.properties.put("area.allow_explosion", Boolean.TRUE);
         singlePlayerWildness.properties.put("area.allow_explosion_affect_blocks", Boolean.TRUE);
         singlePlayerWildness.properties.put("area.allow_explosion_affect_entities", Boolean.TRUE);
+        singlePlayerWildness.properties.put(AreaProperties.ALLOW_FIRE_SPREAD, Boolean.TRUE);
         return singlePlayerWildness;
     }
 }
