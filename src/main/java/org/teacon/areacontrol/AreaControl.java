@@ -5,7 +5,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -80,7 +80,7 @@ public final class AreaControl {
     }
 
     @SubscribeEvent
-    public static void onServerStart(ServerStartingEvent event) {
+    public static void onServerStart(ServerAboutToStartEvent event) {
         AreaControlAPI.areaLookup = AreaLookupImpl.INSTANCE;
         final MinecraftServer server = event.getServer();
         final Path dataDir = server.getWorldPath(SERVER_CONFIG).resolve("area_control");
