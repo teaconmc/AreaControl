@@ -15,6 +15,7 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
@@ -91,7 +92,8 @@ public final class AreaControlCommand {
                                         .then(Commands.literal("set")
                                                 .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
                                                         .then(Commands.argument("value", StringArgumentType.greedyString())
-                                                                .executes(AreaControlCommand::setProperty))))
+                                                                .executes(AreaControlCommand::setProperty))
+                                                        .executes(AreaControlCommand::displayProperty)))
                                         .then(Commands.literal("unset")
                                                 .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
                                                         .executes(AreaControlCommand::unsetProperty)))
@@ -479,6 +481,27 @@ public final class AreaControlCommand {
         }
         src.sendSuccess(new TranslatableComponent("area_control.claim.property.list.footer", properties.size()), false);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int displayProperty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final var player = src.getPlayerOrException();
+        if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
+            final String prop = context.getArgument("property", String.class);
+            final Object value = area.properties.get(prop);
+            Component msg;
+            if (value == null) {
+                msg = new TranslatableComponent("area_control.claim.property.single.unset", area.name, prop);
+            } else {
+                msg = new TranslatableComponent("area_control.claim.property.single", area.name, prop, value);
+            }
+            src.sendSuccess(msg, false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
+            return -1;
+        }
     }
 
     private static int setProperty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

@@ -38,6 +38,8 @@
   "area_control.claim.property.list.header": "------ 领地 %1$s 当前属性列表------",
   "area_control.claim.property.list.entry": "  - %1$s: %2$s",
   "area_control.claim.property.list.footer": "------ 总计 %1$s 条------",
+  "area_control.claim.property.single": "在领地 '%1$s' 中，属性 %2$s = %3$s",
+  "area_control.claim.property.single.unset": "在领地 '%1$s' 中没有设置属性 %2$s 的值，因此实际检查中会基于外面一层领地的值。",
   "area_control.claim.property.update": "已将领地 '%1$s' 的属性 '%2$s' 值更新为 '%3$s'（此前为 '%4$s'）",
   "area_control.claim.property.unset": "已将领地 '%1$s' 的属性 '%2$s' 清除（此前为 '%3$s'）",
   

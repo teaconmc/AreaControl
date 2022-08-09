@@ -38,6 +38,8 @@
   "area_control.claim.property.list.header": "------ List of properties set in %1$s ------",
   "area_control.claim.property.list.entry": "  - %1$s: %2$s",
   "area_control.claim.property.list.footer": "------ Total %1$s ------",
+  "area_control.claim.property.single": "In area '%1$s', property %2$s = %3$s",
+  "area_control.claim.property.single.unset": "In area '%1$s', property %2$s is not set, and thus will inherit from outer areas.",
   "area_control.claim.property.update": "AreaControl: property '%2$s' in area '%1$s' has been updated to '%3$s' (was '%4$s')",
   "area_control.claim.property.unset": "AreaControl: property '%2$s' in area '%1$s' has been removed (was '%3$s')",
   
