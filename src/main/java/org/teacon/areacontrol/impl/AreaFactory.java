@@ -3,6 +3,7 @@ package org.teacon.areacontrol.impl;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import org.teacon.areacontrol.api.Area;
+import org.teacon.areacontrol.api.AreaProperties;
 
 public final class AreaFactory {
 
@@ -22,6 +23,7 @@ public final class AreaFactory {
         wildness.properties.put("area.allow_use_item", Boolean.TRUE);
         wildness.properties.put("area.allow_interact_entity", Boolean.TRUE);
         wildness.properties.put("area.allow_interact_entity_specific", Boolean.TRUE);
+        wildness.properties.put(AreaProperties.ALLOW_SPAWN, Boolean.TRUE);
         return wildness;
     }
 
