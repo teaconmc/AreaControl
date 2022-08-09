@@ -57,7 +57,7 @@ public enum AreaControlPlayerTracker {
                 var currentArea = AreaManager.INSTANCE.findBy(player.level, player.blockPosition());
                 if (prevArea != currentArea) {
                     INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
-                    if (AreaProperties.getBool(currentArea, "area.display_welcome_message") || PermissionAPI.getPermission((ServerPlayer) player, AreaControlPermissions.WELCOME_MSG)) {
+                    if (AreaProperties.getBool(currentArea, "area.display_welcome_message")) {
                         player.displayClientMessage(new TranslatableComponent("area_control.claim.welcome", currentArea.name), true);
                     }
                 }

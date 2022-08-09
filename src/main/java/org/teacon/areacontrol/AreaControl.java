@@ -66,7 +66,6 @@ public final class AreaControl {
                 AreaControlPermissions.UNCLAIM_AREA,
                 AreaControlPermissions.INSPECT,
 
-                AreaControlPermissions.WELCOME_MSG,
                 AreaControlPermissions.BYPASS_BREAK_BLOCK,
                 AreaControlPermissions.BYPASS_PLACE_BLOCK,
                 AreaControlPermissions.BYPASS_PVP,

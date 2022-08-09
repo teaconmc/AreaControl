@@ -30,18 +30,15 @@ public class AreaChecks {
         return area.owner.equals(uuid) || area.friends.contains(uuid) || PermissionAPI.getPermission(p, perm);
     }
 
-    public static int checkInv(List<ItemStack> inv, Area currentArea, Player player) {
+    public static void checkInv(List<ItemStack> inv, Area currentArea, Player player) {
         var invSize = inv.size();
-        int seized = 0;
         for (int i = 0; i < invSize; i++) {
             var item = inv.get(i);
             if (!item.isEmpty() && !checkPossess(currentArea, AreaProperties.ALLOW_POSSESS, item.getItem())) {
                 inv.set(i, ItemStack.EMPTY);
                 player.displayClientMessage(new TranslatableComponent("area_control.notice.possess_disabled_item", item.getHoverName()), true);
-                seized += item.getCount();
             }
         }
-        return seized;
     }
 
     // This is a separate method because area.allow_possess currently has a different logic
