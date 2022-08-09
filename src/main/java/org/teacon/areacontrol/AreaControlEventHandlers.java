@@ -99,8 +99,8 @@ public final class AreaControlEventHandlers {
         final var  p = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         final var block = event.getWorld().getBlockState(event.getPos());
-        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_BREAK, block.getBlock());
-        allowed |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_BREAK_BLOCK);
+        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_CLICK, block.getBlock());
+        allowed |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_CLICK_BLOCK);
         if (!allowed) {
             p.displayClientMessage(new TranslatableComponent("area_control.notice.click_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
@@ -115,8 +115,8 @@ public final class AreaControlEventHandlers {
         final var player = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         final var block = event.getWorld().getBlockState(event.getPos());
-        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_BREAK, block.getBlock());
-        allowed |= AreaChecks.allow(player, targetArea, AreaControlPermissions.BYPASS_BREAK_BLOCK);
+        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_ACTIVATE, block.getBlock());
+        allowed |= AreaChecks.allow(player, targetArea, AreaControlPermissions.BYPASS_ACTIVATE_BLOCK);
         if (!allowed) {
             player.displayClientMessage(new TranslatableComponent("area_control.notice.activate_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
@@ -131,7 +131,7 @@ public final class AreaControlEventHandlers {
         final var p = event.getPlayer();
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         final var theItem = event.getItemStack().getItem();
-        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_BREAK, theItem);
+        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_USE_ITEM, theItem);
         allowed |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_USE_ITEM);
         if (!allowed) {
             p.displayClientMessage(new TranslatableComponent("area_control.notice.use_item_disabled", ObjectArrays.EMPTY_ARRAY), true);
@@ -158,10 +158,10 @@ public final class AreaControlEventHandlers {
         }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getWorld(), event.getPos());
         final var block = event.getWorld().getBlockState(event.getPos());
-        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_BREAK, block.getBlock());
+        var allowed = AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_PLACE_BLOCK, block.getBlock());
         final var placer = event.getEntity();
         if (placer instanceof ServerPlayer p) {
-            allowed |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_BREAK_BLOCK);
+            allowed |= AreaChecks.allow(p, targetArea, AreaControlPermissions.BYPASS_PLACE_BLOCK);
         }
         if (!allowed) {
             // TODO Client will falsely report item being consumed; however it will return to normal if you click again in inventory GUI
