@@ -304,17 +304,25 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final var server = src.getServer();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final var areaUUID = new TranslatableComponent("area_control.claim.current.uuid")
+                .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.uid.toString()))
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.claim.current.copy_uuid")))
+                        .withColor(ChatFormatting.DARK_AQUA));
         if (!area.owner.equals(Area.GLOBAL_AREA_OWNER)) {
             final String name = area.name;
+            final var areaName = new TextComponent(name)
+                    .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, name))
+                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.claim.current.copy_name")))
+                            .withColor(ChatFormatting.DARK_AQUA));
             final var ownerName = Util.getOwnerName(area, server.getProfileCache(), server.getPlayerList());
-            src.sendSuccess(new TranslatableComponent("area_control.claim.current", name, ownerName), true);
+            src.sendSuccess(new TranslatableComponent("area_control.claim.current", areaName, ownerName, areaUUID), true);
             if (area.belongingArea != null) {
                 final var enclosingArea = AreaManager.INSTANCE.findBy(area.belongingArea);
                 final var enclosingAreaOwnerName = Util.getOwnerName(enclosingArea, server.getProfileCache(), server.getPlayerList());
                 src.sendSuccess(new TranslatableComponent("area_control.claim.current.enclosed", enclosingArea.name, enclosingAreaOwnerName), true);
             }
         } else {
-            src.sendSuccess(new TranslatableComponent("area_control.claim.current.wildness"), true);
+            src.sendSuccess(new TranslatableComponent("area_control.claim.current.wildness", areaUUID), true);
         }
         return Command.SINGLE_SUCCESS;
     }

@@ -50,14 +50,19 @@ public final class Util {
             midY = level.getHeight(Heightmap.Types.WORLD_SURFACE, midX, midZ);
         }
         return new TranslatableComponent("area_control.claim.detail",
-                new TextComponent(area.name).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent(area.uid.toString())))),
+                new TextComponent(area.name).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.claim.current.copy_name")))
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.name))),
                 new TextComponent(area.dimension),
                 Util.toGreenText(area),
                 new TranslatableComponent("area_control.claim.nearby.detail.go_there").setStyle(
                         Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("chat.coordinates.tooltip")))
                                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/execute in " + area.dimension + " run tp @s " + midX + " " + midY + " " + midZ))
                                 .withColor(ChatFormatting.DARK_AQUA)
-                ));
+                ),
+                new TranslatableComponent("area_control.claim.current.uuid")
+                        .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.uid.toString()))
+                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.claim.current.copy_uuid")))
+                                .withColor(ChatFormatting.DARK_AQUA)));
     }
 
     public static Stream<BlockPos> verticesOf(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
