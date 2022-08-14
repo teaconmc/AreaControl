@@ -6,6 +6,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.EntityMountEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
@@ -202,6 +203,21 @@ public final class AreaControlEventHandlers {
         }
         if (!AreaProperties.getBool(targetArea, "area.allow_explosion_affect_entities")) {
             event.getAffectedEntities().clear();
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void tryRide(EntityMountEvent event) {
+        if (event.isMounting() && !event.getWorldObj().isClientSide) {
+            var vehicle = event.getEntityBeingMounted();
+            var area = AreaManager.INSTANCE.findBy(event.getWorldObj(), vehicle.blockPosition());
+            if (!AreaChecks.checkProp(area, AreaProperties.ALLOW_RIDE, vehicle.getType())) {
+                var rider = event.getEntityMounting();
+                if (rider instanceof Player p) {
+                    p.displayClientMessage(new TranslatableComponent("area_control.notice.ride_disabled", vehicle.getDisplayName()), true);
+                }
+                event.setCanceled(true);
+            }
         }
     }
 }

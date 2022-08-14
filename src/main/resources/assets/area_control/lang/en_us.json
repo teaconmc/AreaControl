@@ -51,6 +51,7 @@
   "area_control.notice.use_item_disabled": "AreaControl: this area has disabled item using",
   "area_control.notice.place_block_disabled": "AreaControl: this area has disabled block placing",
   "area_control.notice.possess_disabled_item": "AreaControl: this area has disabled possession of %s and it is now seized",
+  "area_control.notice.ride_disabled": "AreaControl: this area has disabled riding %s",
 
   "area_control.error.direction_argument": "Direction must be one of: up, down, north, south, west, east, but you have %s",
   "area_control.error.outside_selection": "AreaControl: You should stand inside the selection of the area you are tried for claiming.",

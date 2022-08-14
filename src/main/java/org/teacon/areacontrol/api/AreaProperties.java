@@ -37,6 +37,7 @@ public final class AreaProperties {
     public static final String ALLOW_EXPLOSION_AFFECT_ENTITIES = register("area.allow_explosion_affect_entities");
     public static final String ALLOW_FIRE_SPREAD = register("area.allow_fire_spread");
     public static final String ALLOW_POSSESS = register("area.allow_possess");
+    public static final String ALLOW_RIDE = register("area.allow_ride");
 
     static String register(String property) {
         KNOWN_PROPERTIES.add(property);

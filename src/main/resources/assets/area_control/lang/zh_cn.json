@@ -51,6 +51,7 @@
   "area_control.notice.use_item_disabled": "AreaControl：该区域已禁止使用物品",
   "area_control.notice.place_block_disabled": "AreaControl：该区域已禁止放置方块",
   "area_control.notice.possess_disabled_item": "AreaControl：该区域禁止持有%s，因此已没收",
+  "area_control.notice.ride_disabled": "AreaControl：该区域已禁止骑乘 %s",
 
   "area_control.error.direction_argument": "方向必须为 up、down、north、south、west 和 east 中的一个，但你输入的是 %s",
   "area_control.error.outside_selection": "AreaControl：在声明领地前，你应当站在你试图声明的领地的选择区域里。",

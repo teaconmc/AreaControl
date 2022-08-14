@@ -65,6 +65,11 @@ public enum AreaControlPlayerTracker {
                 AreaChecks.checkInv(mainInv.items, currentArea, player);
                 AreaChecks.checkInv(mainInv.armor, currentArea, player);
                 AreaChecks.checkInv(mainInv.offhand, currentArea, player);
+                var riding = player.getVehicle();
+                if (riding != null && AreaChecks.checkProp(currentArea, AreaProperties.ALLOW_RIDE, riding.getType())) {
+                    player.displayClientMessage(new TranslatableComponent("area_control.notice.ride_disabled", riding.getDisplayName()), true);
+                    player.stopRiding();
+                }
             }
         }
     }

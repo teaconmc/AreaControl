@@ -54,6 +54,7 @@ public final class AreaFactory {
         singlePlayerWildness.properties.put("area.allow_explosion_affect_blocks", Boolean.TRUE);
         singlePlayerWildness.properties.put("area.allow_explosion_affect_entities", Boolean.TRUE);
         singlePlayerWildness.properties.put(AreaProperties.ALLOW_FIRE_SPREAD, Boolean.TRUE);
+        singlePlayerWildness.properties.put(AreaProperties.ALLOW_RIDE, Boolean.TRUE);
         return singlePlayerWildness;
     }
 }
