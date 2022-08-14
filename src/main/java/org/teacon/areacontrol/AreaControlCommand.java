@@ -343,10 +343,15 @@ public final class AreaControlCommand {
         final var area = AreaManager.INSTANCE.findBy(level, new BlockPos(pos));
         if (AreaChecks.allow(requester, area, AreaControlPermissions.SET_PROPERTY)) {
             final var newName = context.getArgument("name", String.class);
-            final var oldName = area.name;
-            area.name = newName;
-            src.sendSuccess(new TranslatableComponent("area_control.claim.name.update", oldName, newName), true);
-            return Command.SINGLE_SUCCESS;
+            if (AreaManager.INSTANCE.findBy(newName) == null) {
+                final var oldName = area.name;
+                AreaManager.INSTANCE.rename(area, newName);
+                src.sendSuccess(new TranslatableComponent("area_control.claim.name.update", oldName, newName), true);
+                return Command.SINGLE_SUCCESS;
+            } else {
+                src.sendSuccess(new TranslatableComponent("area_control.error.name_clash", newName), true);
+                return -1;
+            }
         } else {
             src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
             return -1;

@@ -57,6 +57,7 @@
   "area_control.error.outside_selection": "AreaControl：在声明领地前，你应当站在你试图声明的领地的选择区域里。",
   "area_control.error.overlap": "AreaControl：你试图声明的领地和另一块领地有重叠，因此无法申领。试试别的地方？",
   "area_control.error.no_selection": "AreaControl：无法确定你要声明的领地范围，你是不是忘记标记领地范围了？",
+  "area_control.error.name_clash": "AreaControl：无法将当前领地重命名为 %1$s，因为有别的领地叫这个名字",
   "area_control.error.cannot_change_range": "AreaControl：无法修改领地 %s 的范围，因为修改后的结果会和其他领地有冲突",
   "area_control.error.cannot_set_property": "AreaControl：你没有修改领地 %s 的属性的权限。",
   "area_control.error.cannot_set_friend": "AreaControl: 你没有修改领地 %s 的成员列表的权限。",

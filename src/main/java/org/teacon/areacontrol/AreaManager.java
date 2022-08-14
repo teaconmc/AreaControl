@@ -252,6 +252,12 @@ public final class AreaManager {
         }
     }
 
+    public void rename(Area area, String newName) {
+        this.areasByName.remove(area.name);
+        area.name = newName;
+        this.areasByName.put(newName, area);
+    }
+
     public boolean changeRangeForArea(ResourceKey<Level> dim, Area area, Direction direction, int amount) {
         if (amount == 0) { // Who would do that?!
             return true;

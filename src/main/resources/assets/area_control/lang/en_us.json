@@ -57,6 +57,7 @@
   "area_control.error.outside_selection": "AreaControl: You should stand inside the selection of the area you are tried for claiming.",
   "area_control.error.overlap": "AreaControl: Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?",
   "area_control.error.no_selection": "AreaControl: Cannot determine what area you want to claim. Did you forget to select an area?",
+  "area_control.error.name_clash": "AreaControl: Cannot rename current area to %1$s because there is an area that has this name",
   "area_control.error.cannot_change_range": "Cannot change range for area %s because it would cause area overlapping",
   "area_control.error.cannot_set_property": "AreaControl: Cannot set property for area %s because you are not authorized to do so.",
   "area_control.error.cannot_set_friend": "AreaControl: Cannot add/remove friend for area %s because you are not authorized to do so.",
