@@ -14,7 +14,7 @@
   "area_control.claim.welcome": "欢迎来到%s",
   "area_control.claim.detail": "  - 领地 '%s'，位于维度 %s 中，%s %s %s",
   
-  "area_control.claim.current": "你现在身在名为 %1$s 的领地中，这块领地由 %2$s 控制。%3",
+  "area_control.claim.current": "你现在身在名为 %1$s 的领地中，这块领地由 %2$s 控制。%3$s",
   "area_control.claim.current.copy_name": "点此复制领地名",
   "area_control.claim.current.uuid": "[点此复制领地 UUID]",
   "area_control.claim.current.copy_uuid": "点此复制领地 UUID",
