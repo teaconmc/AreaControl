@@ -4,8 +4,8 @@ import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import org.teacon.areacontrol.impl.AreaPropertyArgument;
-import org.teacon.areacontrol.impl.DirectionArgument;
+import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
+import org.teacon.areacontrol.impl.command.arguments.DirectionArgument;
 import org.teacon.areacontrol.impl.command.selector.AreaSelectorOption;
 
 @Mod.EventBusSubscriber(modid = "area_control", bus = Mod.EventBusSubscriber.Bus.MOD)

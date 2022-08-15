@@ -34,8 +34,8 @@ import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.impl.AreaChecks;
-import org.teacon.areacontrol.impl.AreaPropertyArgument;
-import org.teacon.areacontrol.impl.DirectionArgument;
+import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
+import org.teacon.areacontrol.impl.command.arguments.DirectionArgument;
 import org.teacon.areacontrol.mixin.CommandSourceStackAccessor;
 
 import java.util.Objects;

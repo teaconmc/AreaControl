@@ -1,4 +1,4 @@
-package org.teacon.areacontrol.impl;
+package org.teacon.areacontrol.impl.command.arguments;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
