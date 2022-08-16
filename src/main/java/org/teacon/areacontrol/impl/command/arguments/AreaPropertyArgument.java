@@ -29,7 +29,8 @@ public class AreaPropertyArgument implements ArgumentType<String> {
     private static final List<String> SUGGEST_BLOCKS = List.of(
             AreaProperties.ALLOW_BREAK, AreaProperties.ALLOW_PLACE_BLOCK, AreaProperties.ALLOW_ACTIVATE, AreaProperties.ALLOW_CLICK);
     private static final List<String> SUGGEST_ITEM = List.of(AreaProperties.ALLOW_USE_ITEM, "area.allow_possess");
-    private static final List<String> SUGGEST_ENTITY = List.of(AreaProperties.ALLOW_PVE, AreaProperties.ALLOW_SPAWN, AreaProperties.ALLOW_RIDE);
+    private static final List<String> SUGGEST_ENTITY = List.of(AreaProperties.ALLOW_PVE, AreaProperties.ALLOW_INTERACT_ENTITY,
+            AreaProperties.ALLOW_INTERACT_ENTITY_SP, AreaProperties.ALLOW_SPAWN, AreaProperties.ALLOW_RIDE);
 
     public static final ArgumentSerializer<AreaPropertyArgument> SERIALIZER = new EmptyArgumentSerializer<>(AreaPropertyArgument::new);
 
