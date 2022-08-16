@@ -506,6 +506,12 @@ public final class AreaManager {
                 if (vol < minVolume) {
                     result = a;
                     minVolume = vol;
+                } else if (vol == minVolume && result != null) {
+                    if (result.minX <= a.minX && a.maxX <= result.maxX
+                            && result.minY <= a.minY && a.maxY <= result.maxY
+                            && result.minZ <= a.minZ && a.maxZ <= result.maxZ) {
+                        result = a;
+                    }
                 }
             }
             if (result != null) {
