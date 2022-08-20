@@ -51,6 +51,9 @@ public final class AreaManager {
 
     private final HashMap<UUID, Area> areasById = new HashMap<>();
     private final HashMap<String, Area> areasByName = new HashMap<>();
+
+    // TODO Get rid of ResourceKey<Level> as key
+
     /**
      * All known instances of {@link Area}, indexed by dimensions and chunk positions covered by this area.
      * Used for faster lookup of {@link Area} when the position is known.
@@ -66,6 +69,13 @@ public final class AreaManager {
      * They all have owner as {@link Area#GLOBAL_AREA_OWNER}.
      */
     private final IdentityHashMap<ResourceKey<Level>, UUID> wildnessByWorld = new IdentityHashMap<>();
+
+    // Apparently create a ResourceKey involves String.intern(), so here we go...
+    private final Map<String, ResourceKey<Level>> levelKeyCache = new HashMap<>();
+
+    private ResourceKey<Level> getOrCreate(String dimKey) {
+        return this.levelKeyCache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(k)));
+    }
 
     private void buildCacheFor(Area area, ResourceKey<Level> worldIndex) {
         // not locked since every method invoking this one has been locked
@@ -103,7 +113,7 @@ public final class AreaManager {
         try {
             writeLock.lock();
             for (Area a : this.repository.load()) {
-                this.buildCacheFor(a, ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(a.dimension)));
+                this.buildCacheFor(a, this.getOrCreate(a.dimension));
             }
             var danglingAreas = new ArrayList<Area>();
             for (Area a : this.areasById.values()) {
@@ -124,7 +134,7 @@ public final class AreaManager {
             // If no parent area found, assuming the parent is the wildness, i.e. parent UID is null.
             for (Area dangling : danglingAreas) {
                 List<Area> possibleParents = new ArrayList<>();
-                var dimKey = ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(dangling.dimension));
+                var dimKey = this.getOrCreate(dangling.dimension);
                 for (var maybeParentUid : this.areasByWorld.getOrDefault(dimKey, Collections.emptySet())) {
                     var maybeParent = this.areasById.get(maybeParentUid);
                     if (maybeParent != null && AreaMath.isEnclosing(maybeParent, dangling) && !AreaMath.isCoveringSameArea(maybeParent, dangling)) {
