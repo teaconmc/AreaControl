@@ -22,8 +22,6 @@ public final class Util {
 
     public static final UUID SYSTEM = new UUID(0L, 0L);
 
-    private static final Random RAND = new Random();
-
     public static Component toGreenText(BlockPos pos) {
         return Component.translatable("area_control.claim.pos", pos.getX(), pos.getY(), pos.getZ())
                 .withStyle(ChatFormatting.GREEN);

@@ -7,7 +7,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.AreaControlPlayerTracker;
-import org.teacon.areacontrol.AreaManager;
 
 import java.util.Objects;
 
