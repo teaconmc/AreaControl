@@ -5,15 +5,16 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.server.permission.events.PermissionGatherEvent;
 import org.slf4j.Logger;
@@ -48,6 +49,7 @@ public final class AreaControl {
         context.registerConfig(ModConfig.Type.SERVER, AreaControlConfig.setup(new ForgeConfigSpec.Builder()));
         singlePlayerServerChecker = DistExecutor.safeRunForDist(
                 () -> ClientSinglePlayerServerChecker::new, () -> ServerSinglePlayerServerChecker::new);
+        AreaControlPreSetup.ARG_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus()); // TODO Check if it breaks vanilla connection?
     }
 
     @SubscribeEvent
@@ -103,8 +105,8 @@ public final class AreaControl {
     }
 
     @SubscribeEvent
-    public static void onServerSave(WorldEvent.Save event) {
-        if (event.getWorld() instanceof ServerLevel level) {
+    public static void onServerSave(LevelEvent.Save event) {
+        if (event.getLevel() instanceof ServerLevel level) {
             try {
                 AreaManager.INSTANCE.saveDimension(level.dimension());
             } catch (Exception e) {

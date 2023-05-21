@@ -4,7 +4,7 @@ import javax.annotation.Nonnull;
 import java.util.WeakHashMap;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -25,12 +25,12 @@ public final class AreaControlClaimHandler {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onRightClick(PlayerInteractEvent.RightClickBlock event) {
         if (event.getSide() == LogicalSide.SERVER) {
-            final var player = (ServerPlayer) event.getPlayer();
+            final var player = (ServerPlayer) event.getEntity();
             final var areaClaimTool = ForgeRegistries.ITEMS.getValue(new ResourceLocation(AreaControlConfig.areaClaimTool.get()));
             if (areaClaimTool != Items.AIR && event.getItemStack().getItem() == areaClaimTool && PermissionAPI.getPermission(player, AreaControlPermissions.MARK_AREA)) {
                 final BlockPos clicked  = event.getPos();
                 pushRecord(player, clicked.immutable());
-                player.displayClientMessage(new TranslatableComponent("area_control.claim.marked", Util.toGreenText(clicked)), true);
+                player.displayClientMessage(Component.translatable("area_control.claim.marked", Util.toGreenText(clicked)), true);
             }
         }
     }

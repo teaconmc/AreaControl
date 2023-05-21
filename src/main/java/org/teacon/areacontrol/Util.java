@@ -7,8 +7,6 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
@@ -27,16 +25,16 @@ public final class Util {
     private static final Random RAND = new Random();
 
     public static Component toGreenText(BlockPos pos) {
-        return new TranslatableComponent("area_control.claim.pos", pos.getX(), pos.getY(), pos.getZ())
+        return Component.translatable("area_control.claim.pos", pos.getX(), pos.getY(), pos.getZ())
                 .withStyle(ChatFormatting.GREEN);
     }
 
     public static Component toGreenText(Area area) {
-        var min = new TranslatableComponent("area_control.claim.pos", area.minX, area.minY, area.minZ)
+        var min = Component.translatable("area_control.claim.pos", area.minX, area.minY, area.minZ)
                 .withStyle(ChatFormatting.GREEN);
-        var max = new TranslatableComponent("area_control.claim.pos", area.maxX, area.maxY, area.maxZ)
+        var max = Component.translatable("area_control.claim.pos", area.maxX, area.maxY, area.maxZ)
                 .withStyle(ChatFormatting.GREEN);
-        return new TranslatableComponent("area_control.claim.range", min, max);
+        return Component.translatable("area_control.claim.range", min, max);
     }
 
     public static Component describe(Area area) {
@@ -49,19 +47,19 @@ public final class Util {
         if (level != null) {
             midY = level.getHeight(Heightmap.Types.WORLD_SURFACE, midX, midZ);
         }
-        return new TranslatableComponent("area_control.claim.detail",
-                new TextComponent(area.name).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.claim.current.copy_name")))
+        return Component.translatable("area_control.claim.detail",
+                Component.literal(area.name).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_name")))
                         .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.name))),
-                new TextComponent(area.dimension),
+                Component.literal(area.dimension),
                 Util.toGreenText(area),
-                new TranslatableComponent("area_control.claim.nearby.detail.go_there").setStyle(
-                        Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("chat.coordinates.tooltip")))
+                Component.translatable("area_control.claim.nearby.detail.go_there").setStyle(
+                        Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("chat.coordinates.tooltip")))
                                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/execute in " + area.dimension + " run tp @s " + midX + " " + midY + " " + midZ))
                                 .withColor(ChatFormatting.DARK_AQUA)
                 ),
-                new TranslatableComponent("area_control.claim.current.uuid")
+                Component.translatable("area_control.claim.current.uuid")
                         .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.uid.toString()))
-                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.claim.current.copy_uuid")))
+                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_uuid")))
                                 .withColor(ChatFormatting.DARK_AQUA)));
     }
 
@@ -100,7 +98,7 @@ public final class Util {
 
     public static Component getOwnerName(Area area, GameProfileCache profileCache, PlayerList onlinePlayers) {
         final UUID owner = area.owner;
-        return owner == null || SYSTEM.equals(owner) ? new TextComponent("System") : getPlayerDisplayName(owner, profileCache, onlinePlayers);
+        return owner == null || SYSTEM.equals(owner) ? Component.literal("System") : getPlayerDisplayName(owner, profileCache, onlinePlayers);
     }
 
     public static Component getPlayerDisplayName(UUID playerUid, GameProfileCache profileCache, PlayerList onlinePlayers) {
@@ -110,17 +108,17 @@ public final class Util {
                 return getOwnerName(maybeProfile.get(), onlinePlayers);
             }
         }
-        return new TextComponent(playerUid.toString());
+        return Component.literal(playerUid.toString());
     }
 
     public static Component getOwnerName(GameProfile profile, PlayerList onlinePlayers) {
-        final var ownerName = new TextComponent(profile.getName());
+        final var ownerName = Component.literal(profile.getName());
         if (onlinePlayers != null) {
             Player p = onlinePlayers.getPlayer(profile.getId());
             if (p != null) {
                 ownerName.setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)
                         .withUnderlined(Boolean.TRUE)
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.owner.aka", p.getDisplayName())))
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.owner.aka", p.getDisplayName())))
                 );
             }
         }

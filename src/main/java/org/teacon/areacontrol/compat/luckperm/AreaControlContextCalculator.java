@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerPlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.teacon.areacontrol.AreaControlPlayerTracker;
 import org.teacon.areacontrol.AreaManager;
 
 import java.util.Objects;
@@ -25,9 +26,7 @@ public enum AreaControlContextCalculator implements ContextCalculator<ServerPlay
     @Override
     public void calculate(@NonNull ServerPlayer target, @NonNull ContextConsumer consumer) {
         var uid = target.getGameProfile().getId();
-        var pos = target.blockPosition();
-        var dim = target.level.dimension();
-        var area = AreaManager.INSTANCE.findBy(dim, pos);
+        var area = AreaControlPlayerTracker.INSTANCE.getCurrentAreaForPlayer(uid);
         consumer.accept(CONTEXT_AREA_ID, area.uid.toString());
         consumer.accept(CONTEXT_AREA_NAME, area.name);
         if (area.owner != null) {

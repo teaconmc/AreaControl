@@ -22,12 +22,14 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +76,7 @@ public final class AreaManager {
     private final Map<String, ResourceKey<Level>> levelKeyCache = new HashMap<>();
 
     private ResourceKey<Level> getOrCreate(String dimKey) {
-        return this.levelKeyCache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(k)));
+        return this.levelKeyCache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registries.DIMENSION, new ResourceLocation(k)));
     }
 
     private void buildCacheFor(Area area, ResourceKey<Level> worldIndex) {
@@ -390,6 +392,11 @@ public final class AreaManager {
         return this.findBy(pos.dimension(), pos.pos());
     }
 
+    public Area findBy(Level worldInstance, Vec3 pos) {
+        var alignedPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
+        return findBy(worldInstance, alignedPos);
+    }
+
     @Nonnull
     public Area findBy(Level worldInstance, BlockPos pos) {
         if (!DEBUG && AreaControl.singlePlayerServerChecker.test(worldInstance.getServer())) {
@@ -425,11 +432,11 @@ public final class AreaManager {
                 return findDefaultBy(Level.OVERWORLD);
             }
             RegistryAccess registryAccess = server.registryAccess();
-            var maybeDimRegistry = registryAccess.registry(Registry.DIMENSION_TYPE_REGISTRY);
+            var maybeDimRegistry = registryAccess.registry(Registries.DIMENSION_TYPE);
             if (maybeDimRegistry.isPresent()) {
                 var dimKey = maybeDimRegistry.get().getKey(maybeLevel.dimensionType());
                 if (dimKey != null) {
-                    return this.findBy(ResourceKey.create(Registry.DIMENSION_REGISTRY, dimKey), pos);
+                    return this.findBy(ResourceKey.create(Registries.DIMENSION, dimKey), pos);
                 }
                 LOGGER.warn("Detect unregistered DimensionType; we cannot reliably determine the dimension name. Treat as overworld wildness instead.");
             } else {
@@ -457,6 +464,11 @@ public final class AreaManager {
         } finally {
             writeLock.unlock();
         }
+    }
+
+    public Area findBy(ResourceKey<Level> world, Vec3 pos) {
+        var alignedPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
+        return findBy(world, alignedPos);
     }
 
     @Nonnull

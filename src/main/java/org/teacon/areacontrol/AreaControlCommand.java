@@ -14,12 +14,11 @@ import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.SectionPos;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -128,7 +127,7 @@ public final class AreaControlCommand {
     }
 
     private static int about(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendSuccess(new TextComponent("AreaControl 0.1.4"), false);
+        context.getSource().sendSuccess(Component.literal("AreaControl 0.1.4"), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -140,14 +139,14 @@ public final class AreaControlCommand {
                         .withColor(ChatFormatting.BLUE)
                         .withUnderlined(Boolean.TRUE)
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, markerTool.getHoverName().copy()
-                                .append(new TranslatableComponent("area_control.claim.how_to.give_item").withStyle(ChatFormatting.GRAY))))
+                                .append(Component.translatable("area_control.claim.how_to.give_item").withStyle(ChatFormatting.GRAY))))
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/give @s " + AreaControlConfig.areaClaimTool.get())));
-        context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.how_to", displayName), false);
+        context.getSource().sendSuccess(Component.translatable("area_control.claim.how_to", displayName), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int admin(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendSuccess(new TextComponent("WIP"), false);
+        context.getSource().sendSuccess(Component.literal("WIP"), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -170,12 +169,13 @@ public final class AreaControlCommand {
     private static int claimChunk(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final var claimer = src.getPlayerOrException();
-        final var chunkPos = new ChunkPos(new BlockPos(src.getPosition()));
+        final var pos = src.getPosition();
+        final var chunkPos = new ChunkPos(SectionPos.blockToSectionCoord(pos.x), SectionPos.blockToSectionCoord(pos.z));
         final var chunkStart = chunkPos.getBlockAt(0, Short.MIN_VALUE, 0);
         final var chunkEnd = chunkPos.getBlockAt(15, Short.MAX_VALUE, 15);
         final var range = new AABB(Vec3.atCenterOf(chunkStart), Vec3.atCenterOf(chunkEnd));
         if (!range.expandTowards(0.5, 0.5, 0.5).contains(claimer.position())) {
-            src.sendFailure(new TranslatableComponent("area_control.error.outside_selection"));
+            src.sendFailure(Component.translatable("area_control.error.outside_selection"));
             return -1;
         }
         final Area area = Util.createArea(chunkStart, chunkEnd);
@@ -185,10 +185,10 @@ public final class AreaControlCommand {
             area.owner = claimerUUID;
         }
         if (AreaManager.INSTANCE.add(area, worldIndex)) {
-            src.sendSuccess(new TranslatableComponent("area_control.claim.created", area.name, Util.toGreenText(area)), true);
+            src.sendSuccess(Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendFailure(new TranslatableComponent("area_control.error.overlap"));
+            src.sendFailure(Component.translatable("area_control.error.overlap"));
             return -2;
         }
     }
@@ -196,7 +196,8 @@ public final class AreaControlCommand {
     private static int claimChunkWithSize(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final var claimer = src.getPlayerOrException();
-        final var corner = new ChunkPos(new BlockPos(src.getPosition()));
+        final var pos = src.getPosition();
+        final var corner = new ChunkPos(SectionPos.blockToSectionCoord(pos.x), SectionPos.blockToSectionCoord(pos.z));
         int xOffset = context.getArgument("x", Integer.class), zOffset = context.getArgument("z", Integer.class);
         final BlockPos chunkStart, chunkEnd;
         if (xOffset > 0) {
@@ -244,7 +245,7 @@ public final class AreaControlCommand {
         }
         final var range = new AABB(Vec3.atCenterOf(chunkStart), Vec3.atCenterOf(chunkEnd));
         if (!range.expandTowards(0.5, 0.5, 0.5).contains(claimer.position())) {
-            src.sendFailure(new TranslatableComponent("area_control.error.outside_selection"));
+            src.sendFailure(Component.translatable("area_control.error.outside_selection"));
             return -1;
         }
         final Area area = Util.createArea(chunkStart, chunkEnd);
@@ -254,10 +255,10 @@ public final class AreaControlCommand {
             area.owner = claimerUUID;
         }
         if (AreaManager.INSTANCE.add(area, worldIndex)) {
-            src.sendSuccess(new TranslatableComponent("area_control.claim.created", area.name, Util.toGreenText(area)), true);
+            src.sendSuccess(Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendFailure(new TranslatableComponent("area_control.error.overlap"));
+            src.sendFailure(Component.translatable("area_control.error.overlap"));
             return -2;
         }
     }
@@ -270,7 +271,7 @@ public final class AreaControlCommand {
         if (recordPos != null) {
             final var range = new AABB(Vec3.atCenterOf(recordPos.start()), Vec3.atCenterOf(recordPos.end()));
             if (!range.expandTowards(0.5, 0.5, 0.5).contains(claimer.position())) {
-                src.sendFailure(new TranslatableComponent("area_control.error.outside_selection"));
+                src.sendFailure(Component.translatable("area_control.error.outside_selection"));
                 return -1;
             }
             final Area area = Util.createArea(recordPos.start(), recordPos.end());
@@ -280,14 +281,14 @@ public final class AreaControlCommand {
             }
             final var worldIndex = src.getLevel().dimension();
             if (AreaManager.INSTANCE.add(area, worldIndex)) {
-                src.sendSuccess(new TranslatableComponent("area_control.claim.created", area.name, Util.toGreenText(area)), true);
+                src.sendSuccess(Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
                 return Command.SINGLE_SUCCESS;
             } else {
-                src.sendFailure(new TranslatableComponent("area_control.error.overlap"));
+                src.sendFailure(Component.translatable("area_control.error.overlap"));
                 return -2;
             }
         } else {
-            src.sendFailure(new TranslatableComponent("area_control.error.no_selection"));
+            src.sendFailure(Component.translatable("area_control.error.no_selection"));
             return -1;
         }
     }
@@ -303,34 +304,35 @@ public final class AreaControlCommand {
     private static int displayCurrent(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final var server = src.getServer();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
-        final var areaUUID = new TranslatableComponent("area_control.claim.current.uuid")
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        final var areaUUID = Component.translatable("area_control.claim.current.uuid")
                 .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.uid.toString()))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.claim.current.copy_uuid")))
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_uuid")))
                         .withColor(ChatFormatting.DARK_AQUA));
         if (!area.owner.equals(Area.GLOBAL_AREA_OWNER)) {
             final String name = area.name;
-            final var areaName = new TextComponent(name)
+            final var areaName = Component.literal(name)
                     .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, name))
-                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("area_control.claim.current.copy_name")))
+                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_name")))
                             .withColor(ChatFormatting.DARK_AQUA));
             final var ownerName = Util.getOwnerName(area, server.getProfileCache(), server.getPlayerList());
-            src.sendSuccess(new TranslatableComponent("area_control.claim.current", areaName, ownerName, areaUUID), true);
+            src.sendSuccess(Component.translatable("area_control.claim.current", areaName, ownerName, areaUUID), true);
             if (area.belongingArea != null) {
                 final var enclosingArea = AreaManager.INSTANCE.findBy(area.belongingArea);
                 final var enclosingAreaOwnerName = Util.getOwnerName(enclosingArea, server.getProfileCache(), server.getPlayerList());
-                src.sendSuccess(new TranslatableComponent("area_control.claim.current.enclosed", enclosingArea.name, enclosingAreaOwnerName), true);
+                src.sendSuccess(Component.translatable("area_control.claim.current.enclosed", enclosingArea.name, enclosingAreaOwnerName), true);
             }
         } else {
-            src.sendSuccess(new TranslatableComponent("area_control.claim.current.wildness", areaUUID), true);
+            src.sendSuccess(Component.translatable("area_control.claim.current.wildness", areaUUID), true);
         }
         return Command.SINGLE_SUCCESS;
     }
 
     private static int mark(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        BlockPos marked = new BlockPos(Vec3Argument.getVec3(context, "pos"));
+        var rawPos = Vec3Argument.getVec3(context, "pos");
+        BlockPos marked = new BlockPos((int) rawPos.x, (int) rawPos.y, (int) rawPos.z);
         AreaControlClaimHandler.pushRecord(context.getSource().getPlayerOrException(), marked);
-        context.getSource().sendSuccess(new TranslatableComponent("area_control.claim.marked", Util.toGreenText(marked)), true);
+        context.getSource().sendSuccess(Component.translatable("area_control.claim.marked", Util.toGreenText(marked)), true);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -338,8 +340,8 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final var level = src.getLevel();
         final var pos = src.getPosition();
-        final var area = AreaManager.INSTANCE.findBy(level, new BlockPos(pos));
-        src.sendSuccess(new TextComponent(area.name), false);
+        final var area = AreaManager.INSTANCE.findBy(level, pos);
+        src.sendSuccess(Component.literal(area.name), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -348,20 +350,20 @@ public final class AreaControlCommand {
         final var requester = src.getPlayerOrException();
         final var level = src.getLevel();
         final var pos = src.getPosition();
-        final var area = AreaManager.INSTANCE.findBy(level, new BlockPos(pos));
+        final var area = AreaManager.INSTANCE.findBy(level, pos);
         if (AreaChecks.allow(requester, area, AreaControlPermissions.SET_PROPERTY)) {
             final var newName = context.getArgument("name", String.class);
             if (AreaManager.INSTANCE.findBy(newName) == null) {
                 final var oldName = area.name;
                 AreaManager.INSTANCE.rename(area, newName);
-                src.sendSuccess(new TranslatableComponent("area_control.claim.name.update", oldName, newName), true);
+                src.sendSuccess(Component.translatable("area_control.claim.name.update", oldName, newName), true);
                 return Command.SINGLE_SUCCESS;
             } else {
-                src.sendSuccess(new TranslatableComponent("area_control.error.name_clash", newName), true);
+                src.sendSuccess(Component.translatable("area_control.error.name_clash", newName), true);
                 return -1;
             }
         } else {
-            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_property", area.name));
             return -1;
         }
     }
@@ -372,21 +374,21 @@ public final class AreaControlCommand {
         final var requesterId = requester.getGameProfile().getId();
         final var level = src.getLevel();
         final var pos = src.getPosition();
-        final var area = AreaManager.INSTANCE.findBy(level, new BlockPos(pos));
+        final var area = AreaManager.INSTANCE.findBy(level, pos);
         if (area.owner.equals(requesterId) || area.friends.contains(requesterId) || PermissionAPI.getPermission(requester, AreaControlPermissions.SET_PROPERTY)) {
             final var direction = context.getArgument("direction", Direction.class);
             final var amount = context.getArgument("amount", Integer.class);
             if (AreaManager.INSTANCE.changeRangeForArea(level.dimension(), area, direction, amount)) {
-                src.sendSuccess(new TranslatableComponent("area_control.claim.range.update.success",
+                src.sendSuccess(Component.translatable("area_control.claim.range.update.success",
                         Util.toGreenText(new BlockPos(area.minX, area.minY, area.minZ)),
                         Util.toGreenText(new BlockPos(area.maxX, area.maxY, area.maxZ))), true);
                 return Command.SINGLE_SUCCESS;
             } else {
-                src.sendFailure(new TranslatableComponent("area_control.error.cannot_change_range", area.name));
+                src.sendFailure(Component.translatable("area_control.error.cannot_change_range", area.name));
                 return -1;
             }
         } else {
-            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_property", area.name));
             return -1;
         }
     }
@@ -396,37 +398,37 @@ public final class AreaControlCommand {
         final var server = src.getServer();
         final var profileCache = server.getProfileCache();
         final var playerList = server.getPlayerList();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
-        src.sendSuccess(new TextComponent(area.tags + " tag(s): " + String.join(", ", area.tags)), false);
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        src.sendSuccess(Component.literal(area.tags + " tag(s): " + String.join(", ", area.tags)), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int addTag(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
         if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
             final var tag = ResourceLocationArgument.getId(context, "tag");
             String message = area.tags.add(tag.toString()) ? "area_control.claim.tag.added" : "area_control.claim.tag.existed";
-            src.sendSuccess(new TranslatableComponent(message, area.name, tag), false);
+            src.sendSuccess(Component.translatable(message, area.name, tag), false);
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_tag", area.name));
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_tag", area.name));
             return -1;
         }
     }
 
     private static int removeTag(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
         if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
             final var tag = ResourceLocationArgument.getId(context, "tag");
             String message = area.tags.remove(tag.toString()) ? "area_control.claim.friend.removed" : "area_control.claim.friend.not_yet";
-            src.sendSuccess(new TranslatableComponent(message, area.name, tag), false);
+            src.sendSuccess(Component.translatable(message, area.name, tag), false);
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_tag", area.name));
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_tag", area.name));
             return -1;
         }
     }
@@ -436,20 +438,20 @@ public final class AreaControlCommand {
         final var server = src.getServer();
         final var profileCache = server.getProfileCache();
         final var playerList = server.getPlayerList();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         // TODO Check if it is wildness
-        src.sendSuccess(new TranslatableComponent("area_control.claim.friend.list.header", area.name), false);
+        src.sendSuccess(Component.translatable("area_control.claim.friend.list.header", area.name), false);
         final var friends = area.friends;
         for (var friend :friends) {
-            src.sendSuccess(new TranslatableComponent("area_control.claim.friend.list.entry", Util.getPlayerDisplayName(friend, profileCache, playerList)), false);
+            src.sendSuccess(Component.translatable("area_control.claim.friend.list.entry", Util.getPlayerDisplayName(friend, profileCache, playerList)), false);
         }
-        src.sendSuccess(new TranslatableComponent("area_control.claim.friend.list.footer", friends.size()), false);
+        src.sendSuccess(Component.translatable("area_control.claim.friend.list.footer", friends.size()), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int addFriend(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
         if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
             final var friendProfiles = GameProfileArgument.getGameProfiles(context, "friend");
@@ -457,95 +459,95 @@ public final class AreaControlCommand {
             for (var friendProfile : friendProfiles) {
                 var uid = friendProfile.getId();
                 String message = !area.owner.equals(uid) && area.friends.add(uid) ? "area_control.claim.friend.added" : "area_control.claim.friend.existed";
-                src.sendSuccess(new TranslatableComponent(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
+                src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
             }
             return count;
         } else {
-            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_friend", area.name));
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_friend", area.name));
             return -1;
         }
     }
 
     private static int removeFriend(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
         if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
             final var friendProfiles = GameProfileArgument.getGameProfiles(context, "friend");
             int count = 0;
             for (var friendProfile : friendProfiles) {
                 String message = area.friends.remove(friendProfile.getId()) ? "area_control.claim.friend.removed" : "area_control.claim.friend.not_yet";
-                src.sendSuccess(new TranslatableComponent(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
+                src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
             }
             return count;
         } else {
-            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_friend", area.name));
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_friend", area.name));
             return -1;
         }
     }
 
     private static int listProperties(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var properties = area.properties;
-        src.sendSuccess(new TranslatableComponent("area_control.claim.property.list.header", area.name), false);
+        src.sendSuccess(Component.translatable("area_control.claim.property.list.header", area.name), false);
         for (var prop : properties.entrySet()) {
-            src.sendSuccess(new TranslatableComponent("area_control.claim.property.list.entry", prop.getKey(), prop.getValue()), false);
+            src.sendSuccess(Component.translatable("area_control.claim.property.list.entry", prop.getKey(), prop.getValue()), false);
         }
-        src.sendSuccess(new TranslatableComponent("area_control.claim.property.list.footer", properties.size()), false);
+        src.sendSuccess(Component.translatable("area_control.claim.property.list.footer", properties.size()), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int displayProperty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
         if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
             final String prop = context.getArgument("property", String.class);
             final Object value = area.properties.get(prop);
             Component msg;
             if (value == null) {
-                msg = new TranslatableComponent("area_control.claim.property.single.unset", area.name, prop);
+                msg = Component.translatable("area_control.claim.property.single.unset", area.name, prop);
             } else {
-                msg = new TranslatableComponent("area_control.claim.property.single", area.name, prop, value);
+                msg = Component.translatable("area_control.claim.property.single", area.name, prop, value);
             }
             src.sendSuccess(msg, false);
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_property", area.name));
             return -1;
         }
     }
 
     private static int setProperty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
         if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
             final String prop = context.getArgument("property", String.class);
             final String value = context.getArgument("value", String.class);
             final Object oldValue = area.properties.put(prop, value);
-            src.sendSuccess(new TranslatableComponent("area_control.claim.property.update",
+            src.sendSuccess(Component.translatable("area_control.claim.property.update",
                     area.name, prop, value, Objects.toString(oldValue)), false);
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_property", area.name));
             return -1;
         }
     }
 
     private static int unsetProperty(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), new BlockPos(src.getPosition()));
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
         if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
             final String prop = context.getArgument("property", String.class);
             final Object oldValue = area.properties.remove(prop);
-            src.sendSuccess(new TranslatableComponent("area_control.claim.property.unset",
+            src.sendSuccess(Component.translatable("area_control.claim.property.unset",
                     area.name, prop, Objects.toString(oldValue)), false);
             return Command.SINGLE_SUCCESS;
         } else {
-            src.sendFailure(new TranslatableComponent("area_control.error.cannot_set_property", area.name));
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_property", area.name));
             return -1;
         }
     }
@@ -554,7 +556,7 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final var player = src.getPlayerOrException();
         var areas = AreaManager.INSTANCE.findByOwner(player.getGameProfile().getId());
-        src.sendSuccess(new TranslatableComponent("area_control.claim.mine", areas.size()), false);
+        src.sendSuccess(Component.translatable("area_control.claim.mine", areas.size()), false);
         for (Area area : areas) {
             src.sendSuccess(Util.describe(area), false);
         }
@@ -565,22 +567,22 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final var claimer = src.getPlayerOrException();
         final ResourceKey<Level> worldIndex = src.getLevel().dimension();
-        final Area area = AreaManager.INSTANCE.findBy(worldIndex, new BlockPos(src.getPosition()));
+        final Area area = AreaManager.INSTANCE.findBy(worldIndex, src.getPosition());
         if (!area.owner.equals(Area.GLOBAL_AREA_OWNER)) {
             if (area.owner.equals(claimer.getGameProfile().getId()) || PermissionAPI.getPermission(claimer, AreaControlPermissions.UNCLAIM_AREA)) {
                 AreaManager.INSTANCE.remove(area, worldIndex);
-                src.sendSuccess(new TranslatableComponent("area_control.claim.abandoned",
+                src.sendSuccess(Component.translatable("area_control.claim.abandoned",
                         AreaProperties.getString(area, "area.display_name", area.name),
                         area.name, Util.toGreenText(area)), false);
                 return Command.SINGLE_SUCCESS;
             } else {
-                src.sendFailure(new TranslatableComponent("area_control.error.unclaim_without_permission",
+                src.sendFailure(Component.translatable("area_control.error.unclaim_without_permission",
                         AreaProperties.getString(area, "area.display_name", area.name),
                         area.name, Util.toGreenText(area)));
                 return -1;
             }
         } else {
-            context.getSource().sendFailure(new TranslatableComponent("area_control.error.unclaim_wildness"));
+            context.getSource().sendFailure(Component.translatable("area_control.error.unclaim_wildness"));
             return -1;
         }
     }

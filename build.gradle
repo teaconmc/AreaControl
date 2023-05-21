@@ -21,14 +21,14 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
-version = '0.6.8'
+version = '0.7.0'
 group = 'org.teacon'
-archivesBaseName = 'AreaControl-Forge-1.18'
+archivesBaseName = 'AreaControl-Forge-1.19.4'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
-    mappings channel: 'parchment', version: '1.18.1-2022.03.06-1.18.2'
+    mappings channel: 'official', version: '1.19.4'
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     runs {
         client {
@@ -71,7 +71,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18.2-40.1.59'
+    minecraft 'net.minecraftforge:forge:1.19.4-45.0.64'
 
     // Yes you see this right, LuckPerms.
     // This is for our custom ContextCalculator support.
@@ -106,17 +106,17 @@ publishing {
     publications {
         release(MavenPublication) {
             groupId = "org.teacon"
-            artifactId = "AreaControl-Forge-1.18"
+            artifactId = "AreaControl-Forge-1.19.4"
 
             artifact jar
             pom {
-                name = 'AreaControl for Minecraft 1.18'
+                name = 'AreaControl for Minecraft 1.19.4'
                 description = 'Comprehensive (maybe) plot management mod'
                 url = 'https://github.com/teaconmc/AreaControl'
                 licenses {
                     license {
                         name = 'BSD-3-Clause'
-                        url = 'https://github.com/teaconmc/AreaControl/blob/1.16-forge/LICENSE'
+                        url = 'https://github.com/teaconmc/AreaControl/blob/1.19.4-forge/LICENSE'
                     }
                 }
                 developers {

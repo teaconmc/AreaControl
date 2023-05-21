@@ -1,7 +1,7 @@
 package org.teacon.areacontrol.impl;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrays;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
@@ -27,20 +27,20 @@ public class ACEntityProtectionHandler {
     // This one is fired when player directly attacks something else
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onAttackEntity(AttackEntityEvent event) {
-        if (event.getPlayer().level.isClientSide) {
+        if (event.getEntity().level.isClientSide) {
             return;
         }
         // We use the location of target entity to find the area.
         final var target = event.getTarget();
         final var targetArea = AreaManager.INSTANCE.findBy(target.getCommandSenderWorld().dimension(), target.blockPosition());
         if (target instanceof Player) {
-            if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_PVP)) {
-                event.getPlayer().displayClientMessage(new TranslatableComponent("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY), true);
+            if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.getPermission((ServerPlayer) event.getEntity(), AreaControlPermissions.BYPASS_PVP)) {
+                event.getEntity().displayClientMessage(Component.translatable("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY), true);
                 event.setCanceled(true);
             }
         } else {
-            if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.getPermission((ServerPlayer) event.getPlayer(), AreaControlPermissions.BYPASS_ATTACK)) {
-                event.getPlayer().displayClientMessage(new TranslatableComponent("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY), true);
+            if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.getPermission((ServerPlayer) event.getEntity(), AreaControlPermissions.BYPASS_ATTACK)) {
+                event.getEntity().displayClientMessage(Component.translatable("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY), true);
                 event.setCanceled(true);
             }
         }
@@ -60,12 +60,12 @@ public class ACEntityProtectionHandler {
             final var targetArea = AreaManager.INSTANCE.findBy(target.getCommandSenderWorld().dimension(), target.blockPosition());
             if (target instanceof Player) {
                 if (!AreaProperties.getBool(targetArea, "area.allow_pvp") && !PermissionAPI.getPermission((ServerPlayer) src, AreaControlPermissions.BYPASS_PVP)) {
-                    ((Player) src).displayClientMessage(new TranslatableComponent("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY), true);
+                    ((Player) src).displayClientMessage(Component.translatable("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY), true);
                     event.setCanceled(true);
                 }
             } else {
                 if (!AreaProperties.getBool(targetArea, "area.allow_attack") && !PermissionAPI.getPermission((ServerPlayer) src, AreaControlPermissions.BYPASS_ATTACK)) {
-                    ((Player) src).displayClientMessage(new TranslatableComponent("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY), true);
+                    ((Player) src).displayClientMessage(Component.translatable("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY), true);
                     event.setCanceled(true);
                 }
             }

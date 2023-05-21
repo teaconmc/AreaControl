@@ -44,8 +44,8 @@ public class ACSendCurrentSelection {
             AreaControlClientSupport.selectionMax = null;
         } else {
             var box = new AABB(this.pos1, this.pos2);
-            AreaControlClientSupport.selectionMin = new BlockPos(box.minX, box.minY, box.minZ);
-            AreaControlClientSupport.selectionMax = new BlockPos(box.maxX, box.maxY, box.maxZ);
+            AreaControlClientSupport.selectionMin = new BlockPos((int) box.minX, (int) box.minY, (int) box.minZ);
+            AreaControlClientSupport.selectionMax = new BlockPos((int) box.maxX, (int) box.maxY, (int) box.maxZ);
         }
         contextSupplier.get().setPacketHandled(true);
     }

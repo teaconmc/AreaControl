@@ -1,6 +1,6 @@
 package org.teacon.areacontrol;
 
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -10,7 +10,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.server.permission.PermissionAPI;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -24,7 +24,6 @@ import org.teacon.areacontrol.network.ACSendNearbyArea;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -37,12 +36,12 @@ public enum AreaControlPlayerTracker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
     private static final Marker MARKER = MarkerFactory.getMarker("PlayerTracker");
-    private final Map<UUID, UUID> playerLocation = new HashMap<>();
+    private final Map<UUID, UUID> playerLocation = new ConcurrentHashMap<>();
     private final Set<UUID> playersWithExt = ConcurrentHashMap.newKeySet();
 
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        var player = event.getPlayer();
+        var player = event.getEntity();
         var currentArea = AreaManager.INSTANCE.findBy(player.level, player.blockPosition());
         INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
     }
@@ -58,7 +57,7 @@ public enum AreaControlPlayerTracker {
                 if (prevArea != currentArea) {
                     INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
                     if (AreaProperties.getBool(currentArea, "area.display_welcome_message")) {
-                        player.displayClientMessage(new TranslatableComponent("area_control.claim.welcome", currentArea.name), true);
+                        player.displayClientMessage(Component.translatable("area_control.claim.welcome", currentArea.name), true);
                     }
                 }
                 var mainInv = player.getInventory();
@@ -66,8 +65,8 @@ public enum AreaControlPlayerTracker {
                 AreaChecks.checkInv(mainInv.armor, currentArea, player);
                 AreaChecks.checkInv(mainInv.offhand, currentArea, player);
                 var riding = player.getVehicle();
-                if (riding != null && !AreaChecks.checkProp(currentArea, AreaProperties.ALLOW_RIDE, riding.getType())) {
-                    player.displayClientMessage(new TranslatableComponent("area_control.notice.ride_disabled", riding.getDisplayName()), true);
+                if (riding != null && !AreaChecks.checkProp(currentArea, AreaProperties.ALLOW_RIDE, ForgeRegistries.ENTITY_TYPES.getKey(riding.getType()))) {
+                    player.displayClientMessage(Component.translatable("area_control.notice.ride_disabled", riding.getDisplayName()), true);
                     player.stopRiding();
                 }
             }
@@ -76,7 +75,7 @@ public enum AreaControlPlayerTracker {
 
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        var playerId = event.getPlayer().getGameProfile().getId();
+        var playerId = event.getEntity().getGameProfile().getId();
         INSTANCE.undoMarkPlayer(playerId);
         INSTANCE.playerLocation.remove(playerId);
     }
@@ -94,7 +93,7 @@ public enum AreaControlPlayerTracker {
     public void sendNearbyAreasToClient(ResourceKey<Level> dim, ServerPlayer requester, double radius, boolean permanent) {
         LOGGER.debug(MARKER, "Player {} has requested nearby area. Center: {}, radius: {}", requester.getGameProfile().getName(), requester.blockPosition(), radius);
         var nearbyAreas = AreaManager.INSTANCE.getAreaSummariesSurround(dim, requester.blockPosition(), radius);
-        requester.displayClientMessage(new TranslatableComponent("area_control.claim.nearby", nearbyAreas.size()), false);
+        requester.displayClientMessage(Component.translatable("area_control.claim.nearby", nearbyAreas.size()), false);
         LOGGER.debug(MARKER, "Nearby area count: {}", nearbyAreas.size());
         var summaries = new ArrayList<Area.Summary>();
         for (var nearbyArea : nearbyAreas) {
@@ -107,7 +106,7 @@ public enum AreaControlPlayerTracker {
             var expire = permanent ? Long.MAX_VALUE : System.currentTimeMillis() + 60000;
             ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> requester), new ACSendNearbyArea(summaries, expire));
         } else {
-            requester.displayClientMessage(new TranslatableComponent("area_control.claim.nearby.visual"), false);
+            requester.displayClientMessage(Component.translatable("area_control.claim.nearby.visual"), false);
         }
         LOGGER.debug(MARKER, "End of the request");
     }
@@ -126,5 +125,10 @@ public enum AreaControlPlayerTracker {
         if (this.playersWithExt.contains(receiver.getGameProfile().getId())) {
             ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> receiver), new ACSendCurrentSelection(true, null, null));
         }
+    }
+
+    public Area getCurrentAreaForPlayer(UUID playerUUID) {
+        var areaId = this.playerLocation.get(playerUUID);
+        return AreaManager.INSTANCE.findBy(areaId);
     }
 }

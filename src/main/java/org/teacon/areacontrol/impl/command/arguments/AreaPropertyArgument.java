@@ -7,8 +7,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.synchronization.ArgumentSerializer;
-import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -31,8 +29,6 @@ public class AreaPropertyArgument implements ArgumentType<String> {
     private static final List<String> SUGGEST_ITEM = List.of(AreaProperties.ALLOW_USE_ITEM, "area.allow_possess");
     private static final List<String> SUGGEST_ENTITY = List.of(AreaProperties.ALLOW_PVE, AreaProperties.ALLOW_INTERACT_ENTITY,
             AreaProperties.ALLOW_INTERACT_ENTITY_SP, AreaProperties.ALLOW_SPAWN, AreaProperties.ALLOW_RIDE);
-
-    public static final ArgumentSerializer<AreaPropertyArgument> SERIALIZER = new EmptyArgumentSerializer<>(AreaPropertyArgument::new);
 
     public static AreaPropertyArgument areaProperty() {
         return new AreaPropertyArgument();
@@ -57,7 +53,7 @@ public class AreaPropertyArgument implements ArgumentType<String> {
                 } else if (SUGGEST_ITEM.contains(prop)) {
                     fillSuggestions(current, prop, ForgeRegistries.ITEMS, builder);
                 } else if (SUGGEST_ENTITY.contains(prop)) {
-                    fillSuggestions(current, prop, ForgeRegistries.ENTITIES, builder);
+                    fillSuggestions(current, prop, ForgeRegistries.ENTITY_TYPES, builder);
                 }
             } else if (prop.startsWith(current)) {
                 builder.suggest(prop);

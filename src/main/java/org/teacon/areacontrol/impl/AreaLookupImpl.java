@@ -2,6 +2,7 @@ package org.teacon.areacontrol.impl;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -20,7 +21,7 @@ public enum AreaLookupImpl implements AreaLookup {
     private final Map<String, ResourceKey<Level>> cache = new HashMap<>();
 
     private ResourceKey<Level> getOrCreate(String dimKey) {
-        return this.cache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(k)));
+        return this.cache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registries.DIMENSION, new ResourceLocation(k)));
     }
 
     @Override
@@ -37,7 +38,7 @@ public enum AreaLookupImpl implements AreaLookup {
     @Override
     public Area findBy(String dimKey, double x, double y, double z) {
         var dimResKey = this.getOrCreate(dimKey);
-        return AreaManager.INSTANCE.findBy(dimResKey, new BlockPos(x, y, z));
+        return AreaManager.INSTANCE.findBy(dimResKey, new BlockPos((int) x, (int) y, (int) z));
     }
 
     @Override

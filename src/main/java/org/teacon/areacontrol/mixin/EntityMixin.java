@@ -3,13 +3,14 @@ package org.teacon.areacontrol.mixin;
 import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -50,7 +51,7 @@ public abstract class EntityMixin {
      */
     @Inject(method = "isInvulnerableTo", at = @At("TAIL"), cancellable = true)
     private void damageSrcCheck(DamageSource src, CallbackInfoReturnable<Boolean> cir) {
-        if (!src.isBypassInvul() && !cir.getReturnValueZ() && !this.getLevel().isClientSide()) {
+        if (!src.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && !cir.getReturnValueZ() && !this.getLevel().isClientSide()) {
             var area = AreaManager.INSTANCE.findBy(this.getLevel(), this.blockPosition());
             boolean allow;
             PermissionNode<Boolean> permissionToCheck;
@@ -59,9 +60,9 @@ public abstract class EntityMixin {
             if (Player.class.isInstance(this) && damageSrc instanceof Player) {
                 allow = AreaProperties.getBool(area, AreaProperties.ALLOW_PVP);
                 permissionToCheck = AreaControlPermissions.BYPASS_PVP;
-                deniedFeedback = new TranslatableComponent("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY);
+                deniedFeedback = Component.translatable("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY);
             } else {
-                var entityTypeRegName = this.getType().getRegistryName();
+                var entityTypeRegName = ForgeRegistries.ENTITY_TYPES.getKey(this.getType());
                 var entitySpecificProp = AreaProperties.getBoolOptional(area, AreaProperties.ALLOW_PVE + "." + entityTypeRegName);
                 if (entitySpecificProp.isPresent()) {
                     allow = entitySpecificProp.get();
@@ -70,7 +71,7 @@ public abstract class EntityMixin {
                     allow = modSpecificProp.orElse(AreaProperties.getBool(area, AreaProperties.ALLOW_PVE));
                 }
                 permissionToCheck = AreaControlPermissions.BYPASS_ATTACK;
-                deniedFeedback = new TranslatableComponent("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY);
+                deniedFeedback = Component.translatable("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY);
             }
             if (!allow) {
                 if (src.getEntity() instanceof ServerPlayer srcPlayer) {

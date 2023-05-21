@@ -14,7 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.RegisterShadersEvent;
-import net.minecraftforge.client.event.RenderLevelLastEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -48,13 +48,13 @@ public final class AreaControlClientSupport {
     public static void clientSetup(FMLClientSetupEvent event) {
         LOGGER.info(MARKER, "AreaControl is installed on client; enabling enhanced client support");
 
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ClientPlayerNetworkEvent.LoggedInEvent.class,
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ClientPlayerNetworkEvent.LoggingIn.class,
                 AreaControlClientSupport::afterLogin);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, RenderLevelLastEvent.class,
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, RenderLevelStageEvent.class,
                 AreaControlClientSupport::renderAreaBorder);
     }
 
-    static void afterLogin(ClientPlayerNetworkEvent.LoggedInEvent event) {
+    static void afterLogin(ClientPlayerNetworkEvent.LoggingIn event) {
         ACNetworking.acNetworkChannel.send(PacketDistributor.SERVER.with(null), new ACPingServer());
     }
 
@@ -62,7 +62,10 @@ public final class AreaControlClientSupport {
     public static volatile long knownAreasExpiresAt = 0L;
     public static volatile BlockPos selectionMin, selectionMax;
 
-    static void renderAreaBorder(RenderLevelLastEvent event) {
+    static void renderAreaBorder(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
+            return;
+        }
         final Minecraft mc = Minecraft.getInstance();
         final var transform = event.getPoseStack();
         transform.pushPose();

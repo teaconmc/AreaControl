@@ -7,10 +7,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.minecraft.commands.synchronization.ArgumentSerializer;
-import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,10 +17,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class DirectionArgument implements ArgumentType<Direction> {
 
-    public static final ArgumentSerializer<DirectionArgument> SERIALIZER = new EmptyArgumentSerializer<>(DirectionArgument::new);
-
     private static final Dynamic2CommandExceptionType INVALID_ENUM = new Dynamic2CommandExceptionType(
-            (found, unused) -> new TranslatableComponent("area_control.error.direction_argument", found));
+            (found, unused) -> Component.translatable("area_control.error.direction_argument", found));
 
     private static final List<String> EXAMPLES = List.of("up", "down", "north", "south", "west", "east");
 

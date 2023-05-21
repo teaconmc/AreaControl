@@ -2,8 +2,7 @@ package org.teacon.areacontrol.impl.command.selector;
 
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.minecraft.commands.arguments.selector.options.EntitySelectorOptions;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.Area;
@@ -13,7 +12,7 @@ import java.util.function.Predicate;
 
 public class AreaSelectorOption  {
 
-    public static final SimpleCommandExceptionType ERROR_INVALID_NAME_OR_UUID = new SimpleCommandExceptionType(new TranslatableComponent("argument.entity.invalid"));
+    public static final SimpleCommandExceptionType ERROR_INVALID_NAME_OR_UUID = new SimpleCommandExceptionType(Component.translatable("argument.entity.invalid"));
 
     public static void register() {
         EntitySelectorOptions.register("area", parser -> {
@@ -50,7 +49,7 @@ public class AreaSelectorOption  {
                     }
                 }
             }
-        }, parser -> true, new TextComponent("area"));
+        }, parser -> true, Component.literal("area"));
     }
 
     static final class InsideArea implements Predicate<Entity> {
