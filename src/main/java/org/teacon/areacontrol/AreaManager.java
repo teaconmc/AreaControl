@@ -392,7 +392,7 @@ public final class AreaManager {
     }
 
     public Area findBy(Level worldInstance, Vec3 pos) {
-        var alignedPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
+        var alignedPos = BlockPos.containing(pos);
         return findBy(worldInstance, alignedPos);
     }
 
@@ -411,7 +411,7 @@ public final class AreaManager {
         // (func_234923_W_). Yes, this downcast is cursed, but
         // there is no other ways around.
         // We will see how Mojang proceeds. Specifically, the exact
-        // meaning of Dimension objects. For now, they seems to be
+        // meaning of Dimension objects. For now, they seem to be
         // able to fully qualify a world/dimension.
         return this.findBy(worldInstance.dimension(), pos);
     }
@@ -466,7 +466,7 @@ public final class AreaManager {
     }
 
     public Area findBy(ResourceKey<Level> world, Vec3 pos) {
-        var alignedPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
+        var alignedPos = BlockPos.containing(pos);
         return findBy(world, alignedPos);
     }
 

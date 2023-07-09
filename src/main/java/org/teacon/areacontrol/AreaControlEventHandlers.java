@@ -46,7 +46,7 @@ public final class AreaControlEventHandlers {
 
     //@SubscribeEvent(priority = EventPriority.HIGHEST) // TODO (3TUSK): Re-evaluate
     public static void onSpecialSpawn(MobSpawnEvent event) {
-        final BlockPos spawnPos = new BlockPos((int) event.getX(), (int) event.getY(), (int) event.getZ());
+        final BlockPos spawnPos = BlockPos.containing(event.getX(), event.getY(), event.getZ());
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), spawnPos);
         if (!AreaProperties.getBool(targetArea, "area.allow_special_spawn")) {
             event.setCanceled(true);
