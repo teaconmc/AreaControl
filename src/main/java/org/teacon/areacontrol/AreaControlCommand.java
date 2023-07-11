@@ -10,7 +10,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.GameProfileArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -97,14 +96,6 @@ public final class AreaControlCommand {
                                                 .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
                                                         .executes(AreaControlCommand::unsetProperty)))
                                         .executes(AreaControlCommand::listProperties))
-                                .then(Commands.literal("tags")
-                                        .then(Commands.literal("add")
-                                                .then(Commands.argument("tag", ResourceLocationArgument.id())
-                                                        .executes(AreaControlCommand::addTag)))
-                                        .then(Commands.literal("remove")
-                                                .then(Commands.argument("tag", ResourceLocationArgument.id())
-                                                        .executes(AreaControlCommand::removeTag)))
-                                        .executes(AreaControlCommand::listTags))
                                 .executes(AreaControlCommand::displayCurrent))
                          .then(Commands.literal("mine")
                                  .executes(AreaControlCommand::displayMine))
@@ -389,46 +380,6 @@ public final class AreaControlCommand {
             }
         } else {
             src.sendFailure(Component.translatable("area_control.error.cannot_set_property", area.name));
-            return -1;
-        }
-    }
-
-    private static int listTags(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        final var src = context.getSource();
-        final var server = src.getServer();
-        final var profileCache = server.getProfileCache();
-        final var playerList = server.getPlayerList();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
-        src.sendSuccess(Component.literal(area.tags + " tag(s): " + String.join(", ", area.tags)), false);
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int addTag(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
-        final var player = src.getPlayerOrException();
-        if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
-            final var tag = ResourceLocationArgument.getId(context, "tag");
-            String message = area.tags.add(tag.toString()) ? "area_control.claim.tag.added" : "area_control.claim.tag.existed";
-            src.sendSuccess(Component.translatable(message, area.name, tag), false);
-            return Command.SINGLE_SUCCESS;
-        } else {
-            src.sendFailure(Component.translatable("area_control.error.cannot_set_tag", area.name));
-            return -1;
-        }
-    }
-
-    private static int removeTag(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
-        final var player = src.getPlayerOrException();
-        if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
-            final var tag = ResourceLocationArgument.getId(context, "tag");
-            String message = area.tags.remove(tag.toString()) ? "area_control.claim.friend.removed" : "area_control.claim.friend.not_yet";
-            src.sendSuccess(Component.translatable(message, area.name, tag), false);
-            return Command.SINGLE_SUCCESS;
-        } else {
-            src.sendFailure(Component.translatable("area_control.error.cannot_set_tag", area.name));
             return -1;
         }
     }

@@ -89,8 +89,6 @@ public class TomlBasedAreaRepository implements AreaRepository {
         public UUID uid;
         @SpecNotNull
         public String name;
-        // Can be null for legacy areas
-        public List<String> tags = new ArrayList<>();
         @SpecNotNull
         public String dimension = "minecraft:overworld";
         @Conversion(UUIDConverter.class)
@@ -115,7 +113,6 @@ public class TomlBasedAreaRepository implements AreaRepository {
         public AreaModel(Area realArea) {
             this.uid = realArea.uid;
             this.name = realArea.name;
-            this.tags = new ArrayList<>(realArea.tags);
             this.dimension = realArea.dimension;
             this.owner = realArea.owner;
             this.friends = realArea.friends;
@@ -129,10 +126,6 @@ public class TomlBasedAreaRepository implements AreaRepository {
             var area = new Area();
             area.uid = this.uid;
             area.name = this.name;
-            area.tags = new ObjectArraySet<>();
-            if (this.tags != null) {
-                area.tags.addAll(this.tags);
-            }
             area.dimension = this.dimension;
             area.owner = this.owner;
             area.friends = new ObjectArraySet<>(this.friends);

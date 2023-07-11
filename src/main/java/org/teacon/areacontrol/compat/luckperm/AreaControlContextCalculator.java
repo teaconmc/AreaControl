@@ -20,7 +20,6 @@ public enum AreaControlContextCalculator implements ContextCalculator<ServerPlay
     private static final String CONTEXT_AREA_NAME = "area_control:current_area_name";
     private static final String CONTEXT_OWNER = "area_control:owning_current_position";
     private static final String CONTEXT_ALLY = "area_control:ally_of_current_position";
-    private static final String CONTEXT_TAG = "area_control:tag";
 
     @Override
     public void calculate(@NonNull ServerPlayer target, @NonNull ContextConsumer consumer) {
@@ -34,9 +33,6 @@ public enum AreaControlContextCalculator implements ContextCalculator<ServerPlay
         consumer.accept(CONTEXT_ALLY, Boolean.toString(area.friends.contains(uid) || uid.equals(area.owner)));
         for (var prop : area.properties.entrySet()) {
             consumer.accept("area_control:property/" + prop.getKey(), Objects.toString(prop.getValue().toString()));
-        }
-        for (var tag : area.tags) {
-            consumer.accept(CONTEXT_TAG, tag);
         }
     }
 }
