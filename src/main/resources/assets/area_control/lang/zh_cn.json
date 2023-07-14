@@ -9,7 +9,7 @@
   "area_control.claim.range": "范围为从 %1$s 到 %2$s", 
   "area_control.claim.marked": "AreaControl：已选定位置 %s",
   "area_control.claim.created": "AreaControl：成功声明领地 '%1$s'（%2$s）",
-  "area_control.claim.abandoned": "AreaControl: 成功放弃领地 %s（内部名称 %s，%s）",
+  "area_control.claim.abandoned": "AreaControl: 成功放弃领地 %s（%s）",
 
   "area_control.claim.welcome": "欢迎来到%s",
   "area_control.claim.detail": "  - 领地 '%s'，位于维度 %s 中，%s %s %s",

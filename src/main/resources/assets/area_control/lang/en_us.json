@@ -9,7 +9,7 @@
   "area_control.claim.range": "from %1$s to %2$s", 
   "area_control.claim.marked": "AreaControl: Marked position %s",
   "area_control.claim.created": "AreaControl: Successfully created claimed area '%1$s', %2$s",
-  "area_control.claim.abandoned": "AreaControl: Claim %s (internally as %s, %s) has now been abandoned",
+  "area_control.claim.abandoned": "AreaControl: Claim %s (%s) has now been abandoned",
   
   "area_control.claim.welcome": "Welcome to %s",
   "area_control.claim.detail": "  - Area '%s', in dimension %s, %s %s %s",

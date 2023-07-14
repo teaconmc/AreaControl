@@ -523,12 +523,10 @@ public final class AreaControlCommand {
             if (area.owner.equals(claimer.getGameProfile().getId()) || PermissionAPI.getPermission(claimer, AreaControlPermissions.UNCLAIM_AREA)) {
                 AreaManager.INSTANCE.remove(area, worldIndex);
                 src.sendSuccess(Component.translatable("area_control.claim.abandoned",
-                        AreaProperties.getString(area, "area.display_name", area.name),
                         area.name, Util.toGreenText(area)), false);
                 return Command.SINGLE_SUCCESS;
             } else {
                 src.sendFailure(Component.translatable("area_control.error.unclaim_without_permission",
-                        AreaProperties.getString(area, "area.display_name", area.name),
                         area.name, Util.toGreenText(area)));
                 return -1;
             }
