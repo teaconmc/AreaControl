@@ -91,9 +91,9 @@ public class TomlBasedAreaRepository implements AreaRepository {
         public String name;
         @SpecNotNull
         public String dimension = "minecraft:overworld";
-        @Conversion(UUIDConverter.class)
+        @Conversion(UUIDCollectionConverter.class)
         @SpecNotNull
-        public UUID owner = new UUID(0L, 0L);
+        public Collection<UUID> owners = new HashSet<>();
         @Conversion(UUIDCollectionConverter.class)
         public Collection<UUID> friends = new HashSet<>();
         @Conversion(BlockPosConverter.class)
@@ -114,8 +114,8 @@ public class TomlBasedAreaRepository implements AreaRepository {
             this.uid = realArea.uid;
             this.name = realArea.name;
             this.dimension = realArea.dimension;
-            this.owner = realArea.owner;
-            this.friends = realArea.friends;
+            this.owners = realArea.owners;
+            this.friends = realArea.builders;
             this.min = new BlockPos(realArea.minX, realArea.minY, realArea.minZ);
             this.max = new BlockPos(realArea.maxX, realArea.maxY, realArea.maxZ);
             this.belongingArea = realArea.belongingArea;
@@ -127,8 +127,8 @@ public class TomlBasedAreaRepository implements AreaRepository {
             area.uid = this.uid;
             area.name = this.name;
             area.dimension = this.dimension;
-            area.owner = this.owner;
-            area.friends = new ObjectArraySet<>(this.friends);
+            area.owners = new ObjectArraySet<>(this.owners);
+            area.builders = new ObjectArraySet<>(this.friends);
             area.minX = Math.min(this.min.getX(), this.max.getX());
             area.minY = Math.min(this.min.getY(), this.max.getY());
             area.minZ = Math.min(this.min.getZ(), this.max.getZ());

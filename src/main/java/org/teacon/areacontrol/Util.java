@@ -14,13 +14,10 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.teacon.areacontrol.api.Area;
 
-import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 public final class Util {
-
-    public static final UUID SYSTEM = new UUID(0L, 0L);
 
     public static Component toGreenText(BlockPos pos) {
         return Component.translatable("area_control.claim.pos", pos.getX(), pos.getY(), pos.getZ())
@@ -95,8 +92,13 @@ public final class Util {
     }
 
     public static Component getOwnerName(Area area, GameProfileCache profileCache, PlayerList onlinePlayers) {
-        final UUID owner = area.owner;
-        return owner == null || SYSTEM.equals(owner) ? Component.literal("System") : getPlayerDisplayName(owner, profileCache, onlinePlayers);
+        if (area.owners.isEmpty()) {
+            return Component.literal("暂缺"); // FIXME Translatable
+        } else {
+            final UUID owner = area.owners.iterator().next();
+            var oneName = getPlayerDisplayName(owner, profileCache, onlinePlayers);
+            return area.owners.size() == 1 ? oneName : Component.translatable("area_control.claim.owner.multiple", oneName);
+        }
     }
 
     public static Component getPlayerDisplayName(UUID playerUid, GameProfileCache profileCache, PlayerList onlinePlayers) {

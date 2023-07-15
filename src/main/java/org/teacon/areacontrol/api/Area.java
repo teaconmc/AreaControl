@@ -6,18 +6,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.teacon.areacontrol.Util;
-
 /**
  * A cuboid area defined by dimension id, min. coordinate and max. coordinate.
  */
 public final class Area {
-
-    /**
-     * A special owner UUID that denotes an area as "global".
-     * Areas with this owner is also considered as "wildness".
-     */
-    public static final UUID GLOBAL_AREA_OWNER = new UUID(0L, 0L);
 	
 	public UUID uid = UUID.randomUUID();
 
@@ -25,8 +17,8 @@ public final class Area {
 
     public String dimension = "minecraft:overworld";
     
-    public UUID owner = GLOBAL_AREA_OWNER;
-    public Set<UUID> friends = new HashSet<>();
+    public Set<UUID> owners = new HashSet<>();
+    public Set<UUID> builders = new HashSet<>();
 
     public int minX, minY, minZ, maxX, maxY, maxZ;
     public UUID belongingArea = null;

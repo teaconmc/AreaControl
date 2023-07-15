@@ -27,10 +27,8 @@ public enum AreaControlContextCalculator implements ContextCalculator<ServerPlay
         var area = AreaControlPlayerTracker.INSTANCE.getCurrentAreaForPlayer(uid);
         consumer.accept(CONTEXT_AREA_ID, area.uid.toString());
         consumer.accept(CONTEXT_AREA_NAME, area.name);
-        if (area.owner != null) {
-            consumer.accept(CONTEXT_OWNER, Boolean.toString(uid.equals(area.owner)));
-        }
-        consumer.accept(CONTEXT_ALLY, Boolean.toString(area.friends.contains(uid) || uid.equals(area.owner)));
+        consumer.accept(CONTEXT_OWNER, Boolean.toString(area.owners.contains(uid)));
+        consumer.accept(CONTEXT_ALLY, Boolean.toString(area.builders.contains(uid) || area.owners.contains(uid)));
         for (var prop : area.properties.entrySet()) {
             consumer.accept("area_control:property/" + prop.getKey(), Objects.toString(prop.getValue().toString()));
         }

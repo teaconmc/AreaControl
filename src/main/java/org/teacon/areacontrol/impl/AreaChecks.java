@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
+import org.jetbrains.annotations.Nullable;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 
@@ -16,21 +17,21 @@ import java.util.List;
 
 public class AreaChecks {
 
-    public static boolean allow(Player p, Area area, PermissionNode<Boolean> perm) {
+    public static boolean allow(Player p, @Nullable Area area, PermissionNode<Boolean> perm) {
         var uuid = p.getGameProfile().getId();
-        boolean isFriend = area.owner.equals(uuid) || area.friends.contains(uuid);
+        boolean isFriend = area != null && (area.owners.contains(uuid) || area.builders.contains(uuid));
         if (!isFriend && p instanceof ServerPlayer sp) {
             isFriend = PermissionAPI.getPermission(sp, perm);
         }
         return isFriend;
     }
 
-    public static boolean allow(ServerPlayer p, Area area, PermissionNode<Boolean> perm) {
+    public static boolean allow(ServerPlayer p, @Nullable Area area, PermissionNode<Boolean> perm) {
         var uuid = p.getGameProfile().getId();
-        return area.owner.equals(uuid) || area.friends.contains(uuid) || PermissionAPI.getPermission(p, perm);
+        return (area != null && (area.owners.contains(uuid) || area.builders.contains(uuid))) || PermissionAPI.getPermission(p, perm);
     }
 
-    public static void checkInv(List<ItemStack> inv, Area currentArea, Player player) {
+    public static void checkInv(List<ItemStack> inv, @Nullable Area currentArea, Player player) {
         var invSize = inv.size();
         for (int i = 0; i < invSize; i++) {
             var item = inv.get(i);

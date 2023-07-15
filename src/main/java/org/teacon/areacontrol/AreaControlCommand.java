@@ -30,7 +30,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.teacon.areacontrol.api.Area;
-import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
 import org.teacon.areacontrol.impl.command.arguments.DirectionArgument;
@@ -41,6 +40,8 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 public final class AreaControlCommand {
+
+    private static final Component ERROR_WILD = Component.translatable("area_control.claim.current.wildness");
 
     public AreaControlCommand(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("ac")
@@ -173,7 +174,7 @@ public final class AreaControlCommand {
         final var worldIndex = src.getLevel().dimension();
         final UUID claimerUUID = claimer.getGameProfile().getId();
         if (claimerUUID != null) {
-            area.owner = claimerUUID;
+            area.owners.add(claimerUUID);
         }
         if (AreaManager.INSTANCE.add(area, worldIndex)) {
             src.sendSuccess(Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
@@ -243,7 +244,7 @@ public final class AreaControlCommand {
         final var worldIndex = src.getLevel().dimension();
         final UUID claimerUUID = claimer.getGameProfile().getId();
         if (claimerUUID != null) {
-            area.owner = claimerUUID;
+            area.owners.add(claimerUUID);
         }
         if (AreaManager.INSTANCE.add(area, worldIndex)) {
             src.sendSuccess(Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
@@ -268,7 +269,7 @@ public final class AreaControlCommand {
             final Area area = Util.createArea(recordPos.start(), recordPos.end());
             final UUID claimerUUID = claimer.getGameProfile().getId();
             if (claimerUUID != null) {
-            	area.owner = claimerUUID;
+            	area.owners.add(claimerUUID);
             }
             final var worldIndex = src.getLevel().dimension();
             if (AreaManager.INSTANCE.add(area, worldIndex)) {
@@ -296,11 +297,11 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final var server = src.getServer();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
-        final var areaUUID = Component.translatable("area_control.claim.current.uuid")
-                .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.uid.toString()))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_uuid")))
-                        .withColor(ChatFormatting.DARK_AQUA));
-        if (!area.owner.equals(Area.GLOBAL_AREA_OWNER)) {
+        if (area != null) {
+            final var areaUUID = Component.translatable("area_control.claim.current.uuid")
+                    .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.uid.toString()))
+                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_uuid")))
+                            .withColor(ChatFormatting.DARK_AQUA));
             final String name = area.name;
             final var areaName = Component.literal(name)
                     .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, name))
@@ -314,7 +315,7 @@ public final class AreaControlCommand {
                 src.sendSuccess(Component.translatable("area_control.claim.current.enclosed", enclosingArea.name, enclosingAreaOwnerName), true);
             }
         } else {
-            src.sendSuccess(Component.translatable("area_control.claim.current.wildness", areaUUID), true);
+            src.sendSuccess(ERROR_WILD, true);
         }
         return Command.SINGLE_SUCCESS;
     }
@@ -366,7 +367,7 @@ public final class AreaControlCommand {
         final var level = src.getLevel();
         final var pos = src.getPosition();
         final var area = AreaManager.INSTANCE.findBy(level, pos);
-        if (area.owner.equals(requesterId) || area.friends.contains(requesterId) || PermissionAPI.getPermission(requester, AreaControlPermissions.SET_PROPERTY)) {
+        if (area.owners.contains(requesterId) || area.builders.contains(requesterId) || PermissionAPI.getPermission(requester, AreaControlPermissions.SET_PROPERTY)) {
             final var direction = context.getArgument("direction", Direction.class);
             final var amount = context.getArgument("amount", Integer.class);
             if (AreaManager.INSTANCE.changeRangeForArea(level.dimension(), area, direction, amount)) {
@@ -390,13 +391,16 @@ public final class AreaControlCommand {
         final var profileCache = server.getProfileCache();
         final var playerList = server.getPlayerList();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
-        // TODO Check if it is wildness
-        src.sendSuccess(Component.translatable("area_control.claim.friend.list.header", area.name), false);
-        final var friends = area.friends;
-        for (var friend :friends) {
-            src.sendSuccess(Component.translatable("area_control.claim.friend.list.entry", Util.getPlayerDisplayName(friend, profileCache, playerList)), false);
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
         }
-        src.sendSuccess(Component.translatable("area_control.claim.friend.list.footer", friends.size()), false);
+        src.sendSuccess(Component.translatable("area_control.claim.builder.list.header", area.name), false);
+        final var builders = area.builders;
+        for (var builder :builders) {
+            src.sendSuccess(Component.translatable("area_control.claim.builder.list.entry", Util.getPlayerDisplayName(builder, profileCache, playerList)), false);
+        }
+        src.sendSuccess(Component.translatable("area_control.claim.builder.list.footer", builders.size()), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -404,12 +408,15 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
-        if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
             final var friendProfiles = GameProfileArgument.getGameProfiles(context, "friend");
             int count = 0;
             for (var friendProfile : friendProfiles) {
                 var uid = friendProfile.getId();
-                String message = !area.owner.equals(uid) && area.friends.add(uid) ? "area_control.claim.friend.added" : "area_control.claim.friend.existed";
+                String message = !area.owners.contains(uid) && area.builders.add(uid) ? "area_control.claim.friend.added" : "area_control.claim.friend.existed";
                 src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
             }
             return count;
@@ -423,11 +430,14 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
-        if (player.getGameProfile().getId().equals(area.owner) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
             final var friendProfiles = GameProfileArgument.getGameProfiles(context, "friend");
             int count = 0;
             for (var friendProfile : friendProfiles) {
-                String message = area.friends.remove(friendProfile.getId()) ? "area_control.claim.friend.removed" : "area_control.claim.friend.not_yet";
+                String message = area.builders.remove(friendProfile.getId()) ? "area_control.claim.friend.removed" : "area_control.claim.friend.not_yet";
                 src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
             }
             return count;
@@ -440,6 +450,10 @@ public final class AreaControlCommand {
     private static int listProperties(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        }
         final var properties = area.properties;
         src.sendSuccess(Component.translatable("area_control.claim.property.list.header", area.name), false);
         for (var prop : properties.entrySet()) {
@@ -453,7 +467,10 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
-        if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
             final String prop = context.getArgument("property", String.class);
             final Object value = area.properties.get(prop);
             Component msg;
@@ -474,7 +491,10 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
-        if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
             final String prop = context.getArgument("property", String.class);
             final String value = context.getArgument("value", String.class);
             final Object oldValue = area.properties.put(prop, value);
@@ -491,7 +511,10 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
-        if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
             final String prop = context.getArgument("property", String.class);
             final Object oldValue = area.properties.remove(prop);
             src.sendSuccess(Component.translatable("area_control.claim.property.unset",
@@ -519,8 +542,8 @@ public final class AreaControlCommand {
         final var claimer = src.getPlayerOrException();
         final ResourceKey<Level> worldIndex = src.getLevel().dimension();
         final Area area = AreaManager.INSTANCE.findBy(worldIndex, src.getPosition());
-        if (!area.owner.equals(Area.GLOBAL_AREA_OWNER)) {
-            if (area.owner.equals(claimer.getGameProfile().getId()) || PermissionAPI.getPermission(claimer, AreaControlPermissions.UNCLAIM_AREA)) {
+        if (area != null) {
+            if (area.owners.contains(claimer.getGameProfile().getId()) || PermissionAPI.getPermission(claimer, AreaControlPermissions.UNCLAIM_AREA)) {
                 AreaManager.INSTANCE.remove(area, worldIndex);
                 src.sendSuccess(Component.translatable("area_control.claim.abandoned",
                         area.name, Util.toGreenText(area)), false);

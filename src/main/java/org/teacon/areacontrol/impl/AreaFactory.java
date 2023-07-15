@@ -1,36 +1,14 @@
 package org.teacon.areacontrol.impl;
 
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.Level;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 
 public final class AreaFactory {
 
-    public static Area defaultWildness(ResourceKey<Level> levelId) {
-        var wildness = new Area();
-        wildness.owner = Area.GLOBAL_AREA_OWNER;
-        wildness.name = "Wildness of " + levelId.location();
-        wildness.dimension = levelId.location().toString();
-        wildness.minX = Integer.MIN_VALUE;
-        wildness.minY = Integer.MIN_VALUE;
-        wildness.minZ = Integer.MIN_VALUE;
-        wildness.maxX = Integer.MAX_VALUE;
-        wildness.maxY = Integer.MAX_VALUE;
-        wildness.maxZ = Integer.MAX_VALUE;
-        wildness.properties.put("area.allow_click_block", Boolean.TRUE);
-        wildness.properties.put("area.allow_activate_block", Boolean.TRUE);
-        wildness.properties.put("area.allow_use_item", Boolean.TRUE);
-        wildness.properties.put("area.allow_interact_entity", Boolean.TRUE);
-        wildness.properties.put("area.allow_interact_entity_specific", Boolean.TRUE);
-        wildness.properties.put(AreaProperties.ALLOW_SPAWN, Boolean.TRUE);
-        return wildness;
-    }
-
     public static Area singlePlayerWildness() {
         // TODO Too brutal, need a clever way
         var singlePlayerWildness = new Area();
-        singlePlayerWildness.uid = Area.GLOBAL_AREA_OWNER;
+        singlePlayerWildness.uid = null;
         singlePlayerWildness.name = "Single-player Wildness";
         singlePlayerWildness.dimension = "minecraft:overworld";
         singlePlayerWildness.minX = Integer.MIN_VALUE;

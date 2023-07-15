@@ -15,8 +15,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
@@ -30,6 +28,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.server.ServerLifecycleHooks;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
@@ -65,11 +64,6 @@ public final class AreaManager {
      * areas in a larger range.
      */
     private final IdentityHashMap<ResourceKey<Level>, Set<UUID>> areasByWorld = new IdentityHashMap<>();
-    /**
-     * All instances of "wildness" area, indexed by dimension.
-     * They all have owner as {@link Area#GLOBAL_AREA_OWNER}.
-     */
-    private final IdentityHashMap<ResourceKey<Level>, UUID> wildnessByWorld = new IdentityHashMap<>();
 
     // Apparently create a ResourceKey involves String.intern(), so here we go...
     private final Map<String, ResourceKey<Level>> levelKeyCache = new HashMap<>();
@@ -89,10 +83,6 @@ public final class AreaManager {
             areas.add(area.uid);
             return areas;
         });
-        if (Area.GLOBAL_AREA_OWNER.equals(area.owner)) {
-            this.wildnessByWorld.put(worldIndex, area.uid);
-            return;
-        }
         final var areasInDim = this.perWorldAreaCache.computeIfAbsent(worldIndex, id -> new HashMap<>());
 
         ChunkPos.rangeClosed(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))
@@ -106,7 +96,6 @@ public final class AreaManager {
         this.areasByName.clear();
         this.areasByWorld.clear();
         this.perWorldAreaCache.clear();
-        this.wildnessByWorld.clear();
     }
 
     void load() throws Exception {
@@ -222,9 +211,9 @@ public final class AreaManager {
                 // If not, we consider this to be a success.
                 if (noEnclosing) {
                     this.buildCacheFor(area, worldIndex);
-                    area.properties.putAll(theEnclosingArea.properties);
-                    // Copy default settings over
-                    if (!theEnclosingArea.owner.equals(Area.GLOBAL_AREA_OWNER)) {
+                    if (theEnclosingArea != null) {
+                        area.properties.putAll(theEnclosingArea.properties);
+                        // Copy default settings over
                         area.belongingArea = theEnclosingArea.uid;
                         theEnclosingArea.subAreas.add(area.uid);
                     }
@@ -273,7 +262,7 @@ public final class AreaManager {
         if (amount == 0) { // Who would do that?!
             return true;
         }
-        if (direction == null || Area.GLOBAL_AREA_OWNER.equals(area.owner)) {
+        if (direction == null) {
             return false;
         }
         // Calculate the range after change
@@ -386,8 +375,7 @@ public final class AreaManager {
      * @return The area instance
      * @see #findBy(ResourceKey, BlockPos)
      */
-    @Nonnull
-    public Area findBy(GlobalPos pos) {
+    public @Nullable Area findBy(GlobalPos pos) {
         return this.findBy(pos.dimension(), pos.pos());
     }
 
@@ -396,8 +384,7 @@ public final class AreaManager {
         return findBy(worldInstance, alignedPos);
     }
 
-    @Nonnull
-    public Area findBy(Level worldInstance, BlockPos pos) {
+    public @Nullable Area findBy(Level worldInstance, BlockPos pos) {
         if (!DEBUG && AreaControl.singlePlayerServerChecker.test(worldInstance.getServer())) {
             return this.singlePlayerWildness;
         }
@@ -416,7 +403,7 @@ public final class AreaManager {
         return this.findBy(worldInstance.dimension(), pos);
     }
 
-    public @Nonnull Area findBy(LevelAccessor maybeLevel, BlockPos pos) {
+    public @Nullable Area findBy(LevelAccessor maybeLevel, BlockPos pos) {
         if (!DEBUG && AreaControl.singlePlayerServerChecker.test(maybeLevel.getServer())) {
             return this.singlePlayerWildness;
         }
@@ -428,7 +415,7 @@ public final class AreaManager {
             LOGGER.debug("Use LevelAccessor.dimensionType() to determine dimension id at best effort");
             var server = ServerLifecycleHooks.getCurrentServer();
             if (server == null) {
-                return findDefaultBy(Level.OVERWORLD);
+                return null;
             }
             RegistryAccess registryAccess = server.registryAccess();
             var maybeDimRegistry = registryAccess.registry(Registries.DIMENSION_TYPE);
@@ -441,41 +428,21 @@ public final class AreaManager {
             } else {
                 LOGGER.warn("Detect that the DimensionType registry itself is missing. This should be impossible. Treat as overworld wildness instead.");
             }
-            return findDefaultBy(Level.OVERWORLD);
+            return null;
         }
     }
 
-    @Nonnull
-    public Area findDefaultBy(ResourceKey<Level> key) {
-        var writeLock = this.lock.writeLock();
-        try {
-            writeLock.lock();
-            var areaUid = this.wildnessByWorld.get(key);
-            if (areaUid != null) {
-                var area = this.areasById.get(areaUid);
-                if (area != null) {
-                    return area;
-                }
-            }
-            var newCreated = AreaFactory.defaultWildness(key);
-            buildCacheFor(newCreated, key);
-            return newCreated;
-        } finally {
-            writeLock.unlock();
-        }
-    }
-
-    public Area findBy(ResourceKey<Level> world, Vec3 pos) {
+    public @Nullable Area findBy(ResourceKey<Level> world, Vec3 pos) {
         var alignedPos = BlockPos.containing(pos);
         return findBy(world, alignedPos);
     }
 
-    @Nonnull
+    @Nullable
     public Area findBy(ResourceKey<Level> world, BlockPos pos) {
         return findWithExclusion(world, pos, null);
     }
 
-    @Nonnull
+    @Nullable
     public Area findWithExclusion(ResourceKey<Level> world, BlockPos pos, Area excluded) {
         var readLock = this.lock.readLock();
         try {
@@ -541,7 +508,8 @@ public final class AreaManager {
         } finally {
             readLock.unlock();
         }
-        return findDefaultBy(world);
+        //return findDefaultBy(world);
+        return null;
     }
 
     public Area findBy(UUID uid) {
@@ -555,7 +523,7 @@ public final class AreaManager {
     }
 
     public Collection<Area> findByOwner(UUID ownerId) {
-        return this.areasById.values().stream().filter(area -> ownerId.equals(area.owner)).toList();
+        return this.areasById.values().stream().filter(area -> area.owners.contains(ownerId)).toList();
     }
 
     public Area findBy(String name) {
@@ -575,7 +543,7 @@ public final class AreaManager {
             var ret = new ArrayList<Area>();
             for (var uuid : this.areasByWorld.getOrDefault(dim, Collections.emptySet())) {
                 Area area = this.areasById.get(uuid);
-                if (area == null || Area.GLOBAL_AREA_OWNER.equals(area.owner)) continue;
+                if (area == null) continue;
                 int xDiff = area.minX + (area.maxX - area.minX) / 2 - center.getX(), zDiff = area.minZ + (area.maxZ - area.minZ) / 2 - center.getZ();
                 if (Math.abs(xDiff) < radius && Math.abs(zDiff) < radius) {
                     ret.add(area);

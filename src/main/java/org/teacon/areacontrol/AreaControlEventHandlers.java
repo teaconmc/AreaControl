@@ -38,7 +38,8 @@ public final class AreaControlEventHandlers {
             }
             final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel().dimension(), event.getEntity().blockPosition());
             final var entityId = ForgeRegistries.ENTITY_TYPES.getKey(entityInQuestion.getType());
-            if (!AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_SPAWN, entityId)) {
+            // FIXME[3TUSK]: When targetArea is null, we should fallback to the wildness
+            if (targetArea != null && !AreaChecks.checkProp(targetArea, AreaProperties.ALLOW_SPAWN, entityId)) {
                 event.setCanceled(true);
             }
         }

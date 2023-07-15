@@ -58,19 +58,6 @@ public class JsonBasedAreaRepository implements AreaRepository {
                 ret.addAll(Arrays.asList(GSON.fromJson(reader, Area[].class)));
             }
         }
-        Path oldWildness = dataDirRoot.resolve("wildness.json");
-        if (Files.isRegularFile(oldWildness)) {
-            boolean success = false;
-            try (Reader reader = Files.newBufferedReader(oldWildness)) {
-                Area wildness = GSON.fromJson(reader, Area.class);
-                wildness.uid = UUID.randomUUID();
-                wildness.owner = Area.GLOBAL_AREA_OWNER;
-                success = ret.add(wildness);
-            }
-            if (success) {
-                Files.deleteIfExists(oldWildness);
-            }
-        }
         return ret;
     }
 

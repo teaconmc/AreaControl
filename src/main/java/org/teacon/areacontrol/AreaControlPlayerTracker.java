@@ -43,7 +43,11 @@ public enum AreaControlPlayerTracker {
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         var player = event.getEntity();
         var currentArea = AreaManager.INSTANCE.findBy(player.level, player.blockPosition());
-        INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
+        if (currentArea == null) {
+            INSTANCE.playerLocation.remove(player.getGameProfile().getId());
+        } else {
+            INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
+        }
     }
 
     @SubscribeEvent
@@ -55,9 +59,13 @@ public enum AreaControlPlayerTracker {
                 var prevArea = AreaManager.INSTANCE.findBy(prevAreaId);
                 var currentArea = AreaManager.INSTANCE.findBy(player.level, player.blockPosition());
                 if (prevArea != currentArea) {
-                    INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
-                    if (AreaProperties.getBool(currentArea, "area.display_welcome_message")) {
-                        player.displayClientMessage(Component.translatable("area_control.claim.welcome", currentArea.name), true);
+                    if (currentArea == null) {
+                        INSTANCE.playerLocation.remove(player.getGameProfile().getId());
+                    } else {
+                        INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
+                        if (AreaProperties.getBool(currentArea, "area.display_welcome_message")) {
+                            player.displayClientMessage(Component.translatable("area_control.claim.welcome", currentArea.name), true);
+                        }
                     }
                 }
                 var mainInv = player.getInventory();

@@ -7,11 +7,6 @@ public class AreaControlAPI {
     public static AreaLookup areaLookup = new AreaLookup() {
 
         @Override
-        public Area findWildnessOf(String dimKey) {
-            throw new IllegalStateException("Not initialized yet!");
-        }
-
-        @Override
         public Area findBy(UUID areaUid) {
             throw new IllegalStateException("Not initialized yet!");
         }

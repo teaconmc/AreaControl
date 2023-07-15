@@ -1,6 +1,8 @@
 package org.teacon.areacontrol.api;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -48,11 +50,12 @@ public final class AreaProperties {
         return area.properties.containsKey(key);
     }
 
-    public static boolean getBool(Area area, String key) {
+    public static boolean getBool(@Nullable Area area, String key) {
         return getBool(area, key, true);
     }
 
-    public static boolean getBool(Area area, String key, boolean recursive) {
+    public static boolean getBool(@Nullable Area area, String key, boolean recursive) {
+        if (area == null) return false;
         Object o = area.properties.get(key);
         if (o == null || "null".equals(o)) {
             if (recursive) {
@@ -60,8 +63,7 @@ public final class AreaProperties {
                     var parent = AreaControlAPI.areaLookup.findBy(area.belongingArea);
                     return getBool(parent, key, true);
                 } else {
-                    var wildness = AreaControlAPI.areaLookup.findWildnessOf(area.dimension);
-                    return getBool(wildness, key, false);
+                    return false;
                 }
             } else {
                 return false;
@@ -78,7 +80,8 @@ public final class AreaProperties {
         return getBoolOptional(area, key, true);
     }
 
-    public static Optional<Boolean> getBoolOptional(Area area, String key, boolean recursive) {
+    public static Optional<Boolean> getBoolOptional(@Nullable Area area, String key, boolean recursive) {
+        if (area == null) return Optional.empty();
         Object o = area.properties.get(key);
         if (o == null || "null".equals(o)) {
             if (recursive) {
@@ -86,8 +89,7 @@ public final class AreaProperties {
                     var parent = AreaControlAPI.areaLookup.findBy(area.belongingArea);
                     return getBoolOptional(parent, key, true);
                 } else {
-                    var wildness = AreaControlAPI.areaLookup.findWildnessOf(area.dimension);
-                    return getBoolOptional(wildness, key, false);
+                    return Optional.empty();
                 }
             } else {
                 return Optional.empty();
@@ -97,7 +99,7 @@ public final class AreaProperties {
         }
     }
 
-    private static boolean getBool(@Nonnull Object o) {
+    private static boolean getBool(@NotNull Object o) {
         if (o instanceof Boolean) {
             return (Boolean) o;
         } else if (o instanceof Number) {
