@@ -94,8 +94,12 @@ public class TomlBasedAreaRepository implements AreaRepository {
         @Conversion(UUIDCollectionConverter.class)
         @SpecNotNull
         public Collection<UUID> owners = new HashSet<>();
+        @SpecNotNull
+        public List<String> ownerGroups = new ArrayList<>();
         @Conversion(UUIDCollectionConverter.class)
-        public Collection<UUID> friends = new HashSet<>();
+        public Collection<UUID> builders = new HashSet<>();
+        @SpecNotNull
+        public List<String> builderGroups = new ArrayList<>();
         @Conversion(BlockPosConverter.class)
         @SpecNotNull
         public BlockPos min = new BlockPos(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
@@ -115,7 +119,9 @@ public class TomlBasedAreaRepository implements AreaRepository {
             this.name = realArea.name;
             this.dimension = realArea.dimension;
             this.owners = realArea.owners;
-            this.friends = realArea.builders;
+            this.ownerGroups = new ArrayList<>(realArea.ownerGroups);
+            this.builders = realArea.builders;
+            this.builderGroups = new ArrayList<>(realArea.builderGroups);
             this.min = new BlockPos(realArea.minX, realArea.minY, realArea.minZ);
             this.max = new BlockPos(realArea.maxX, realArea.maxY, realArea.maxZ);
             this.belongingArea = realArea.belongingArea;
@@ -128,7 +134,9 @@ public class TomlBasedAreaRepository implements AreaRepository {
             area.name = this.name;
             area.dimension = this.dimension;
             area.owners = new ObjectArraySet<>(this.owners);
-            area.builders = new ObjectArraySet<>(this.friends);
+            area.ownerGroups = new ObjectArraySet<>(this.ownerGroups);
+            area.builders = new ObjectArraySet<>(this.builders);
+            area.builderGroups = new ObjectArraySet<>(this.builderGroups);
             area.minX = Math.min(this.min.getX(), this.max.getX());
             area.minY = Math.min(this.min.getY(), this.max.getY());
             area.minZ = Math.min(this.min.getZ(), this.max.getZ());

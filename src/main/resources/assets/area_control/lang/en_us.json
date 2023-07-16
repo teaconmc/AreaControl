@@ -1,4 +1,6 @@
 {
+  "area_control.argument.error.unknown_group": "There is no group with specified name",
+
   "area_control.admin.welcome": "AreaControl: Welcome back, administrator %s",
   
   "area_control.owner.aka": "Known as %s in-game",
@@ -28,10 +30,13 @@
 
   "area_control.claim.name.update": "Successfully changed current area name from %1$s to %2$s",
   "area_control.claim.range.update.success": "Successfully changed current area range, now from %1$s to %2$s",
-  "area_control.claim.tag.added": "Successfully tagged area '%1$s' with '%2$s'.",
-  "area_control.claim.tag.existed": "Area '%1$s' has already been tagged with %2$s!",
-  "area_control.claim.tag.removed": "Successfully untagged area '$1$s' with '%2$s'",
-  "area_control.claim.tag.not_yet": "Area '%1$s' has not been tagged with '%2$s' yet!",
+  "area_control.claim.owner.list.header": "------ List of owners for %1$s ------",
+  "area_control.claim.owner.list.entry": "  - %s",
+  "area_control.claim.owner.list.footer": "------ Total %1$s ------",
+  "area_control.claim.owner.added": "Successfully added %2$s as an owner to area %1$s.",
+  "area_control.claim.owner.existed": "%2$s is already an owner for area %1$s!",
+  "area_control.claim.owner.removed": "Successfully removed %2$s as an owner to area %1$s",
+  "area_control.claim.owner.not_yet": "%2$s has not been an owner for area %1$s yet!",
   "area_control.claim.builder.list.header": "------ List of builders for %1$s ------",
   "area_control.claim.builder.list.entry": "  - %s",
   "area_control.claim.builder.list.footer": "------ Total %1$s ------",

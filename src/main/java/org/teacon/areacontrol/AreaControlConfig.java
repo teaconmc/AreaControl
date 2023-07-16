@@ -9,6 +9,8 @@ public class AreaControlConfig {
 
     public static ForgeConfigSpec.ConfigValue<String> areaClaimTool;
 
+    public static ForgeConfigSpec.ConfigValue<String> groupProvider;
+
     public static ForgeConfigSpec setup(ForgeConfigSpec.Builder configSpec) {
         persistenceMode = configSpec.comment("The format in which the area data are stored. Currently supports json and toml.")
                 .translation("area_control.config.persistence_mode")
@@ -23,6 +25,9 @@ public class AreaControlConfig {
                         return false;
                     }
                 });
+        groupProvider = configSpec.comment("Group provider used to provide 'groups'. Used in /ac current [claimer|builder] add group.")
+                .translation("area_control.config.group_provider")
+                .define("groupProvider", "vanilla");
         return configSpec.build();
     }
 }

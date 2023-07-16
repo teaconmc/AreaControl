@@ -18,7 +18,9 @@ public final class Area {
     public String dimension = "minecraft:overworld";
     
     public Set<UUID> owners = new HashSet<>();
+    public Set<String> ownerGroups = new HashSet<>();
     public Set<UUID> builders = new HashSet<>();
+    public Set<String> builderGroups = new HashSet<>();
 
     public int minX, minY, minZ, maxX, maxY, maxZ;
     public UUID belongingArea = null;

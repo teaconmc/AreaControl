@@ -23,6 +23,7 @@ import org.teacon.areacontrol.api.AreaControlAPI;
 import org.teacon.areacontrol.impl.AreaLookupImpl;
 import org.teacon.areacontrol.impl.ClientSinglePlayerServerChecker;
 import org.teacon.areacontrol.impl.ServerSinglePlayerServerChecker;
+import org.teacon.areacontrol.impl.VanillaScoreboardTeamGroupProvider;
 import org.teacon.areacontrol.impl.persistence.AreaRepositoryManager;
 import org.teacon.areacontrol.network.ACNetworking;
 
@@ -84,6 +85,7 @@ public final class AreaControl {
     @SubscribeEvent
     public static void onServerStart(ServerAboutToStartEvent event) {
         AreaControlAPI.areaLookup = AreaLookupImpl.INSTANCE;
+        AreaControlAPI.groupProvider = VanillaScoreboardTeamGroupProvider.INSTANCE;
         final MinecraftServer server = event.getServer();
         final Path dataDir = server.getWorldPath(SERVER_CONFIG).resolve("area_control");
         final var repo = AreaRepositoryManager.INSTANCE.create(AreaControlConfig.persistenceMode.get(), dataDir);

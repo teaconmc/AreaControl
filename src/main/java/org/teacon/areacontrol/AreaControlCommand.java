@@ -33,6 +33,7 @@ import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
 import org.teacon.areacontrol.impl.command.arguments.DirectionArgument;
+import org.teacon.areacontrol.impl.command.arguments.GroupArgument;
 import org.teacon.areacontrol.mixin.CommandSourceStackAccessor;
 
 import java.util.Objects;
@@ -79,14 +80,38 @@ public final class AreaControlCommand {
                                                 .then(Commands.argument("direction", DirectionArgument.direction())
                                                         .then(Commands.argument("amount", IntegerArgumentType.integer())
                                                                 .executes(AreaControlCommand::changeAreaRange)))))
-                                .then(Commands.literal("friends")
+                                .then(Commands.literal("claimer")
                                         .then(Commands.literal("add")
-                                                .then(Commands.argument("friend", GameProfileArgument.gameProfile())
-                                                        .executes(AreaControlCommand::addFriend)))
+                                                .then(Commands.literal("player")
+                                                        .then(Commands.argument("player", GameProfileArgument.gameProfile())
+                                                                .executes(AreaControlCommand::addClaimer)))
+                                                .then(Commands.literal("group")
+                                                        .then(Commands.argument("group", GroupArgument.group())
+                                                                .executes(AreaControlCommand::addClaimerGroup))))
                                         .then(Commands.literal("remove")
-                                                .then(Commands.argument("friend", GameProfileArgument.gameProfile())
-                                                        .executes(AreaControlCommand::removeFriend)))
-                                        .executes(AreaControlCommand::listFriends))
+                                                .then(Commands.literal("player")
+                                                        .then(Commands.argument("player", GameProfileArgument.gameProfile())
+                                                                .executes(AreaControlCommand::removeClaimer)))
+                                                .then(Commands.literal("group")
+                                                        .then(Commands.argument("group", GroupArgument.group())
+                                                                .executes(AreaControlCommand::removeClaimerGroup))))
+                                        .executes(AreaControlCommand::listClaimers))
+                                .then(Commands.literal("builder")
+                                        .then(Commands.literal("add")
+                                                .then(Commands.literal("player")
+                                                        .then(Commands.argument("player", GameProfileArgument.gameProfile())
+                                                                .executes(AreaControlCommand::addBuilder)))
+                                                .then(Commands.literal("group")
+                                                        .then(Commands.argument("group", GroupArgument.group())
+                                                                .executes(AreaControlCommand::addBuilderGroup))))
+                                        .then(Commands.literal("remove")
+                                                .then(Commands.literal("player")
+                                                        .then(Commands.argument("player", GameProfileArgument.gameProfile())
+                                                                .executes(AreaControlCommand::removeBuilder)))
+                                                .then(Commands.literal("group")
+                                                        .then(Commands.argument("group", GroupArgument.group())
+                                                                .executes(AreaControlCommand::removeBuilderGroup))))
+                                        .executes(AreaControlCommand::listBuilders))
                                 .then(Commands.literal("properties")
                                         .then(Commands.literal("set")
                                                 .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
@@ -385,7 +410,105 @@ public final class AreaControlCommand {
         }
     }
 
-    private static int listFriends(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int listClaimers(CommandContext<CommandSourceStack> context) {
+        final var src = context.getSource();
+        final var server = src.getServer();
+        final var profileCache = server.getProfileCache();
+        final var playerList = server.getPlayerList();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        }
+        src.sendSuccess(Component.translatable("area_control.claim.owner.list.header", area.name), false);
+        final var builders = area.owners;
+        for (var builder :builders) {
+            src.sendSuccess(Component.translatable("area_control.claim.owner.list.entry", Util.getPlayerDisplayName(builder, profileCache, playerList)), false);
+        }
+        src.sendSuccess(Component.translatable("area_control.claim.owner.list.footer", builders.size()), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int addClaimer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        final var player = src.getPlayerOrException();
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+            final var profiles = GameProfileArgument.getGameProfiles(context, "player");
+            int count = 0;
+            for (var profile : profiles) {
+                var uid = profile.getId();
+                String message = !area.owners.contains(uid) && area.owners.add(uid) ? "area_control.claim.owner.added" : "area_control.claim.owner.existed";
+                src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
+            }
+            return count;
+        } else {
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_owner", area.name));
+            return -1;
+        }
+    }
+
+    private static int addClaimerGroup(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        final var player = src.getPlayerOrException();
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+            final String group = context.getArgument("group", String.class);
+            String message = !area.ownerGroups.contains(group) && area.ownerGroups.add(group) ? "area_control.claim.owner.added" : "area_control.claim.owner.existed";
+            src.sendSuccess(Component.translatable(message, area.name, group), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_owner", area.name));
+            return -1;
+        }
+    }
+
+    private static int removeClaimer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        final var player = src.getPlayerOrException();
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+            final var profiles = GameProfileArgument.getGameProfiles(context, "player");
+            int count = 0;
+            for (var profile : profiles) {
+                String message = area.owners.remove(profile.getId()) ? "area_control.claim.owner.removed" : "area_control.claim.owner.not_yet";
+                src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
+            }
+            return count;
+        } else {
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_owner", area.name));
+            return -1;
+        }
+    }
+
+    private static int removeClaimerGroup(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        final var player = src.getPlayerOrException();
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+            final var group = context.getArgument("group", String.class);
+            String message = area.ownerGroups.remove(group) ? "area_control.claim.owner.removed" : "area_control.claim.owner.not_yet";
+            src.sendSuccess(Component.translatable(message, area.name, group), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_owner", area.name));
+            return -1;
+        }
+    }
+
+    private static int listBuilders(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final var server = src.getServer();
         final var profileCache = server.getProfileCache();
@@ -404,7 +527,7 @@ public final class AreaControlCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int addFriend(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int addBuilder(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
@@ -412,21 +535,21 @@ public final class AreaControlCommand {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
         } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
-            final var friendProfiles = GameProfileArgument.getGameProfiles(context, "friend");
+            final var profiles = GameProfileArgument.getGameProfiles(context, "player");
             int count = 0;
-            for (var friendProfile : friendProfiles) {
-                var uid = friendProfile.getId();
-                String message = !area.owners.contains(uid) && area.builders.add(uid) ? "area_control.claim.friend.added" : "area_control.claim.friend.existed";
-                src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
+            for (var profile : profiles) {
+                var uid = profile.getId();
+                String message = !area.owners.contains(uid) && area.builders.add(uid) ? "area_control.claim.builder.added" : "area_control.claim.builder.existed";
+                src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
             }
             return count;
         } else {
-            src.sendFailure(Component.translatable("area_control.error.cannot_set_friend", area.name));
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_builder", area.name));
             return -1;
         }
     }
 
-    private static int removeFriend(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int addBuilderGroup(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
@@ -434,15 +557,57 @@ public final class AreaControlCommand {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
         } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
-            final var friendProfiles = GameProfileArgument.getGameProfiles(context, "friend");
+            final var group = context.getArgument("group", String.class);
+            String message = !area.builderGroups.contains(group) && area.builderGroups.add(group) ? "area_control.claim.builder.added" : "area_control.claim.builder.existed";
+            src.sendSuccess(Component.translatable(message, area.name, group), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_builder", area.name));
+            return -1;
+        }
+    }
+
+    private static int removeBuilder(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        final var player = src.getPlayerOrException();
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+            final var profiles = GameProfileArgument.getGameProfiles(context, "player");
             int count = 0;
-            for (var friendProfile : friendProfiles) {
-                String message = area.builders.remove(friendProfile.getId()) ? "area_control.claim.friend.removed" : "area_control.claim.friend.not_yet";
-                src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(friendProfile, src.getServer().getPlayerList())), false);
+            for (var profile : profiles) {
+                String message;
+                if (area.builders.remove(profile.getId())) {
+                    message = "area_control.claim.builder.removed";
+                    count++;
+                } else {
+                    message = "area_control.claim.builder.not_yet";
+                }
+                src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
             }
             return count;
         } else {
-            src.sendFailure(Component.translatable("area_control.error.cannot_set_friend", area.name));
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_builder", area.name));
+            return -1;
+        }
+    }
+
+    private static int removeBuilderGroup(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        final var player = src.getPlayerOrException();
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+            final var group = context.getArgument("group", String.class);
+            String message = area.builderGroups.remove(group) ? "area_control.claim.builder.removed" : "area_control.claim.builder.not_yet";
+            src.sendSuccess(Component.translatable(message, area.name, group), false);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(Component.translatable("area_control.error.cannot_set_builder", area.name));
             return -1;
         }
     }
