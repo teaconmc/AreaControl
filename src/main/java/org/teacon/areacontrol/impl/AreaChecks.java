@@ -9,13 +9,57 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.teacon.areacontrol.AreaControlPermissions;
+import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.Area;
+import org.teacon.areacontrol.api.AreaControlAPI;
 import org.teacon.areacontrol.api.AreaProperties;
 
 import java.util.List;
 
 public class AreaChecks {
+
+    public static boolean isACtrlAdmin(ServerPlayer p) {
+        return PermissionAPI.getPermission(p, AreaControlPermissions.AC_ADMIN);
+    }
+
+    public static boolean isACtrlAreaOwner(@NotNull ServerPlayer p, @Nullable Area area) {
+        if (area != null) {
+            var uid = p.getGameProfile().getId();
+            var group = AreaControlAPI.groupProvider.getGroupFor(uid);
+            // 1. Check if player is one of owners
+            if (area.owners.contains(uid) || area.ownerGroups.contains(group)) {
+                return true;
+            }
+            // 2. If area has parent area, check if it owns parent
+            var parent = AreaManager.INSTANCE.findBy(area.belongingArea);
+            if (parent != null) {
+                return parent.owners.contains(uid) || parent.ownerGroups.contains(group);
+            }
+        }
+        // 3. Check if player is admin.
+        return isACtrlAdmin(p);
+    }
+
+    public static boolean isACtrlAreaBuilder(@NotNull ServerPlayer p, @Nullable Area area) {
+        if (area != null) {
+            var uid = p.getGameProfile().getId();
+            var group = AreaControlAPI.groupProvider.getGroupFor(uid);
+            // 1. Check if player is one of builders
+            if (area.builders.contains(uid) || area.builderGroups.contains(group)) {
+                return true;
+            }
+            // 2. If area has parent area, check if it owns parent
+            var parent = AreaManager.INSTANCE.findBy(area.belongingArea);
+            if (parent != null) {
+                return parent.builders.contains(uid) || parent.builderGroups.contains(group);
+            }
+        }
+        // 3. Check if player is admin.
+        return isACtrlAdmin(p);
+    }
 
     public static boolean allow(Player p, @Nullable Area area, PermissionNode<Boolean> perm) {
         var uuid = p.getGameProfile().getId();

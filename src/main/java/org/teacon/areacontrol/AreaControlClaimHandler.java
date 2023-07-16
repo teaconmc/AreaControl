@@ -16,6 +16,7 @@ import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.PermissionAPI;
+import org.teacon.areacontrol.impl.AreaChecks;
 
 @Mod.EventBusSubscriber(modid = "area_control")
 public final class AreaControlClaimHandler {
@@ -27,10 +28,13 @@ public final class AreaControlClaimHandler {
         if (event.getSide() == LogicalSide.SERVER) {
             final var player = (ServerPlayer) event.getEntity();
             final var areaClaimTool = ForgeRegistries.ITEMS.getValue(new ResourceLocation(AreaControlConfig.areaClaimTool.get()));
-            if (areaClaimTool != Items.AIR && event.getItemStack().getItem() == areaClaimTool && PermissionAPI.getPermission(player, AreaControlPermissions.MARK_AREA)) {
-                final BlockPos clicked  = event.getPos();
-                pushRecord(player, clicked.immutable());
-                player.displayClientMessage(Component.translatable("area_control.claim.marked", Util.toGreenText(clicked)), true);
+            if (areaClaimTool != Items.AIR && event.getItemStack().getItem() == areaClaimTool) {
+                var currentArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
+                if (AreaChecks.isACtrlAreaBuilder(player, currentArea) || PermissionAPI.getPermission(player, AreaControlPermissions.AC_CLAIMER)) {
+                    final BlockPos clicked = event.getPos();
+                    pushRecord(player, clicked.immutable());
+                    player.displayClientMessage(Component.translatable("area_control.claim.marked", Util.toGreenText(clicked)), true);
+                }
             }
         }
     }

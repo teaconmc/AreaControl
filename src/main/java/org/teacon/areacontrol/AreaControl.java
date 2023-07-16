@@ -61,13 +61,9 @@ public final class AreaControl {
     @SubscribeEvent
     public static void setupPerm(PermissionGatherEvent.Nodes event) {
         event.addNodes(
-                AreaControlPermissions.SET_PROPERTY,
-                AreaControlPermissions.SET_FRIENDS,
-                AreaControlPermissions.CLAIM_MARKED_AREA,
-                AreaControlPermissions.CLAIM_CHUNK_AREA,
-                AreaControlPermissions.MARK_AREA,
-                AreaControlPermissions.UNCLAIM_AREA,
-                AreaControlPermissions.INSPECT,
+                AreaControlPermissions.AC_ADMIN,
+                AreaControlPermissions.AC_BUILDER,
+                AreaControlPermissions.AC_CLAIMER,
 
                 AreaControlPermissions.BYPASS_BREAK_BLOCK,
                 AreaControlPermissions.BYPASS_PLACE_BLOCK,

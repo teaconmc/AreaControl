@@ -5,12 +5,12 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collection;
+import java.util.UUID;
 
 public interface GroupProvider {
 
     /**
      * Fetch a read-only collection of strings, in which each string represents a "group".
-     *
      * A "group" is lossly defined as a collection of players.
      * @return Collection of group names
      */
@@ -22,4 +22,6 @@ public interface GroupProvider {
      * @return true if the group name points to a valid group; false otherwise.
      */
     boolean isValidGroup(@Nullable String groupIdentifier);
+
+    @Nullable String getGroupFor(@NotNull UUID playerId);
 }

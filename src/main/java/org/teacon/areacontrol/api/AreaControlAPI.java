@@ -1,5 +1,8 @@
 package org.teacon.areacontrol.api;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.UUID;
 
@@ -26,12 +29,17 @@ public class AreaControlAPI {
     public static GroupProvider groupProvider = new GroupProvider() {
 
         @Override
-        public Collection<String> getGroups() {
+        public @NotNull Collection<String> getGroups() {
             throw new IllegalStateException("Not initialized yet!");
         }
 
         @Override
-        public boolean isValidGroup(String groupIdentifier) {
+        public boolean isValidGroup(@Nullable String groupIdentifier) {
+            throw new IllegalStateException("Not initialized yet!");
+        }
+
+        @Override
+        public @Nullable String getGroupFor(@NotNull UUID playerId) {
             throw new IllegalStateException("Not initialized yet!");
         }
     };

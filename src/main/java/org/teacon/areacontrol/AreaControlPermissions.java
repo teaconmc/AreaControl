@@ -22,18 +22,14 @@ public class AreaControlPermissions {
         if (!DEBUG && server.isSingleplayerOwner(p.getGameProfile())) {
             return true; // Bypass single-player
         }
-        return p.hasPermissions(2);
+        return p.hasPermissions(3);
     };
 
     static final PermissionNode.PermissionResolver<Boolean> ANYONE = (p, uuid, contexts) -> true;
 
-    public static final PermissionNode<Boolean> SET_PROPERTY = new PermissionNode<>("area_control", "command.set_property", PermissionTypes.BOOLEAN, OP_ONLY);
-    public static final PermissionNode<Boolean> SET_FRIENDS  = new PermissionNode<>("area_control", "command.set_friend", PermissionTypes.BOOLEAN, OP_ONLY);
-    public static final PermissionNode<Boolean> CLAIM_MARKED_AREA = new PermissionNode<>("area_control", "command.claim.marked", PermissionTypes.BOOLEAN, ANYONE);
-    public static final PermissionNode<Boolean> CLAIM_CHUNK_AREA   = new PermissionNode<>("area_control", "command.claim.chunk", PermissionTypes.BOOLEAN, ANYONE);
-    public static final PermissionNode<Boolean> MARK_AREA    = new PermissionNode<>("area_control", "command.mark", PermissionTypes.BOOLEAN, ANYONE);
-    public static final PermissionNode<Boolean> UNCLAIM_AREA = new PermissionNode<>("area_control", "command.unclaim", PermissionTypes.BOOLEAN, ANYONE);
-    public static final PermissionNode<Boolean> INSPECT      = new PermissionNode<>("area_control", "admin.inspect", PermissionTypes.BOOLEAN, OP_ONLY);
+    public static final PermissionNode<Boolean> AC_ADMIN = new PermissionNode<>("area_control", "command.admin", PermissionTypes.BOOLEAN, OP_ONLY);
+    public static final PermissionNode<Boolean> AC_CLAIMER = new PermissionNode<>("area_control", "command.claim", PermissionTypes.BOOLEAN, ANYONE);
+    public static final PermissionNode<Boolean> AC_BUILDER = new PermissionNode<>("area_control", "command.build", PermissionTypes.BOOLEAN, ANYONE);
 
     public static final PermissionNode<Boolean> BYPASS_BREAK_BLOCK = new PermissionNode<>("area_control", "bypass.break_block", PermissionTypes.BOOLEAN, OP_ONLY);
     public static final PermissionNode<Boolean> BYPASS_PLACE_BLOCK = new PermissionNode<>("area_control", "bypass.place_block", PermissionTypes.BOOLEAN, OP_ONLY);

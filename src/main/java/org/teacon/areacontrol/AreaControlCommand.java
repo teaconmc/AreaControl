@@ -28,7 +28,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.PermissionAPI;
-import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
@@ -44,6 +43,24 @@ public final class AreaControlCommand {
 
     private static final Component ERROR_WILD = Component.translatable("area_control.claim.current.wildness");
 
+    private static final Predicate<CommandSourceStack> OWNER_OR_ADMIN = source -> {
+        // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
+        if (((CommandSourceStackAccessor) source).getSource() instanceof ServerPlayer sp) {
+            return PermissionAPI.getPermission(sp, AreaControlPermissions.AC_CLAIMER)
+                    || PermissionAPI.getPermission(sp, AreaControlPermissions.AC_ADMIN);
+        }
+        return false;
+    };
+
+    private static final Predicate<CommandSourceStack> BUILDER_OR_ADMIN = source -> {
+        // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
+        if (((CommandSourceStackAccessor) source).getSource() instanceof ServerPlayer sp) {
+            return PermissionAPI.getPermission(sp, AreaControlPermissions.AC_BUILDER)
+                    || PermissionAPI.getPermission(sp, AreaControlPermissions.AC_ADMIN);
+        }
+        return false;
+    };
+
     public AreaControlCommand(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("ac")
                 .redirect(dispatcher.register(Commands.literal("areacontrol")
@@ -54,41 +71,41 @@ public final class AreaControlCommand {
                                 .then(Commands.literal("on").executes(context -> AreaControlCommand.nearby(context, true)))
                                 .then(Commands.literal("off").executes(AreaControlCommand::nearbyClear))
                                 .executes(context -> AreaControlCommand.nearby(context, false)))
-                        .then(Commands.literal("desel").requires(check(AreaControlPermissions.CLAIM_MARKED_AREA)).executes(AreaControlCommand::clearMarked))
-                        .then(Commands.literal("deselect").requires(check(AreaControlPermissions.CLAIM_MARKED_AREA)).executes(AreaControlCommand::clearMarked))
+                        .then(Commands.literal("desel").requires(OWNER_OR_ADMIN).executes(AreaControlCommand::clearMarked))
+                        .then(Commands.literal("deselect").requires(OWNER_OR_ADMIN).executes(AreaControlCommand::clearMarked))
                         .then(Commands.literal("claim")
                                 .then(Commands.literal("cancel")
-                                        .requires(check(AreaControlPermissions.CLAIM_MARKED_AREA))
+                                        .requires(OWNER_OR_ADMIN)
                                         .executes(AreaControlCommand::clearMarked))
                                 .then(Commands.literal("marked")
-                                        .requires(check(AreaControlPermissions.CLAIM_MARKED_AREA))
+                                        .requires(OWNER_OR_ADMIN)
                                         .executes(AreaControlCommand::claimMarked))
                                 .then(Commands.literal("chunk")
-                                        .requires(check(AreaControlPermissions.CLAIM_CHUNK_AREA))
+                                        .requires(OWNER_OR_ADMIN)
                                         .then(Commands.argument("x", IntegerArgumentType.integer())
                                                 .then(Commands.argument("z", IntegerArgumentType.integer())
                                                         .executes(AreaControlCommand::claimChunkWithSize)))
                                         .executes(AreaControlCommand::claimChunk)))
                         .then(Commands.literal("current")
                                 .then(Commands.literal("name")
-                                        .then(Commands.literal("set")
+                                        .then(Commands.literal("set").requires(BUILDER_OR_ADMIN)
                                                 .then(Commands.argument("name", StringArgumentType.greedyString())
                                                         .executes(AreaControlCommand::setAreaName)))
                                         .executes(AreaControlCommand::displayAreaName))
                                 .then(Commands.literal("range")
-                                        .then(Commands.literal("expand")
+                                        .then(Commands.literal("expand").requires(OWNER_OR_ADMIN)
                                                 .then(Commands.argument("direction", DirectionArgument.direction())
                                                         .then(Commands.argument("amount", IntegerArgumentType.integer())
                                                                 .executes(AreaControlCommand::changeAreaRange)))))
                                 .then(Commands.literal("claimer")
-                                        .then(Commands.literal("add")
+                                        .then(Commands.literal("add").requires(OWNER_OR_ADMIN)
                                                 .then(Commands.literal("player")
                                                         .then(Commands.argument("player", GameProfileArgument.gameProfile())
                                                                 .executes(AreaControlCommand::addClaimer)))
                                                 .then(Commands.literal("group")
                                                         .then(Commands.argument("group", GroupArgument.group())
                                                                 .executes(AreaControlCommand::addClaimerGroup))))
-                                        .then(Commands.literal("remove")
+                                        .then(Commands.literal("remove").requires(OWNER_OR_ADMIN)
                                                 .then(Commands.literal("player")
                                                         .then(Commands.argument("player", GameProfileArgument.gameProfile())
                                                                 .executes(AreaControlCommand::removeClaimer)))
@@ -97,14 +114,14 @@ public final class AreaControlCommand {
                                                                 .executes(AreaControlCommand::removeClaimerGroup))))
                                         .executes(AreaControlCommand::listClaimers))
                                 .then(Commands.literal("builder")
-                                        .then(Commands.literal("add")
+                                        .then(Commands.literal("add").requires(OWNER_OR_ADMIN)
                                                 .then(Commands.literal("player")
                                                         .then(Commands.argument("player", GameProfileArgument.gameProfile())
                                                                 .executes(AreaControlCommand::addBuilder)))
                                                 .then(Commands.literal("group")
                                                         .then(Commands.argument("group", GroupArgument.group())
                                                                 .executes(AreaControlCommand::addBuilderGroup))))
-                                        .then(Commands.literal("remove")
+                                        .then(Commands.literal("remove").requires(OWNER_OR_ADMIN)
                                                 .then(Commands.literal("player")
                                                         .then(Commands.argument("player", GameProfileArgument.gameProfile())
                                                                 .executes(AreaControlCommand::removeBuilder)))
@@ -112,7 +129,7 @@ public final class AreaControlCommand {
                                                         .then(Commands.argument("group", GroupArgument.group())
                                                                 .executes(AreaControlCommand::removeBuilderGroup))))
                                         .executes(AreaControlCommand::listBuilders))
-                                .then(Commands.literal("properties")
+                                .then(Commands.literal("properties").requires(BUILDER_OR_ADMIN)
                                         .then(Commands.literal("set")
                                                 .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
                                                         .then(Commands.argument("value", StringArgumentType.greedyString())
@@ -125,22 +142,12 @@ public final class AreaControlCommand {
                                 .executes(AreaControlCommand::displayCurrent))
                          .then(Commands.literal("mine")
                                  .executes(AreaControlCommand::displayMine))
-                        .then(Commands.literal("mark").requires(check(AreaControlPermissions.MARK_AREA)).then(
+                        .then(Commands.literal("mark").requires(OWNER_OR_ADMIN).then(
                                 Commands.argument("pos", Vec3Argument.vec3()).executes(AreaControlCommand::mark)))
-                        .then(Commands.literal("unclaim").executes(AreaControlCommand::unclaim))
+                        .then(Commands.literal("unclaim").requires(OWNER_OR_ADMIN).executes(AreaControlCommand::unclaim))
                         )
                 )
         );
-    }
-
-    private static Predicate<CommandSourceStack> check(PermissionNode<Boolean> permission) {
-        return source -> {
-            // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
-            if (((CommandSourceStackAccessor) source).getSource() instanceof ServerPlayer sp) {
-                return PermissionAPI.getPermission(sp, permission);
-            }
-            return false;
-        };
     }
 
     private static int about(CommandContext<CommandSourceStack> context) {
@@ -368,7 +375,7 @@ public final class AreaControlCommand {
         final var level = src.getLevel();
         final var pos = src.getPosition();
         final var area = AreaManager.INSTANCE.findBy(level, pos);
-        if (AreaChecks.allow(requester, area, AreaControlPermissions.SET_PROPERTY)) {
+        if (AreaChecks.isACtrlAreaBuilder(requester, area)) {
             final var newName = context.getArgument("name", String.class);
             if (AreaManager.INSTANCE.findBy(newName) == null) {
                 final var oldName = area.name;
@@ -388,11 +395,10 @@ public final class AreaControlCommand {
     private static int changeAreaRange(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final var requester = src.getPlayerOrException();
-        final var requesterId = requester.getGameProfile().getId();
         final var level = src.getLevel();
         final var pos = src.getPosition();
         final var area = AreaManager.INSTANCE.findBy(level, pos);
-        if (area.owners.contains(requesterId) || area.builders.contains(requesterId) || PermissionAPI.getPermission(requester, AreaControlPermissions.SET_PROPERTY)) {
+        if (AreaChecks.isACtrlAreaOwner(requester, area)) {
             final var direction = context.getArgument("direction", Direction.class);
             final var amount = context.getArgument("amount", Integer.class);
             if (AreaManager.INSTANCE.changeRangeForArea(level.dimension(), area, direction, amount)) {
@@ -436,7 +442,7 @@ public final class AreaControlCommand {
         if (area == null) {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
-        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+        } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final var profiles = GameProfileArgument.getGameProfiles(context, "player");
             int count = 0;
             for (var profile : profiles) {
@@ -458,7 +464,7 @@ public final class AreaControlCommand {
         if (area == null) {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
-        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+        } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final String group = context.getArgument("group", String.class);
             String message = !area.ownerGroups.contains(group) && area.ownerGroups.add(group) ? "area_control.claim.owner.added" : "area_control.claim.owner.existed";
             src.sendSuccess(Component.translatable(message, area.name, group), false);
@@ -476,7 +482,7 @@ public final class AreaControlCommand {
         if (area == null) {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
-        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+        } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final var profiles = GameProfileArgument.getGameProfiles(context, "player");
             int count = 0;
             for (var profile : profiles) {
@@ -497,7 +503,7 @@ public final class AreaControlCommand {
         if (area == null) {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
-        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+        } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final var group = context.getArgument("group", String.class);
             String message = area.ownerGroups.remove(group) ? "area_control.claim.owner.removed" : "area_control.claim.owner.not_yet";
             src.sendSuccess(Component.translatable(message, area.name, group), false);
@@ -534,7 +540,7 @@ public final class AreaControlCommand {
         if (area == null) {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
-        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+        } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final var profiles = GameProfileArgument.getGameProfiles(context, "player");
             int count = 0;
             for (var profile : profiles) {
@@ -556,7 +562,7 @@ public final class AreaControlCommand {
         if (area == null) {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
-        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+        } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final var group = context.getArgument("group", String.class);
             String message = !area.builderGroups.contains(group) && area.builderGroups.add(group) ? "area_control.claim.builder.added" : "area_control.claim.builder.existed";
             src.sendSuccess(Component.translatable(message, area.name, group), false);
@@ -574,7 +580,7 @@ public final class AreaControlCommand {
         if (area == null) {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
-        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+        } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final var profiles = GameProfileArgument.getGameProfiles(context, "player");
             int count = 0;
             for (var profile : profiles) {
@@ -601,7 +607,7 @@ public final class AreaControlCommand {
         if (area == null) {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
-        } else if (area.owners.contains(player.getGameProfile().getId()) || PermissionAPI.getPermission(player, AreaControlPermissions.SET_FRIENDS)) {
+        } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final var group = context.getArgument("group", String.class);
             String message = area.builderGroups.remove(group) ? "area_control.claim.builder.removed" : "area_control.claim.builder.not_yet";
             src.sendSuccess(Component.translatable(message, area.name, group), false);
@@ -635,7 +641,7 @@ public final class AreaControlCommand {
         if (area == null) {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
-        } else if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
+        } else if (AreaChecks.isACtrlAreaBuilder(player, area)) {
             final String prop = context.getArgument("property", String.class);
             final Object value = area.properties.get(prop);
             Component msg;
@@ -659,7 +665,7 @@ public final class AreaControlCommand {
         if (area == null) {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
-        } else if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
+        } else if (AreaChecks.isACtrlAreaBuilder(player, area)) {
             final String prop = context.getArgument("property", String.class);
             final String value = context.getArgument("value", String.class);
             final Object oldValue = area.properties.put(prop, value);
@@ -679,7 +685,7 @@ public final class AreaControlCommand {
         if (area == null) {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
-        } else if (AreaChecks.allow(player, area, AreaControlPermissions.SET_PROPERTY)) {
+        } else if (AreaChecks.isACtrlAreaBuilder(player, area)) {
             final String prop = context.getArgument("property", String.class);
             final Object oldValue = area.properties.remove(prop);
             src.sendSuccess(Component.translatable("area_control.claim.property.unset",
@@ -708,7 +714,7 @@ public final class AreaControlCommand {
         final ResourceKey<Level> worldIndex = src.getLevel().dimension();
         final Area area = AreaManager.INSTANCE.findBy(worldIndex, src.getPosition());
         if (area != null) {
-            if (area.owners.contains(claimer.getGameProfile().getId()) || PermissionAPI.getPermission(claimer, AreaControlPermissions.UNCLAIM_AREA)) {
+            if (AreaChecks.isACtrlAreaOwner(claimer, area)) {
                 AreaManager.INSTANCE.remove(area, worldIndex);
                 src.sendSuccess(Component.translatable("area_control.claim.abandoned",
                         area.name, Util.toGreenText(area)), false);
