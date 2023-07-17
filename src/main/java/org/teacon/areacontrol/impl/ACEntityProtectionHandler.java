@@ -27,7 +27,7 @@ public class ACEntityProtectionHandler {
     // This one is fired when player directly attacks something else
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onAttackEntity(AttackEntityEvent event) {
-        if (event.getEntity().level.isClientSide) {
+        if (event.getEntity().level().isClientSide) {
             return;
         }
         // We use the location of target entity to find the area.
@@ -52,7 +52,7 @@ public class ACEntityProtectionHandler {
     public static void onAttackEntity(LivingAttackEvent event) {
         final var src = event.getSource().getEntity();
         if (src instanceof Player) {
-            if (src.level.isClientSide) {
+            if (src.level().isClientSide) {
                 return;
             }
             // Same above, we use the location of target entity to find the area.

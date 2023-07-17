@@ -42,7 +42,7 @@ public enum AreaControlPlayerTracker {
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         var player = event.getEntity();
-        var currentArea = AreaManager.INSTANCE.findBy(player.level, player.blockPosition());
+        var currentArea = AreaManager.INSTANCE.findBy(player.level(), player.blockPosition());
         if (currentArea == null) {
             INSTANCE.playerLocation.remove(player.getGameProfile().getId());
         } else {
@@ -57,7 +57,7 @@ public enum AreaControlPlayerTracker {
             var prevAreaId = INSTANCE.playerLocation.get(player.getGameProfile().getId());
             if (prevAreaId != null) {
                 var prevArea = AreaManager.INSTANCE.findBy(prevAreaId);
-                var currentArea = AreaManager.INSTANCE.findBy(player.level, player.blockPosition());
+                var currentArea = AreaManager.INSTANCE.findBy(player.level(), player.blockPosition());
                 if (prevArea != currentArea) {
                     if (currentArea == null) {
                         INSTANCE.playerLocation.remove(player.getGameProfile().getId());
@@ -108,7 +108,7 @@ public enum AreaControlPlayerTracker {
             LOGGER.debug(MARKER, "Nearby area: {}", nearbyArea.uid);
             var summary = new Area.Summary(nearbyArea);
             summaries.add(summary);
-            requester.displayClientMessage(Util.describe(nearbyArea, requester.level), false);
+            requester.displayClientMessage(Util.describe(nearbyArea, requester.level()), false);
         }
         if (this.playersWithExt.contains(requester.getGameProfile().getId())) {
             var expire = permanent ? Long.MAX_VALUE : System.currentTimeMillis() + 60000;

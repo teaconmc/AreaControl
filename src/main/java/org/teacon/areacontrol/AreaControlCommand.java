@@ -41,10 +41,11 @@ import org.teacon.areacontrol.network.ACShowPropEditScreen;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public final class AreaControlCommand {
 
-    private static final Component ERROR_WILD = Component.translatable("area_control.claim.current.wildness");
+    private static final Supplier<Component> ERROR_WILD = () -> Component.translatable("area_control.claim.current.wildness");
 
     private static final Predicate<CommandSourceStack> OWNER_OR_ADMIN = source -> {
         // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
@@ -156,7 +157,7 @@ public final class AreaControlCommand {
     }
 
     private static int about(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendSuccess(Component.literal("AreaControl 0.1.4"), false);
+        context.getSource().sendSuccess(() -> Component.literal("AreaControl 0.1.4"), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -170,12 +171,12 @@ public final class AreaControlCommand {
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, markerTool.getHoverName().copy()
                                 .append(Component.translatable("area_control.claim.how_to.give_item").withStyle(ChatFormatting.GRAY))))
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/give @s " + AreaControlConfig.areaClaimTool.get())));
-        context.getSource().sendSuccess(Component.translatable("area_control.claim.how_to", displayName), false);
+        context.getSource().sendSuccess(() -> Component.translatable("area_control.claim.how_to", displayName), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int admin(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendSuccess(Component.literal("WIP"), false);
+        context.getSource().sendSuccess(() -> Component.literal("WIP"), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -214,7 +215,7 @@ public final class AreaControlCommand {
             area.owners.add(claimerUUID);
         }
         if (AreaManager.INSTANCE.add(area, worldIndex)) {
-            src.sendSuccess(Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
+            src.sendSuccess(() -> Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendFailure(Component.translatable("area_control.error.overlap"));
@@ -284,7 +285,7 @@ public final class AreaControlCommand {
             area.owners.add(claimerUUID);
         }
         if (AreaManager.INSTANCE.add(area, worldIndex)) {
-            src.sendSuccess(Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
+            src.sendSuccess(() -> Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendFailure(Component.translatable("area_control.error.overlap"));
@@ -310,7 +311,7 @@ public final class AreaControlCommand {
             }
             final var worldIndex = src.getLevel().dimension();
             if (AreaManager.INSTANCE.add(area, worldIndex)) {
-                src.sendSuccess(Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
+                src.sendSuccess(() -> Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
                 return Command.SINGLE_SUCCESS;
             } else {
                 src.sendFailure(Component.translatable("area_control.error.overlap"));
@@ -345,11 +346,11 @@ public final class AreaControlCommand {
                             .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_name")))
                             .withColor(ChatFormatting.DARK_AQUA));
             final var ownerName = Util.getOwnerName(area, server.getProfileCache(), server.getPlayerList());
-            src.sendSuccess(Component.translatable("area_control.claim.current", areaName, ownerName, areaUUID), true);
+            src.sendSuccess(() -> Component.translatable("area_control.claim.current", areaName, ownerName, areaUUID), true);
             if (area.belongingArea != null) {
                 final var enclosingArea = AreaManager.INSTANCE.findBy(area.belongingArea);
                 final var enclosingAreaOwnerName = Util.getOwnerName(enclosingArea, server.getProfileCache(), server.getPlayerList());
-                src.sendSuccess(Component.translatable("area_control.claim.current.enclosed", enclosingArea.name, enclosingAreaOwnerName), true);
+                src.sendSuccess(() -> Component.translatable("area_control.claim.current.enclosed", enclosingArea.name, enclosingAreaOwnerName), true);
             }
         } else {
             src.sendSuccess(ERROR_WILD, true);
@@ -361,7 +362,7 @@ public final class AreaControlCommand {
         var rawPos = Vec3Argument.getVec3(context, "pos");
         BlockPos marked = new BlockPos((int) rawPos.x, (int) rawPos.y, (int) rawPos.z);
         AreaControlClaimHandler.pushRecord(context.getSource().getPlayerOrException(), marked);
-        context.getSource().sendSuccess(Component.translatable("area_control.claim.marked", Util.toGreenText(marked)), true);
+        context.getSource().sendSuccess(() -> Component.translatable("area_control.claim.marked", Util.toGreenText(marked)), true);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -393,7 +394,7 @@ public final class AreaControlCommand {
         final var level = src.getLevel();
         final var pos = src.getPosition();
         final var area = AreaManager.INSTANCE.findBy(level, pos);
-        src.sendSuccess(Component.literal(area.name), false);
+        src.sendSuccess(() -> Component.literal(area.name), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -408,10 +409,10 @@ public final class AreaControlCommand {
             if (AreaManager.INSTANCE.findBy(newName) == null) {
                 final var oldName = area.name;
                 AreaManager.INSTANCE.rename(area, newName);
-                src.sendSuccess(Component.translatable("area_control.claim.name.update", oldName, newName), true);
+                src.sendSuccess(() -> Component.translatable("area_control.claim.name.update", oldName, newName), true);
                 return Command.SINGLE_SUCCESS;
             } else {
-                src.sendSuccess(Component.translatable("area_control.error.name_clash", newName), true);
+                src.sendSuccess(() -> Component.translatable("area_control.error.name_clash", newName), true);
                 return -1;
             }
         } else {
@@ -430,7 +431,7 @@ public final class AreaControlCommand {
             final var direction = context.getArgument("direction", Direction.class);
             final var amount = context.getArgument("amount", Integer.class);
             if (AreaManager.INSTANCE.changeRangeForArea(level.dimension(), area, direction, amount)) {
-                src.sendSuccess(Component.translatable("area_control.claim.range.update.success",
+                src.sendSuccess(() -> Component.translatable("area_control.claim.range.update.success",
                         Util.toGreenText(new BlockPos(area.minX, area.minY, area.minZ)),
                         Util.toGreenText(new BlockPos(area.maxX, area.maxY, area.maxZ))), true);
                 return Command.SINGLE_SUCCESS;
@@ -454,12 +455,12 @@ public final class AreaControlCommand {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
         }
-        src.sendSuccess(Component.translatable("area_control.claim.owner.list.header", area.name), false);
+        src.sendSuccess(() -> Component.translatable("area_control.claim.owner.list.header", area.name), false);
         final var builders = area.owners;
         for (var builder :builders) {
-            src.sendSuccess(Component.translatable("area_control.claim.owner.list.entry", Util.getPlayerDisplayName(builder, profileCache, playerList)), false);
+            src.sendSuccess(() -> Component.translatable("area_control.claim.owner.list.entry", Util.getPlayerDisplayName(builder, profileCache, playerList)), false);
         }
-        src.sendSuccess(Component.translatable("area_control.claim.owner.list.footer", builders.size()), false);
+        src.sendSuccess(() -> Component.translatable("area_control.claim.owner.list.footer", builders.size()), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -476,7 +477,7 @@ public final class AreaControlCommand {
             for (var profile : profiles) {
                 var uid = profile.getId();
                 String message = !area.owners.contains(uid) && area.owners.add(uid) ? "area_control.claim.owner.added" : "area_control.claim.owner.existed";
-                src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
+                src.sendSuccess(() -> Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
             }
             return count;
         } else {
@@ -495,7 +496,7 @@ public final class AreaControlCommand {
         } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final String group = context.getArgument("group", String.class);
             String message = !area.ownerGroups.contains(group) && area.ownerGroups.add(group) ? "area_control.claim.owner.added" : "area_control.claim.owner.existed";
-            src.sendSuccess(Component.translatable(message, area.name, group), false);
+            src.sendSuccess(() -> Component.translatable(message, area.name, group), false);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendFailure(Component.translatable("area_control.error.cannot_set_owner", area.name));
@@ -515,7 +516,7 @@ public final class AreaControlCommand {
             int count = 0;
             for (var profile : profiles) {
                 String message = area.owners.remove(profile.getId()) ? "area_control.claim.owner.removed" : "area_control.claim.owner.not_yet";
-                src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
+                src.sendSuccess(() -> Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
             }
             return count;
         } else {
@@ -534,7 +535,7 @@ public final class AreaControlCommand {
         } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final var group = context.getArgument("group", String.class);
             String message = area.ownerGroups.remove(group) ? "area_control.claim.owner.removed" : "area_control.claim.owner.not_yet";
-            src.sendSuccess(Component.translatable(message, area.name, group), false);
+            src.sendSuccess(() -> Component.translatable(message, area.name, group), false);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendFailure(Component.translatable("area_control.error.cannot_set_owner", area.name));
@@ -552,12 +553,12 @@ public final class AreaControlCommand {
             src.sendSuccess(ERROR_WILD, true);
             return 0;
         }
-        src.sendSuccess(Component.translatable("area_control.claim.builder.list.header", area.name), false);
+        src.sendSuccess(() -> Component.translatable("area_control.claim.builder.list.header", area.name), false);
         final var builders = area.builders;
         for (var builder :builders) {
-            src.sendSuccess(Component.translatable("area_control.claim.builder.list.entry", Util.getPlayerDisplayName(builder, profileCache, playerList)), false);
+            src.sendSuccess(() -> Component.translatable("area_control.claim.builder.list.entry", Util.getPlayerDisplayName(builder, profileCache, playerList)), false);
         }
-        src.sendSuccess(Component.translatable("area_control.claim.builder.list.footer", builders.size()), false);
+        src.sendSuccess(() -> Component.translatable("area_control.claim.builder.list.footer", builders.size()), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -574,7 +575,7 @@ public final class AreaControlCommand {
             for (var profile : profiles) {
                 var uid = profile.getId();
                 String message = !area.owners.contains(uid) && area.builders.add(uid) ? "area_control.claim.builder.added" : "area_control.claim.builder.existed";
-                src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
+                src.sendSuccess(() -> Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
             }
             return count;
         } else {
@@ -593,7 +594,7 @@ public final class AreaControlCommand {
         } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final var group = context.getArgument("group", String.class);
             String message = !area.builderGroups.contains(group) && area.builderGroups.add(group) ? "area_control.claim.builder.added" : "area_control.claim.builder.existed";
-            src.sendSuccess(Component.translatable(message, area.name, group), false);
+            src.sendSuccess(() -> Component.translatable(message, area.name, group), false);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendFailure(Component.translatable("area_control.error.cannot_set_builder", area.name));
@@ -619,7 +620,7 @@ public final class AreaControlCommand {
                 } else {
                     message = "area_control.claim.builder.not_yet";
                 }
-                src.sendSuccess(Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
+                src.sendSuccess(() -> Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
             }
             return count;
         } else {
@@ -638,7 +639,7 @@ public final class AreaControlCommand {
         } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final var group = context.getArgument("group", String.class);
             String message = area.builderGroups.remove(group) ? "area_control.claim.builder.removed" : "area_control.claim.builder.not_yet";
-            src.sendSuccess(Component.translatable(message, area.name, group), false);
+            src.sendSuccess(() -> Component.translatable(message, area.name, group), false);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendFailure(Component.translatable("area_control.error.cannot_set_builder", area.name));
@@ -654,11 +655,11 @@ public final class AreaControlCommand {
             return 0;
         }
         final var properties = area.properties;
-        src.sendSuccess(Component.translatable("area_control.claim.property.list.header", area.name), false);
+        src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.header", area.name), false);
         for (var prop : properties.entrySet()) {
-            src.sendSuccess(Component.translatable("area_control.claim.property.list.entry", prop.getKey(), prop.getValue()), false);
+            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.entry", prop.getKey(), prop.getValue()), false);
         }
-        src.sendSuccess(Component.translatable("area_control.claim.property.list.footer", properties.size()), false);
+        src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.footer", properties.size()), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -678,7 +679,7 @@ public final class AreaControlCommand {
             } else {
                 msg = Component.translatable("area_control.claim.property.single", area.name, prop, value);
             }
-            src.sendSuccess(msg, false);
+            src.sendSuccess(() -> msg, false);
             return Command.SINGLE_SUCCESS;
         } else {
             src.sendFailure(Component.translatable("area_control.error.cannot_set_property", area.name));
@@ -697,7 +698,7 @@ public final class AreaControlCommand {
             final String prop = context.getArgument("property", String.class);
             final String value = context.getArgument("value", String.class);
             final Object oldValue = area.properties.put(prop, value);
-            src.sendSuccess(Component.translatable("area_control.claim.property.update",
+            src.sendSuccess(() -> Component.translatable("area_control.claim.property.update",
                     area.name, prop, value, Objects.toString(oldValue)), false);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -716,7 +717,7 @@ public final class AreaControlCommand {
         } else if (AreaChecks.isACtrlAreaBuilder(player, area)) {
             final String prop = context.getArgument("property", String.class);
             final Object oldValue = area.properties.remove(prop);
-            src.sendSuccess(Component.translatable("area_control.claim.property.unset",
+            src.sendSuccess(() -> Component.translatable("area_control.claim.property.unset",
                     area.name, prop, Objects.toString(oldValue)), false);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -729,9 +730,9 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final var player = src.getPlayerOrException();
         var areas = AreaManager.INSTANCE.findByOwner(player.getGameProfile().getId());
-        src.sendSuccess(Component.translatable("area_control.claim.mine", areas.size()), false);
+        src.sendSuccess(() -> Component.translatable("area_control.claim.mine", areas.size()), false);
         for (Area area : areas) {
-            src.sendSuccess(Util.describe(area), false);
+            src.sendSuccess(() -> Util.describe(area), false);
         }
         return Command.SINGLE_SUCCESS;
     }
@@ -744,7 +745,7 @@ public final class AreaControlCommand {
         if (area != null) {
             if (AreaChecks.isACtrlAreaOwner(claimer, area)) {
                 AreaManager.INSTANCE.remove(area, worldIndex);
-                src.sendSuccess(Component.translatable("area_control.claim.abandoned",
+                src.sendSuccess(() -> Component.translatable("area_control.claim.abandoned",
                         area.name, Util.toGreenText(area)), false);
                 return Command.SINGLE_SUCCESS;
             } else {

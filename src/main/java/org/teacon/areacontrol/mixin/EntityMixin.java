@@ -26,10 +26,10 @@ import org.teacon.areacontrol.impl.AreaChecks;
 public abstract class EntityMixin {
 
     @Shadow
-    public abstract BlockPos blockPosition();
+    private Level level;
 
     @Shadow
-    public abstract Level getLevel();
+    public abstract BlockPos blockPosition();
 
     @Shadow
     public abstract EntityType<?> getType();
@@ -51,8 +51,8 @@ public abstract class EntityMixin {
      */
     @Inject(method = "isInvulnerableTo", at = @At("TAIL"), cancellable = true)
     private void damageSrcCheck(DamageSource src, CallbackInfoReturnable<Boolean> cir) {
-        if (!src.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && !cir.getReturnValueZ() && !this.getLevel().isClientSide()) {
-            var area = AreaManager.INSTANCE.findBy(this.getLevel(), this.blockPosition());
+        if (!src.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && !cir.getReturnValueZ() && !this.level.isClientSide()) {
+            var area = AreaManager.INSTANCE.findBy(this.level, this.blockPosition());
             boolean allow;
             PermissionNode<Boolean> permissionToCheck;
             Component deniedFeedback;

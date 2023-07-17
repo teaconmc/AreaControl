@@ -56,7 +56,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onInteractEntitySpecific(PlayerInteractEvent.EntityInteractSpecific event) {
-        if (event.getEntity().level.isClientSide) {
+        if (event.getEntity().level().isClientSide) {
             return;
         }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());

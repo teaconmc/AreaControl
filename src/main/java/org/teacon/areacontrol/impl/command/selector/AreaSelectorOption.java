@@ -64,7 +64,7 @@ public class AreaSelectorOption  {
 
         @Override
         public boolean test(Entity entity) {
-            var level = entity.getLevel();
+            var level = entity.level();
             if (level != null && this.area.dimension.equals(level.dimension().location().toString())) {
                 return (this.area.minX <= entity.getX() && entity.getX() <= this.area.maxX
                         && this.area.minY <= entity.getY() && entity.getY() <= this.area.maxY
