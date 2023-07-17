@@ -139,4 +139,8 @@ public enum AreaControlPlayerTracker {
         var areaId = this.playerLocation.get(playerUUID);
         return AreaManager.INSTANCE.findBy(areaId);
     }
+
+    public boolean thisPlayerHasClientExt(ServerPlayer p) {
+        return this.playersWithExt.contains(p.getGameProfile().getId());
+    }
 }

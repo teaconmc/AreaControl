@@ -1,4 +1,11 @@
 {
+  "area_control.argument.error.unknown_group": "找不到指定名字的队伍",
+
+  "area_control.screen.edit_properties": "领地属性设置",
+  "area_control.screen.no_properties": "没有属性",
+  "area_control.screen.no_properties.hints": "也许你需要检查一下上级领地？",
+  "area_control.screen.ok": "确认",
+
   "area_control.admin.welcome": "AreaControl：欢迎回来，管理员 %s",
   
   "area_control.owner.aka": "在游戏中又名 %s",
@@ -13,7 +20,8 @@
 
   "area_control.claim.welcome": "欢迎来到%s",
   "area_control.claim.detail": "  - 领地 '%s'，位于维度 %s 中，%s %s %s",
-  
+
+  "area_control.claim.owner.multiple": "%s 以及其他人",
   "area_control.claim.current": "你现在身在名为 %1$s 的领地中，这块领地由 %2$s 控制。%3$s",
   "area_control.claim.current.copy_name": "点此复制领地名",
   "area_control.claim.current.uuid": "[点此复制领地 UUID]",
@@ -25,20 +33,22 @@
   "area_control.claim.nearby.detail.go_there": "[传送]",
   "area_control.claim.nearby.visual": "你的客户端看上去没有 AreaControl，所以无法使用领地可视化增强。你仍然可以点击上面的“传送”快速传送到目标领地。",
 
-  "area_control.claim.owner.multiple": "%s 以及其他人",
   "area_control.claim.name.update": "已成功将当前领地名从 %1$s 改为 %2$s",
   "area_control.claim.range.update.success": "已成功将当前领地的范围改为从 %1$s 到 %2$s",
-  "area_control.claim.tag.added": "已成功为领地 '%1$s' 添加标签 '%2$s'.",
-  "area_control.claim.tag.existed": "领地 '%1$s' 已有标签 %2$s!",
-  "area_control.claim.tag.removed": "已成功为领地 '$1$s' 移除标签 '%2$s'",
-  "area_control.claim.tag.not_yet": "领地 '%1$s' 目前没有标签 '%2$s'！",
-  "area_control.claim.builder.list.header": "------ 领地 %1$s 的成员列表 ------",
+  "area_control.claim.owner.list.header": "------ 领地 %1$s 的声明者列表 ------",
+  "area_control.claim.owner.list.entry": "  - %s",
+  "area_control.claim.owner.list.footer": "------ 总计 %1$s ------",
+  "area_control.claim.owner.added": "已成功将 %2$s 设定为领地 %1$s 的声明者。",
+  "area_control.claim.owner.existed": "%2$s 已经是领地 %1$s 的声明者了！",
+  "area_control.claim.owner.removed": "已成功将 %2$s 从领地 %1$s 的声明者列表中移除",
+  "area_control.claim.owner.not_yet": "%2$s 还不是领地 %1$s 的声明者！",
+  "area_control.claim.builder.list.header": "------ 领地 %1$s 的建设者列表 ------",
   "area_control.claim.builder.list.entry": "  - %s",
   "area_control.claim.builder.list.footer": "------ 总计 %1$s ------",
-  "area_control.claim.builder.added": "已成功将 %2$s 设定为领地 %1$s 的成员。",
-  "area_control.claim.builder.existed": "%2$s 已经是领地 %1$s 的成员了！",
-  "area_control.claim.builder.removed": "已成功将 %2$s 从领地 %1$s 的成员列表中移除",
-  "area_control.claim.builder.not_yet": "%2$s 还不是领地 %1$s 的成员！",
+  "area_control.claim.builder.added": "已成功将 %2$s 设定为领地 %1$s 的建设者。",
+  "area_control.claim.builder.existed": "%2$s 已经是领地 %1$s 的建设者了！",
+  "area_control.claim.builder.removed": "已成功将 %2$s 从领地 %1$s 的建设者列表中移除",
+  "area_control.claim.builder.not_yet": "%2$s 还不是领地 %1$s 的建设者！",
   "area_control.claim.property.list.header": "------ 领地 %1$s 当前属性列表------",
   "area_control.claim.property.list.entry": "  - %1$s: %2$s",
   "area_control.claim.property.list.footer": "------ 总计 %1$s 条------",
@@ -57,6 +67,8 @@
   "area_control.notice.possess_disabled_item": "AreaControl：该区域禁止持有%s，因此已没收",
   "area_control.notice.ride_disabled": "AreaControl：该区域已禁止骑乘 %s",
 
+  "area_control.error.must_be_player": "只有玩家可以执行该命令。",
+  "area_control.error.no_client_ext": "该功能需要客户端也安装 AreaControl 才能使用。",
   "area_control.error.direction_argument": "方向必须为 up、down、north、south、west 和 east 中的一个，但你输入的是 %s",
   "area_control.error.outside_selection": "AreaControl：在声明领地前，你应当站在你试图声明的领地的选择区域里。",
   "area_control.error.overlap": "AreaControl：你试图声明的领地和另一块领地有重叠，因此无法申领。试试别的地方？",

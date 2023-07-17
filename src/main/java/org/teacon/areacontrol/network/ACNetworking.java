@@ -20,5 +20,6 @@ public class ACNetworking {
         acNetworkChannel.registerMessage(0, ACPingServer.class, ACPingServer::write, ACPingServer::new, ACPingServer::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         acNetworkChannel.registerMessage(1, ACSendNearbyArea.class, ACSendNearbyArea::write, ACSendNearbyArea::new, ACSendNearbyArea::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         acNetworkChannel.registerMessage(2, ACSendCurrentSelection.class, ACSendCurrentSelection::write, ACSendCurrentSelection::new, ACSendCurrentSelection::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        acNetworkChannel.registerMessage(3, ACShowPropEditScreen.class, ACShowPropEditScreen::write, ACShowPropEditScreen::new, ACShowPropEditScreen::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 }

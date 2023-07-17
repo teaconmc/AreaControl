@@ -26,6 +26,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.PermissionAPI;
 import org.teacon.areacontrol.api.Area;
@@ -34,6 +35,8 @@ import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
 import org.teacon.areacontrol.impl.command.arguments.DirectionArgument;
 import org.teacon.areacontrol.impl.command.arguments.GroupArgument;
 import org.teacon.areacontrol.mixin.CommandSourceStackAccessor;
+import org.teacon.areacontrol.network.ACNetworking;
+import org.teacon.areacontrol.network.ACShowPropEditScreen;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -87,6 +90,8 @@ public final class AreaControlCommand {
                                                         .executes(AreaControlCommand::claimChunkWithSize)))
                                         .executes(AreaControlCommand::claimChunk)))
                         .then(Commands.literal("current")
+                                .then(Commands.literal("edit").requires(BUILDER_OR_ADMIN)
+                                        .executes(AreaControlCommand::showEditScreen))
                                 .then(Commands.literal("name")
                                         .then(Commands.literal("set").requires(BUILDER_OR_ADMIN)
                                                 .then(Commands.argument("name", StringArgumentType.greedyString())
@@ -301,7 +306,7 @@ public final class AreaControlCommand {
             final Area area = Util.createArea(recordPos.start(), recordPos.end());
             final UUID claimerUUID = claimer.getGameProfile().getId();
             if (claimerUUID != null) {
-            	area.owners.add(claimerUUID);
+                area.owners.add(claimerUUID);
             }
             final var worldIndex = src.getLevel().dimension();
             if (AreaManager.INSTANCE.add(area, worldIndex)) {
@@ -358,6 +363,29 @@ public final class AreaControlCommand {
         AreaControlClaimHandler.pushRecord(context.getSource().getPlayerOrException(), marked);
         context.getSource().sendSuccess(Component.translatable("area_control.claim.marked", Util.toGreenText(marked)), true);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int showEditScreen(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var level = src.getLevel();
+        final var pos = src.getPosition();
+        final var area = AreaManager.INSTANCE.findBy(level, pos);
+        final var player = src.getPlayer();
+        if (player == null) {
+            src.sendFailure(Component.translatable("area_control.error.must_be_player"));
+            return 0;
+        } if (AreaControlPlayerTracker.INSTANCE.thisPlayerHasClientExt(player)) {
+            if (AreaChecks.isACtrlAreaBuilder(player, area)) {
+                ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> player), new ACShowPropEditScreen(area));
+                return Command.SINGLE_SUCCESS;
+            } else {
+                src.sendFailure(Component.translatable("area_control.error.cannot_set_property", area.name));
+                return 0;
+            }
+        } else {
+            src.sendFailure(Component.translatable("area_control.error.no_client_ext"));
+            return 0;
+        }
     }
 
     private static int displayAreaName(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

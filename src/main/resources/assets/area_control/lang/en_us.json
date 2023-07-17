@@ -1,6 +1,11 @@
 {
   "area_control.argument.error.unknown_group": "There is no group with specified name",
 
+  "area_control.screen.edit_properties": "Area Permissions",
+  "area_control.screen.no_properties": "No Properties",
+  "area_control.screen.no_properties.hints": "Maybe check parent claim?",
+  "area_control.screen.ok": "OK",
+
   "area_control.admin.welcome": "AreaControl: Welcome back, administrator %s",
   
   "area_control.owner.aka": "Known as %s in-game",
@@ -62,6 +67,8 @@
   "area_control.notice.possess_disabled_item": "AreaControl: this area has disabled possession of %s and it is now seized",
   "area_control.notice.ride_disabled": "AreaControl: this area has disabled riding %s",
 
+  "area_control.error.must_be_player": "This command requires a real player to execute",
+  "area_control.error.no_client_ext": "This function requires AreaControl to be installed on client.",
   "area_control.error.direction_argument": "Direction must be one of: up, down, north, south, west, east, but you have %s",
   "area_control.error.outside_selection": "AreaControl: You should stand inside the selection of the area you are tried for claiming.",
   "area_control.error.overlap": "AreaControl: Cannot claim the selected area because it overlaps another claimed area. Perhaps try somewhere else?",
