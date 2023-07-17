@@ -6,7 +6,6 @@
 package org.teacon.areacontrol.client;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.GameNarrator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -134,21 +133,17 @@ public final class EditPropertiesScreen extends Screen {
     }
 
     private void drawGuiContainerBackgroundLayer(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        Minecraft mc = Objects.requireNonNull(this.minecraft);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, TEXTURE);
         guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 - 55, 0, 42, 234, 132);
-        this.drawCategoriesInSlide(guiGraphics, mc);
+        this.drawCategoriesInSlide(guiGraphics);
         guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 - 97, 0, 0, 234, 42);
         guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 + 77, 0, 174, 234, 32);
     }
 
     private void drawGuiContainerForegroundLayer(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        Minecraft mc = Objects.requireNonNull(this.minecraft);
-        this.drawArtifactName(guiGraphics, mc.font);
+        this.drawArtifactName(guiGraphics, this.font);
     }
 
-    private void drawCategoriesInSlide(GuiGraphics guiGraphics, Minecraft mc) {
+    private void drawCategoriesInSlide(GuiGraphics guiGraphics) {
         int infoSize = this.infoCollection.size();
         if (infoSize > 0) {
             int top = Math.max(0, this.slideTop / 24);
@@ -164,15 +159,14 @@ public final class EditPropertiesScreen extends Screen {
                 guiGraphics.drawString(this.font, info.prop(), x1, y1, TEXT_COLOR, false);
                 // FIXME[3TUSK]: Draw 3 buttons: Allow, Unset, Deny
                 int voteLevel = 5;//this.votes.getOrDefault(info.id, info.level);
-                RenderSystem.setShaderTexture(0, TEXTURE);
                 /*for (int j = 0; j < 5; ++j) {
                     int x2 = x0 + 106 + 15 * j, y2 = y0 + 4, u2 = 221, v2 = voteLevel > j ? 239 : 206;
-                    blit(matrixStack, x2, y2, u2, v2, 15, 15);
+                    guiGraphics.blit(TEXTURE, x2, y2, u2, v2, 15, 15);
                 }*/
             }
         } else {
             MutableComponent next = Component.translatable("area_control.screen.no_properties.hints");
-            int x1 = this.width / 2 - 7, dx1 = mc.font.width(next) / 2, y1 = this.height / 2 + 15;
+            int x1 = this.width / 2 - 7, dx1 = this.font.width(next) / 2, y1 = this.height / 2 + 15;
             guiGraphics.drawString(this.font, next, x1 - dx1, y1, HINT_COLOR, false);
 
             guiGraphics.pose().pushPose();
@@ -180,12 +174,10 @@ public final class EditPropertiesScreen extends Screen {
             guiGraphics.pose().scale(scale, scale, scale);
 
             MutableComponent prev = Component.translatable("area_control.screen.no_properties");
-            int x2 = this.width / 2 - 7, dx2 = mc.font.width(prev) / 2, y2 = this.height / 2 - 9;
+            int x2 = this.width / 2 - 7, dx2 = this.font.width(prev) / 2, y2 = this.height / 2 - 9;
             guiGraphics.drawString(this.font, prev, (int)(x2 / scale - dx2), (int)(y2 / scale), HINT_COLOR, false);
 
             guiGraphics.pose().popPose();
-
-            RenderSystem.setShaderTexture(0, TEXTURE);
         }
     }
 
@@ -198,7 +190,7 @@ public final class EditPropertiesScreen extends Screen {
         guiGraphics.pose().popPose();
     }
 
-    private static class BottomButton extends Button {
+    private class BottomButton extends Button {
         private final boolean isRed;
 
         public BottomButton(int x, int y, boolean isRed, Button.OnPress onPress, Component title) {
@@ -208,16 +200,13 @@ public final class EditPropertiesScreen extends Screen {
 
         @Override
         public void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-            RenderSystem.setShaderTexture(0, EditPropertiesScreen.TEXTURE);
             // render button texture
-            RenderSystem.enableDepthTest();
             int u0 = (this.isRed ? 7 : 60) + (this.isHovered ? 106 : 0), v0 = 234;
             guiGraphics.blit(TEXTURE, this.getX(), this.getY(), u0, v0, this.width, this.height);
             // render button text
-            Font font = Minecraft.getInstance().font;
-            float dx = font.width(this.getMessage()) / 2F;
+            float dx = EditPropertiesScreen.this.font.width(this.getMessage()) / 2F;
             float x = this.getX() + (this.width + 1) / 2F - dx, y = this.getY() + (this.height - 8) / 2F;
-            guiGraphics.drawString(font, this.getMessage(), (int)x, (int)y, BUTTON_TEXT_COLOR, false);
+            guiGraphics.drawString(EditPropertiesScreen.this.font, this.getMessage(), (int)x, (int)y, BUTTON_TEXT_COLOR, false);
         }
     }
 
@@ -252,8 +241,6 @@ public final class EditPropertiesScreen extends Screen {
 
         @Override
         public void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            RenderSystem.setShaderTexture(0, TEXTURE);
             double dx = mouseX - this.getX(), dy = mouseY - this.getY() - this.slideCenter;
             int x0 = this.getX() + 192, y0 = Math.toIntExact(Math.round(mouseY - dy));
             int v0 = this.isHovered && dx >= 192 && dy < this.halfSliderHeight && dy >= -this.halfSliderHeight ? 133 : 4;
