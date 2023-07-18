@@ -27,7 +27,6 @@ import org.teacon.areacontrol.network.ACShowPropEditScreen;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public final class EditPropertiesScreen extends Screen {
     private static final ResourceLocation TEXTURE = new ResourceLocation("area_control:textures/gui/edit_properties.png");
@@ -35,6 +34,9 @@ public final class EditPropertiesScreen extends Screen {
     private static final int BUTTON_TEXT_COLOR = 0xFFFFFFFF;
     private static final int TEXT_COLOR = 0xFF000000 | DyeColor.BLACK.getTextColor();
     private static final int HINT_COLOR = 0xFF000000 | DyeColor.WHITE.getTextColor();
+
+    private static final int TEXTURE_WIDTH = 256;
+    private static final int TEXTURE_HEIGHT = 304;
 
     private static final float ARTIFACT_SCALE_FACTOR = 1.5F;
     private final String areaName;
@@ -53,7 +55,6 @@ public final class EditPropertiesScreen extends Screen {
 
     @Override
     protected void init() {
-        Objects.requireNonNull(this.minecraft);
         this.addRenderableWidget(new SideSlider(this.width / 2 - 103, this.height / 2 - 55, 24 * this.infoCollection.size(), this::onSlideClick, this::onSliderChange, Component.literal("Slider")));
         this.addRenderableWidget(new BottomButton(this.width / 2 + 52, this.height / 2 + 82, false, this::onOKButtonClick, Component.translatable("area_control.screen.ok")));
     }
@@ -89,11 +90,11 @@ public final class EditPropertiesScreen extends Screen {
     private void onSlideClick(double dx, double dy) {
         int current = Mth.floor((this.slideTop + dy) / 24);
         if (current >= 0 && current < this.infoCollection.size()) {
-            int offsetX = Mth.floor((dx - 91) / 15);
+            // FIXME 偶尔会触发到别的属性上去，原因未知
+            int offsetX = Mth.floor((dx - 91) / 25);
             int offsetY = Mth.floor((this.slideTop + dy - current * 24 - 4) / 15);
             if (offsetX >= 1 && offsetX <= 5 && offsetY == 0) {
-                // FIXME The heck. We need properly name it. Also we need some callback to send the command back immediately
-                Boolean newState = offsetX == 5 ? Boolean.TRUE : offsetX == 1 ? Boolean.FALSE : null;
+                Boolean newState = offsetX == 1 ? Boolean.FALSE : offsetX == 2 ? null : Boolean.TRUE;
                 var prop = this.infoCollection.get(current).prop();
                 this.states.put(prop, newState);
                 // Execute command on behalf of player
@@ -133,10 +134,10 @@ public final class EditPropertiesScreen extends Screen {
     }
 
     private void drawGuiContainerBackgroundLayer(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 - 55, 0, 42, 234, 132);
+        guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 - 55, 0, 42, 234, 132, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         this.drawCategoriesInSlide(guiGraphics);
-        guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 - 97, 0, 0, 234, 42);
-        guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 + 77, 0, 174, 234, 32);
+        guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 - 97, 0, 0, 234, 42, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 + 77, 0, 174, 234, 32, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }
 
     private void drawGuiContainerForegroundLayer(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
@@ -151,18 +152,24 @@ public final class EditPropertiesScreen extends Screen {
             for (int i = top; i < bottom; ++i) {
                 int offset = i * 24 - this.slideTop;
                 int x0 = this.width / 2 - 103, y0 = this.height / 2 - 55 + offset;
-                // draw button texture
-                guiGraphics.blit(TEXTURE, x0, y0, 8, 207, 192, 24);
+                // draw button group background
+                guiGraphics.blit(TEXTURE, x0, y0, 8, 256, 192, 24, TEXTURE_WIDTH, TEXTURE_HEIGHT);
                 ACShowPropEditScreen.Info info = this.infoCollection.get(i);
                 // draw category string
                 int x1 = x0 + 48 - font.width(info.prop()) / 2, y1 = y0 + 8;
                 guiGraphics.drawString(this.font, info.prop(), x1, y1, TEXT_COLOR, false);
                 // FIXME[3TUSK]: Draw 3 buttons: Allow, Unset, Deny
-                int voteLevel = 5;//this.votes.getOrDefault(info.id, info.level);
-                /*for (int j = 0; j < 5; ++j) {
-                    int x2 = x0 + 106 + 15 * j, y2 = y0 + 4, u2 = 221, v2 = voteLevel > j ? 239 : 206;
-                    guiGraphics.blit(TEXTURE, x2, y2, u2, v2, 15, 15);
-                }*/
+                Boolean state = this.states.get(info.prop());
+                if (state == null) {
+                    // Unset is selected
+                    guiGraphics.blit(TEXTURE, x0 + 130, y0 + 4, 138, 284, 28, 16, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                } else if (state) {
+                    // Allow is selected
+                    guiGraphics.blit(TEXTURE, x0 + 159, y0 + 4, 167, 284, 28, 16, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                } else {
+                    // Deny is selected
+                    guiGraphics.blit(TEXTURE, x0 + 101, y0 + 4, 109, 284, 28, 16, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                }
             }
         } else {
             MutableComponent next = Component.translatable("area_control.screen.no_properties.hints");
@@ -202,7 +209,7 @@ public final class EditPropertiesScreen extends Screen {
         public void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
             // render button texture
             int u0 = (this.isRed ? 7 : 60) + (this.isHovered ? 106 : 0), v0 = 234;
-            guiGraphics.blit(TEXTURE, this.getX(), this.getY(), u0, v0, this.width, this.height);
+            guiGraphics.blit(TEXTURE, this.getX(), this.getY(), u0, v0, this.width, this.height, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
             // render button text
             float dx = EditPropertiesScreen.this.font.width(this.getMessage()) / 2F;
             float x = this.getX() + (this.width + 1) / 2F - dx, y = this.getY() + (this.height - 8) / 2F;
@@ -244,9 +251,9 @@ public final class EditPropertiesScreen extends Screen {
             double dx = mouseX - this.getX(), dy = mouseY - this.getY() - this.slideCenter;
             int x0 = this.getX() + 192, y0 = Math.toIntExact(Math.round(mouseY - dy));
             int v0 = this.isHovered && dx >= 192 && dy < this.halfSliderHeight && dy >= -this.halfSliderHeight ? 133 : 4;
-            guiGraphics.blit(TEXTURE, x0, y0 - this.halfSliderHeight, 239, v0, 13, this.halfSliderHeight - 8);
-            guiGraphics.blit(TEXTURE, x0, y0 - 8, 239, v0 + 52, 13, 16);
-            guiGraphics.blit(TEXTURE, x0, y0 + 8, 239, v0 + 128 - this.halfSliderHeight, 13, this.halfSliderHeight - 8);
+            guiGraphics.blit(TEXTURE, x0, y0 - this.halfSliderHeight, 239, v0, 13, this.halfSliderHeight - 8, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
+            guiGraphics.blit(TEXTURE, x0, y0 - 8, 239, v0 + 52, 13, 16, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
+            guiGraphics.blit(TEXTURE, x0, y0 + 8, 239, v0 + 128 - this.halfSliderHeight, 13, this.halfSliderHeight - 8, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
         }
 
         @Override
