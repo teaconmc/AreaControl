@@ -100,6 +100,7 @@ public class AreaChecks {
                 }
             }
         }
+        // FIXME Use global fallback instead
         return true;
     }
 

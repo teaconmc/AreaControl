@@ -18,6 +18,30 @@ public class AreaMath {
         }
     }
 
+    public static boolean isPointIn(Area area, double x, double y, double z) {
+        return distanceSqBetween(area, x, y, z) <= 0; // TODO Yes I am being lazy here
+    }
+
+    public static double distanceSqBetween(Area area, double x, double y, double z) {
+        double dx = Math.max(Math.max(area.minX - x, x - area.maxX), 0.0D);
+        double dy = Math.max(Math.max(area.minY - y, y - area.maxY), 0.0D);
+        double dz = Math.max(Math.max(area.minZ - z, z - area.maxZ), 0.0D);
+        return dx * dx + dy * dy + dz * dz;
+    }
+
+    /**
+     * Calculate the shortest distance between a point inside the given area and the bounding
+     * planes of the given area.
+     * This method does not check if the point is inside the area or not.
+     * @return Shortest distance
+     */
+    public static double distanceFromInteriorToBoundary(Area area, double x, double y, double z) {
+        double dx = Math.min(x - area.minX, area.maxX - x);
+        double dy = Math.min(y - area.minY, area.maxY - y);
+        double dz = Math.min(z - area.minZ, area.maxZ - z);
+        return Math.min(dx, Math.min(dy, dz));
+    }
+
     public static boolean isEnclosing(Area parent, Area maybeChild) {
         return parent.minX <= maybeChild.minX && maybeChild.maxX <= parent.maxX
                 && parent.minY <= maybeChild.minY && maybeChild.maxY <= parent.maxY

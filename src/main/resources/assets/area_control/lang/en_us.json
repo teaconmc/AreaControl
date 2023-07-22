@@ -56,7 +56,24 @@
   "area_control.claim.property.single.unset": "In area '%1$s', property %2$s is not set, and thus will inherit from outer areas.",
   "area_control.claim.property.update": "AreaControl: property '%2$s' in area '%1$s' has been updated to '%3$s' (was '%4$s')",
   "area_control.claim.property.unset": "AreaControl: property '%2$s' in area '%1$s' has been removed (was '%3$s')",
-  
+
+  "area_control.bypass.global.wildness.on": "You have turned on Global Bypass Mode for wildness. ",
+  "area_control.bypass.global.wildness.off": "You have turned off Global Bypass Mode for wildness. ",
+  "area_control.bypass.global.area.on": "You have turned on Global Bypass Mode for area '%s'. ",
+  "area_control.bypass.global.area.off": "You have turned off Global Bypass Mode for area '%s'. ",
+  "area_control.bypass.local.wildness.on": "You have turned on Local Bypass Mode for wildness. ",
+  "area_control.bypass.local.wildness.off": "You have turned off Local Bypass Mode for wildness. ",
+  "area_control.bypass.local.area.on": "You have turned on Local Bypass Mode for area '%s'. ",
+  "area_control.bypass.local.area.off": "You have turned off Local Bypass Mode for area '%s'. ",
+
+  "area_control.bypass.wildness.passive_on": "You have entered wildness. Because Global Bypass Mode is on, we have turned on Bypass Mode for you. ",
+  "area_control.bypass.wildness.passive_off": "You have left wildness. We have turned off Bypass Mode for you. ",
+  "area_control.bypass.area.passive_on": "You have entered area '%s'. Because Global Bypass Mode is on, we have turned on Bypass Mode for you. ",
+  "area_control.bypass.area.passive_off": "You have left area '%s'. We have turned off Bypass Mode for you. ",
+
+  "area_control.bypass.how_to_turn_on": "Use %s or %s to turn on again.",
+  "area_control.bypass.how_to_turn_off": "Use %s to turn off; quitting game will also automatically turn Bypass Mode off.",
+
   "area_control.notice.break_block_disabled": "AreaControl: this area has disabled breaking blocks",
   "area_control.notice.click_block_disabled": "AreaControl: this area has disabled clicking blocks",
   "area_control.notice.activate_block_disabled": "AreaControl: this area has disabled activating blocks",

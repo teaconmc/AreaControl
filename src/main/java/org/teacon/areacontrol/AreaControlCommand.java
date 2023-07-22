@@ -93,6 +93,15 @@ public final class AreaControlCommand {
                         .then(Commands.literal("current")
                                 .then(Commands.literal("edit").requires(BUILDER_OR_ADMIN)
                                         .executes(AreaControlCommand::showEditScreen))
+                                .then(Commands.literal("bypass")
+                                        .then(Commands.literal("global")
+                                                .requires(BUILDER_OR_ADMIN)
+                                                .executes(AreaControlCommand::setGloballyBypass))
+                                        .then(Commands.literal("local")
+                                                .requires(BUILDER_OR_ADMIN)
+                                                .executes(AreaControlCommand::setLocallyBypass))
+                                        .then(Commands.literal("none")
+                                                .executes(AreaControlCommand::clearBypassStatus)))
                                 .then(Commands.literal("name")
                                         .then(Commands.literal("set").requires(BUILDER_OR_ADMIN)
                                                 .then(Commands.argument("name", StringArgumentType.greedyString())
@@ -387,6 +396,24 @@ public final class AreaControlCommand {
             src.sendFailure(Component.translatable("area_control.error.no_client_ext"));
             return 0;
         }
+    }
+
+    private static int setGloballyBypass(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        var player = context.getSource().getPlayerOrException();
+        AreaControlPlayerTracker.INSTANCE.setGlobalExempt(player, true);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int setLocallyBypass(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        var player = context.getSource().getPlayerOrException();
+        AreaControlPlayerTracker.INSTANCE.setGlobalExempt(player, false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int clearBypassStatus(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        var player = context.getSource().getPlayerOrException();
+        AreaControlPlayerTracker.INSTANCE.clearExemptFor(player);
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int displayAreaName(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

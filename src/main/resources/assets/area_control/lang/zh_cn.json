@@ -57,6 +57,23 @@
   "area_control.claim.property.update": "已将领地 '%1$s' 的属性 '%2$s' 值更新为 '%3$s'（此前为 '%4$s'）",
   "area_control.claim.property.unset": "已将领地 '%1$s' 的属性 '%2$s' 清除（此前为 '%3$s'）",
 
+  "area_control.bypass.global.wildness.on": "您已开启野外的全局 Bypass 模式。",
+  "area_control.bypass.global.wildness.off": "您已清除野外的全局 Bypass 模式。",
+  "area_control.bypass.global.area.on": "您已开启领地 %s 的全局 Bypass 模式。",
+  "area_control.bypass.global.area.off": "您已清除领地 %s 的全局 Bypass 模式。",
+  "area_control.bypass.local.wildness.on": "您已开启野外的局部 Bypass 模式。",
+  "area_control.bypass.local.wildness.off": "您已清除野外的局部 Bypass 模式。",
+  "area_control.bypass.local.area.on": "您已开启领地 %s 的局部 Bypass 模式。",
+  "area_control.bypass.local.area.off": "您已开启领地 %s 的局部 Bypass 模式。",
+
+  "area_control.bypass.wildness.passive_on": "您已进入野外，为您自动开启野外的 Bypass 模式。",
+  "area_control.bypass.wildness.passive_off": "您已离开野外，为您自动清除野外的 Bypass 模式。",
+  "area_control.bypass.area.passive_on": "您已进入领地 %s，为您自动开启该领地的 Bypass 模式。",
+  "area_control.bypass.area.passive_off": "您已离开领地 %s，为您自动开启该领地的 Bypass 模式。",
+
+  "area_control.bypass.how_to_turn_on": "使用 %s 或 %s 命令重新开启。",
+  "area_control.bypass.how_to_turn_off": "使用 %s 命令清除；退出游戏世界时也将自动清除。",
+
   "area_control.notice.break_block_disabled": "AreaControl：该区域已禁止破坏方块",
   "area_control.notice.click_block_disabled": "AreaControl：该区域已禁止点击方块",
   "area_control.notice.activate_block_disabled": "AreaControl：该区域已禁止与方块交互",
