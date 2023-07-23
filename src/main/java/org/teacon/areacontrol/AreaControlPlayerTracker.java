@@ -7,6 +7,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
@@ -16,6 +17,8 @@ import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -112,7 +115,7 @@ public enum AreaControlPlayerTracker {
             AreaChecks.checkInv(mainInv.offhand, currentArea, player);
             // Seize vehicles if disallowed
             var riding = player.getVehicle();
-            if (riding != null && !AreaChecks.checkProp(currentArea, AreaProperties.ALLOW_RIDE, ForgeRegistries.ENTITY_TYPES.getKey(riding.getType()))) {
+            if (riding != null && !AreaChecks.checkPropFor(currentArea, player, AreaProperties.ALLOW_RIDE, ForgeRegistries.ENTITY_TYPES.getKey(riding.getType()))) {
                 player.displayClientMessage(Component.translatable("area_control.notice.ride_disabled", riding.getDisplayName()), true);
                 player.stopRiding();
             }
@@ -250,6 +253,22 @@ public enum AreaControlPlayerTracker {
 
     public boolean thisPlayerHasClientExt(ServerPlayer p) {
         return this.playersWithExt.contains(p.getGameProfile().getId());
+    }
+
+    public boolean hasBypassModeOnForArea(@NotNull Entity actor, @Nullable Area area) {
+        return this.hasBypassModeOnForArea(actor.getUUID(), area);
+    }
+
+    public boolean hasBypassModeOnForArea(@NotNull Player p, @Nullable Area area) {
+        return this.hasBypassModeOnForArea(p.getGameProfile().getId(), area);
+    }
+
+    public boolean hasBypassModeOnForArea(@NotNull UUID id, @Nullable Area area) {
+        if (area == null) {
+            return this.playersWithWildnessExemption.contains(id);
+        } else {
+            return this.playerExemptionStatus.getOrDefault(id, Set.of()).contains(area.uid);
+        }
     }
 
     public void setGlobalExempt(ServerPlayer p, boolean global) {

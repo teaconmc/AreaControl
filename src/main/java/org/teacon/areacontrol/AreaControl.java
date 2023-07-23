@@ -60,22 +60,7 @@ public final class AreaControl {
 
     @SubscribeEvent
     public static void setupPerm(PermissionGatherEvent.Nodes event) {
-        event.addNodes(
-                AreaControlPermissions.AC_ADMIN,
-                AreaControlPermissions.AC_BUILDER,
-                AreaControlPermissions.AC_CLAIMER,
-
-                AreaControlPermissions.BYPASS_BREAK_BLOCK,
-                AreaControlPermissions.BYPASS_PLACE_BLOCK,
-                AreaControlPermissions.BYPASS_PVP,
-                AreaControlPermissions.BYPASS_ATTACK,
-
-                AreaControlPermissions.BYPASS_CLICK_BLOCK,
-                AreaControlPermissions.BYPASS_ACTIVATE_BLOCK,
-                AreaControlPermissions.BYPASS_USE_ITEM,
-                AreaControlPermissions.BYPASS_INTERACT_ENTITY,
-                AreaControlPermissions.BYPASS_INTERACT_ENTITY_SPECIFIC
-        );
+        event.addNodes(AreaControlPermissions.AC_ADMIN, AreaControlPermissions.AC_BUILDER, AreaControlPermissions.AC_CLAIMER);
     }
 
     @SubscribeEvent

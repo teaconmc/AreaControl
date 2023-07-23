@@ -11,13 +11,11 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.teacon.areacontrol.AreaControlPermissions;
 import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.impl.AreaChecks;
@@ -54,32 +52,19 @@ public abstract class EntityMixin {
         if (!src.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && !cir.getReturnValueZ() && !this.level.isClientSide()) {
             var area = AreaManager.INSTANCE.findBy(this.level, this.blockPosition());
             boolean allow;
-            PermissionNode<Boolean> permissionToCheck;
             Component deniedFeedback;
             var damageSrc = src.getEntity();
             if (Player.class.isInstance(this) && damageSrc instanceof Player) {
-                allow = AreaProperties.getBool(area, AreaProperties.ALLOW_PVP);
-                permissionToCheck = AreaControlPermissions.BYPASS_PVP;
+                allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_PVP, null);
                 deniedFeedback = Component.translatable("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY);
             } else {
                 var entityTypeRegName = ForgeRegistries.ENTITY_TYPES.getKey(this.getType());
-                var entitySpecificProp = AreaProperties.getBoolOptional(area, AreaProperties.ALLOW_PVE + "." + entityTypeRegName);
-                if (entitySpecificProp.isPresent()) {
-                    allow = entitySpecificProp.get();
-                } else {
-                    var modSpecificProp = AreaProperties.getBoolOptional(area, AreaProperties.ALLOW_PVE + "." + entityTypeRegName.getNamespace());
-                    allow = modSpecificProp.orElse(AreaProperties.getBool(area, AreaProperties.ALLOW_PVE));
-                }
-                permissionToCheck = AreaControlPermissions.BYPASS_ATTACK;
+                allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_PVE, entityTypeRegName);
                 deniedFeedback = Component.translatable("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY);
             }
             if (!allow) {
                 if (src.getEntity() instanceof ServerPlayer srcPlayer) {
-                    if (!AreaChecks.allow(srcPlayer, area, permissionToCheck)) {
-                        srcPlayer.displayClientMessage(deniedFeedback, true);
-                    } else {
-                        return;
-                    }
+                    srcPlayer.displayClientMessage(deniedFeedback, true);
                 }
                 cir.setReturnValue(true);
             }

@@ -3,6 +3,7 @@ package org.teacon.areacontrol.impl;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -12,6 +13,7 @@ import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.teacon.areacontrol.AreaControlPermissions;
+import org.teacon.areacontrol.AreaControlPlayerTracker;
 import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaControlAPI;
@@ -63,19 +65,28 @@ public class AreaChecks {
 
     public static boolean allow(Player p, @Nullable Area area, PermissionNode<Boolean> perm) {
         var uuid = p.getGameProfile().getId();
-        boolean isFriend = area != null && (area.owners.contains(uuid) || area.builders.contains(uuid));
-        if (!isFriend && p instanceof ServerPlayer sp) {
-            isFriend = PermissionAPI.getPermission(sp, perm);
+        boolean allow = area != null && (area.owners.contains(uuid) || area.builders.contains(uuid));
+        if (!allow) {
+            allow = AreaControlPlayerTracker.INSTANCE.hasBypassModeOnForArea(p, area);
         }
-        return isFriend;
+        if (!allow && p instanceof ServerPlayer sp) {
+            allow = PermissionAPI.getPermission(sp, perm);
+        }
+        return allow;
     }
 
     public static boolean allow(ServerPlayer p, @Nullable Area area, PermissionNode<Boolean> perm) {
         var uuid = p.getGameProfile().getId();
-        return (area != null && (area.owners.contains(uuid) || area.builders.contains(uuid))) || PermissionAPI.getPermission(p, perm);
+        return (area != null && (area.owners.contains(uuid) || area.builders.contains(uuid)))
+                || AreaControlPlayerTracker.INSTANCE.hasBypassModeOnForArea(p, area)
+                || PermissionAPI.getPermission(p, perm);
     }
 
     public static void checkInv(List<ItemStack> inv, @Nullable Area currentArea, Player player) {
+        // If bypass mode is on, then this check can be skipped.
+        if (AreaControlPlayerTracker.INSTANCE.hasBypassModeOnForArea(player, currentArea)) {
+            return;
+        }
         var invSize = inv.size();
         for (int i = 0; i < invSize; i++) {
             var item = inv.get(i);
@@ -104,7 +115,19 @@ public class AreaChecks {
         return true;
     }
 
-    public static boolean checkProp(Area area, String prop, ResourceLocation targetId) {
+    /**
+     * Recursively checks if an action is allowed in given area
+     * @param area Area to check
+     * @param actor The entity that carries out the action
+     * @param prop The action, represented by a string property
+     * @param targetId The object on which the action is being carried out.
+     * @return true if such action is allowed; false otherwise.
+     */
+    public static boolean checkPropFor(final @Nullable Area area, final @Nullable Entity actor, final @NotNull String prop, final @Nullable ResourceLocation targetId) {
+        // If bypass mode is activated, then skip all checks.
+        if (actor != null && AreaControlPlayerTracker.INSTANCE.hasBypassModeOnForArea(actor, area)) {
+            return true;
+        }
         if (targetId != null) {
             var objSpecific = AreaProperties.getBoolOptional(area, prop + "." + targetId);
             if (objSpecific.isPresent()) {
@@ -116,7 +139,7 @@ public class AreaChecks {
                 }
             }
         }
-        return AreaProperties.getBool(area, prop);
+        return AreaProperties.getBool(area, prop); // TODO: Do we want to check builder/owner as well???
     }
 
 }

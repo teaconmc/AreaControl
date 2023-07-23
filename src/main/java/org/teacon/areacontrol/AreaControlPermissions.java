@@ -31,15 +31,4 @@ public class AreaControlPermissions {
     public static final PermissionNode<Boolean> AC_CLAIMER = new PermissionNode<>("area_control", "command.claim", PermissionTypes.BOOLEAN, ANYONE);
     public static final PermissionNode<Boolean> AC_BUILDER = new PermissionNode<>("area_control", "command.build", PermissionTypes.BOOLEAN, ANYONE);
 
-    public static final PermissionNode<Boolean> BYPASS_BREAK_BLOCK = new PermissionNode<>("area_control", "bypass.break_block", PermissionTypes.BOOLEAN, OP_ONLY);
-    public static final PermissionNode<Boolean> BYPASS_PLACE_BLOCK = new PermissionNode<>("area_control", "bypass.place_block", PermissionTypes.BOOLEAN, OP_ONLY);
-    public static final PermissionNode<Boolean> BYPASS_PVP = new PermissionNode<>("area_control", "bypass.pvp", PermissionTypes.BOOLEAN, OP_ONLY);
-    public static final PermissionNode<Boolean> BYPASS_ATTACK = new PermissionNode<>("area_control", "bypass.attack", PermissionTypes.BOOLEAN, OP_ONLY);
-
-    public static final PermissionNode<Boolean> BYPASS_CLICK_BLOCK = new PermissionNode<>("area_control", "bypass.click_block", PermissionTypes.BOOLEAN, ANYONE);
-    public static final PermissionNode<Boolean> BYPASS_ACTIVATE_BLOCK = new PermissionNode<>("area_control", "bypass.activate_block", PermissionTypes.BOOLEAN, ANYONE);
-    public static final PermissionNode<Boolean> BYPASS_USE_ITEM = new PermissionNode<>("area_control", "bypass.use_item", PermissionTypes.BOOLEAN, ANYONE);
-    public static final PermissionNode<Boolean> BYPASS_INTERACT_ENTITY = new PermissionNode<>("area_control", "bypass.interact_entity", PermissionTypes.BOOLEAN, ANYONE);
-    public static final PermissionNode<Boolean> BYPASS_INTERACT_ENTITY_SPECIFIC = new PermissionNode<>("area_control", "bypass.interact_entity_specific", PermissionTypes.BOOLEAN, ANYONE);
-
 }
