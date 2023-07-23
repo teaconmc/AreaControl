@@ -3,6 +3,7 @@ package org.teacon.areacontrol.mixin;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.BaseCommandBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,12 +22,16 @@ public class EntitySelectorMixin {
      */
     @Inject(method = "lambda$findEntities$1", at = @At("HEAD"), cancellable = true)
     private static void checkArea(CommandSourceStack sourceStack, Entity e, CallbackInfoReturnable<Boolean> cir) {
-        var level = sourceStack.getLevel();
-        var pos = sourceStack.getPosition();
-        var area = AreaManager.INSTANCE.findBy(level, pos);
-        if (area != null) {
-            if (e.xo < area.minX || e.xo > area.maxX || e.yo < area.minY || e.yo > area.maxY || e.zo < area.minZ || e.zo > area.maxZ) {
-                cir.setReturnValue(Boolean.FALSE);
+        // This check applies to entities and Command Blocks only
+        var trueSrc = sourceStack.source;
+        if (trueSrc instanceof Entity || trueSrc instanceof BaseCommandBlock) {
+            var level = sourceStack.getLevel();
+            var pos = sourceStack.getPosition();
+            var area = AreaManager.INSTANCE.findBy(level, pos);
+            if (area != null) {
+                if (e.xo < area.minX || e.xo > area.maxX || e.yo < area.minY || e.yo > area.maxY || e.zo < area.minZ || e.zo > area.maxZ) {
+                    cir.setReturnValue(Boolean.FALSE);
+                }
             }
         }
     }
