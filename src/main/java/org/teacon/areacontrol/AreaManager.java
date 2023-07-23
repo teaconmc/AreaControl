@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
-import org.teacon.areacontrol.impl.AreaFactory;
 import org.teacon.areacontrol.impl.AreaMath;
 import org.teacon.areacontrol.impl.persistence.AreaRepository;
 
@@ -40,10 +39,7 @@ public final class AreaManager {
 
     public static final AreaManager INSTANCE = new AreaManager();
 
-    public static final boolean DEBUG = Boolean.getBoolean("area_control.dev");
     private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
-
-    private final Area singlePlayerWildness = AreaFactory.singlePlayerWildness();
 
     private AreaRepository repository = null;
 
@@ -385,9 +381,6 @@ public final class AreaManager {
     }
 
     public @Nullable Area findBy(Level worldInstance, BlockPos pos) {
-        if (!DEBUG && AreaControl.singlePlayerServerChecker.test(worldInstance.getServer())) {
-            return this.singlePlayerWildness;
-        }
         // Remember that neither Dimension nor DimensionType are for
         // distinguishing a world - they are information for world
         // generation. Mojang is most likely to allow duplicated
@@ -404,9 +397,6 @@ public final class AreaManager {
     }
 
     public @Nullable Area findBy(LevelAccessor maybeLevel, BlockPos pos) {
-        if (!DEBUG && AreaControl.singlePlayerServerChecker.test(maybeLevel.getServer())) {
-            return this.singlePlayerWildness;
-        }
         if (maybeLevel instanceof Level level) {
             return this.findBy(level.dimension(), pos);
         } else if (maybeLevel instanceof ServerLevelAccessor) {

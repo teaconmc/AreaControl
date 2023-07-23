@@ -12,6 +12,8 @@ import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.teacon.areacontrol.AreaControl;
+import org.teacon.areacontrol.AreaControlConfig;
 import org.teacon.areacontrol.AreaControlPermissions;
 import org.teacon.areacontrol.AreaControlPlayerTracker;
 import org.teacon.areacontrol.AreaManager;
@@ -124,9 +126,15 @@ public class AreaChecks {
      * @return true if such action is allowed; false otherwise.
      */
     public static boolean checkPropFor(final @Nullable Area area, final @Nullable Entity actor, final @NotNull String prop, final @Nullable ResourceLocation targetId) {
-        // If bypass mode is activated, then skip all checks.
-        if (actor != null && AreaControlPlayerTracker.INSTANCE.hasBypassModeOnForArea(actor, area)) {
-            return true;
+        if (actor != null) {
+            // If actor is in single-player (without being published to LAN), then skip all checks.
+            if (AreaControlConfig.disableInSinglePlayer.get() && AreaControl.singlePlayerServerChecker.test(actor.getServer())) {
+                return true;
+            }
+            // If bypass mode is activated, then skip all checks.
+            if (AreaControlPlayerTracker.INSTANCE.hasBypassModeOnForArea(actor, area)) {
+                return true;
+            }
         }
         if (targetId != null) {
             var objSpecific = AreaProperties.getBoolOptional(area, prop + "." + targetId);
