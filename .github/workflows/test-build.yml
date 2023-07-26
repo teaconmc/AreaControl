@@ -17,5 +17,5 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: $${{ runner.os }}-gradle
-      - name: Build
+      - name: Run test
         run: ./gradlew test
