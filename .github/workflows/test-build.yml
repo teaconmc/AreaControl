@@ -18,4 +18,4 @@ jobs:
             ~/.gradle/wrapper
           key: $${{ runner.os }}-gradle
       - name: Build
-        run: ./gradlew build --stacktrace
+        run: ./gradlew test
