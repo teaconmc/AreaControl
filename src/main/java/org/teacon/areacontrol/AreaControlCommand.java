@@ -309,7 +309,7 @@ public final class AreaControlCommand {
         AreaControlPlayerTracker.INSTANCE.clearSelectionForClient(claimer);
         if (recordPos != null) {
             final var range = new AABB(Vec3.atCenterOf(recordPos.start()), Vec3.atCenterOf(recordPos.end()));
-            if (!range.expandTowards(0.5, 0.5, 0.5).contains(claimer.position())) {
+            if (!range.inflate(0.5, 0.5, 0.5).contains(claimer.position())) {
                 src.sendFailure(Component.translatable("area_control.error.outside_selection"));
                 return -1;
             }
