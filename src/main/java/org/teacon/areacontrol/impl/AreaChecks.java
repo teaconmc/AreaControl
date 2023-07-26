@@ -9,7 +9,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.server.permission.PermissionAPI;
-import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.teacon.areacontrol.AreaControl;
@@ -62,25 +61,6 @@ public class AreaChecks {
         }
         // 3. Check if player is admin.
         return isACtrlAdmin(p);
-    }
-
-    public static boolean allow(Player p, @Nullable Area area, PermissionNode<Boolean> perm) {
-        var uuid = p.getGameProfile().getId();
-        boolean allow = area != null && (area.owners.contains(uuid) || area.builders.contains(uuid));
-        if (!allow) {
-            allow = AreaControlPlayerTracker.INSTANCE.hasBypassModeOnForArea(p, area);
-        }
-        if (!allow && p instanceof ServerPlayer sp) {
-            allow = PermissionAPI.getPermission(sp, perm);
-        }
-        return allow;
-    }
-
-    public static boolean allow(ServerPlayer p, @Nullable Area area, PermissionNode<Boolean> perm) {
-        var uuid = p.getGameProfile().getId();
-        return (area != null && (area.owners.contains(uuid) || area.builders.contains(uuid)))
-                || AreaControlPlayerTracker.INSTANCE.hasBypassModeOnForArea(p, area)
-                || PermissionAPI.getPermission(p, perm);
     }
 
     public static void checkInv(List<ItemStack> inv, @Nullable Area currentArea, Player player) {
