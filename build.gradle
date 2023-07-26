@@ -78,6 +78,15 @@ dependencies {
     compileOnly 'net.luckperms:api:5.4'
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.mockito:mockito-core:5.4.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.4.0'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 mixin {

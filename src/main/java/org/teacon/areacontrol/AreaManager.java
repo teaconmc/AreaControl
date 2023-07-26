@@ -28,6 +28,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.server.ServerLifecycleHooks;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +87,7 @@ public final class AreaManager {
                 .forEach(list -> list.add(area.uid));
     }
 
-    void init(AreaRepository repository) {
+    public void init(AreaRepository repository) {
         this.repository = repository;
         this.areasById.clear();
         this.areasByName.clear();
@@ -94,7 +95,7 @@ public final class AreaManager {
         this.perWorldAreaCache.clear();
     }
 
-    void load() throws Exception {
+    public void load() throws Exception {
         var writeLock = this.lock.writeLock();
         try {
             writeLock.lock();
@@ -502,7 +503,11 @@ public final class AreaManager {
         return null;
     }
 
-    public Area findBy(UUID uid) {
+    @Contract("null -> null; !null -> !null")
+    public @Nullable Area findBy(@Nullable UUID uid) {
+        if (uid == null) {
+            return null;
+        }
         var readLock = this.lock.readLock();
         try {
             readLock.lock();

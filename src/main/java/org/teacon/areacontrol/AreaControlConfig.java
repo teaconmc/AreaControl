@@ -13,6 +13,11 @@ public class AreaControlConfig {
 
     public static ForgeConfigSpec.ConfigValue<String> groupProvider;
 
+    public static ForgeConfigSpec.BooleanValue allowEntitySelectingFromParent;
+    public static ForgeConfigSpec.BooleanValue allowEntitySelectingFromChild;
+    public static ForgeConfigSpec.BooleanValue allowCBSelectingFromParent;
+    public static ForgeConfigSpec.BooleanValue allowCBSelectingFromChild;
+
     public static ForgeConfigSpec setup(ForgeConfigSpec.Builder configSpec) {
         disableInSinglePlayer = configSpec.comment("Disable nearly all protection measures when in singleplayer.")
                 .translation("area_control.config.disable_in_single_player")
@@ -33,6 +38,17 @@ public class AreaControlConfig {
         groupProvider = configSpec.comment("Group provider used to provide 'groups'. Used in /ac current [claimer|builder] add group.")
                 .translation("area_control.config.group_provider")
                 .define("groupProvider", "vanilla");
+
+        configSpec.push("Default properties");
+        allowEntitySelectingFromParent = configSpec.comment("Default value for area.allow_select_from_parent_area_by_entity")
+                        .define("allowEntityUseEntitySelectorToSelectEntitiesFromParentArea", true);
+        allowEntitySelectingFromChild = configSpec.comment("Default value for area.allow_select_from_child_area_by_entity")
+                        .define("allowEntityUseEntitySelectorToSelectEntitiesFromChildArea", true);
+        allowCBSelectingFromParent = configSpec.comment("Default value for area.allow_select_from_parent_area_by_command_block")
+                        .define("allowCommandBlockUseEntitySelectorToSelectEntitiesFromParentArea", true);
+        allowCBSelectingFromChild = configSpec.comment("Default value for area.allow_select_from_child_area_by_command_block")
+                        .define("allowCommandBlockUseEntitySelectorToSelectEntitiesFromChildArea", true);
+        configSpec.pop();
         return configSpec.build();
     }
 }

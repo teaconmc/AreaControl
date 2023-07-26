@@ -41,6 +41,12 @@ public final class AreaProperties {
     public static final String ALLOW_POSSESS = register("area.allow_possess");
     public static final String ALLOW_RIDE = register("area.allow_ride");
 
+    public static final String ALLOW_ENTITY_USE_SELECTOR_FROM_CHILD = register("area.allow_select_from_child_area_by_entity");
+    public static final String ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT = register("area.allow_select_from_parent_area_by_entity");
+
+    public static final String ALLOW_CB_USE_SELECTOR_FROM_CHILD = register("area.allow_select_from_child_area_by_command_block");
+    public static final String ALLOW_CB_USE_SELECTOR_FROM_PARENT  = register("area.allow_select_from_parent_area_by_command_block");
+
     static String register(String property) {
         KNOWN_PROPERTIES.add(property);
         return property;
@@ -76,7 +82,7 @@ public final class AreaProperties {
     /**
      * @return null if the property is not specified by AC, so you can seek it in gameRule.
      */
-    public static Optional<Boolean> getBoolOptional(Area area, String key) {
+    public static Optional<Boolean> getBoolOptional(@Nullable Area area, String key) {
         return getBoolOptional(area, key, true);
     }
 
