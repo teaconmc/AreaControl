@@ -13,7 +13,6 @@ import net.minecraftforge.server.permission.nodes.PermissionNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.teacon.areacontrol.AreaControl;
-import org.teacon.areacontrol.AreaControlConfig;
 import org.teacon.areacontrol.AreaControlPermissions;
 import org.teacon.areacontrol.AreaControlPlayerTracker;
 import org.teacon.areacontrol.AreaManager;
@@ -39,8 +38,8 @@ public class AreaChecks {
             }
             // 2. If area has parent area, check if it owns parent
             var parent = AreaManager.INSTANCE.findBy(area.belongingArea);
-            if (parent != null) {
-                return parent.owners.contains(uid) || parent.ownerGroups.contains(group);
+            if (parent != null && (parent.owners.contains(uid) || parent.ownerGroups.contains(group))) {
+                return true;
             }
         }
         // 3. Check if player is admin.
@@ -57,8 +56,8 @@ public class AreaChecks {
             }
             // 2. If area has parent area, check if it owns parent
             var parent = AreaManager.INSTANCE.findBy(area.belongingArea);
-            if (parent != null) {
-                return parent.builders.contains(uid) || parent.builderGroups.contains(group);
+            if (parent != null && (parent.builders.contains(uid) || parent.builderGroups.contains(group))) {
+                return true;
             }
         }
         // 3. Check if player is admin.
@@ -128,7 +127,7 @@ public class AreaChecks {
     public static boolean checkPropFor(final @Nullable Area area, final @Nullable Entity actor, final @NotNull String prop, final @Nullable ResourceLocation targetId) {
         if (actor != null) {
             // If actor is in single-player (without being published to LAN), then skip all checks.
-            if (AreaControlConfig.disableInSinglePlayer.get() && AreaControl.singlePlayerServerChecker.test(actor.getServer())) {
+            if (AreaControl.singlePlayerServerChecker.test(actor.getServer())) {
                 return true;
             }
             // If bypass mode is activated, then skip all checks.
