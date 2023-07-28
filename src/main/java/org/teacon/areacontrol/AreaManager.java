@@ -70,6 +70,9 @@ public final class AreaManager {
     }
 
     private void buildCacheFor(Area area, ResourceKey<Level> worldIndex) {
+        // Re-calculate volume
+        long dx = area.maxX - area.minX, dy = area.maxY - area.minY, dz = area.maxZ - area.minZ;
+        area.volume = BigInteger.valueOf(dx).multiply(BigInteger.valueOf(dy)).multiply(BigInteger.valueOf(dz));
         // not locked since every method invoking this one has been locked
         this.areasById.put(area.uid, area);
         this.areasByName.put(area.name, area);
@@ -128,13 +131,11 @@ public final class AreaManager {
                         possibleParents.add(maybeParent);
                     }
                 }
-                var minVolume = BigInteger.valueOf(1L << 32).pow(3);
+                var minVolume = AreaMath.VERY_BIG_NUMBER;
                 UUID theParent = null;
                 if (!possibleParents.isEmpty()) {
                     for (var maybeParent : possibleParents) {
-                        var vol = BigInteger.valueOf(maybeParent.maxX).subtract(BigInteger.valueOf(maybeParent.minX))
-                                .multiply(BigInteger.valueOf(maybeParent.maxY).subtract(BigInteger.valueOf(maybeParent.minY)))
-                                .multiply(BigInteger.valueOf(maybeParent.maxZ).subtract(BigInteger.valueOf(maybeParent.minZ)));
+                        var vol = maybeParent.volume;
                         if (vol.compareTo(minVolume) < 0) {
                             minVolume = vol;
                             theParent = maybeParent.uid;
@@ -476,16 +477,13 @@ public final class AreaManager {
             // TODO I still don't believe this is correct, but I am bugged everyday for this.
             //   Need to find some time to verify.
             Area result = null;
-            long minVolume = Long.MAX_VALUE;
+            BigInteger minVolume = AreaMath.VERY_BIG_NUMBER;
             for (var a : results) {
-                long x = Math.min(a.maxX, 3000_0000) - Math.max(a.minX, -3000_0000);
-                long y = Math.min(a.maxY, 320) - Math.max(a.minY, -64);
-                long z = Math.min(a.maxZ, 3000_0000) - Math.max(a.minZ, -3000_0000);
-                long vol = x * y * z;
-                if (vol < minVolume) {
+                BigInteger vol = a.volume;
+                if (vol.compareTo(minVolume) < 0) {
                     result = a;
                     minVolume = vol;
-                } else if (vol == minVolume && result != null) {
+                } else if (vol.equals(minVolume) && result != null) {
                     if (result.minX <= a.minX && a.maxX <= result.maxX
                             && result.minY <= a.minY && a.maxY <= result.maxY
                             && result.minZ <= a.minZ && a.maxZ <= result.maxZ) {

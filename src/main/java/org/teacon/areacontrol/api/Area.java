@@ -1,5 +1,6 @@
 package org.teacon.areacontrol.api;
 
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,7 @@ public final class Area {
     public int minX, minY, minZ, maxX, maxY, maxZ;
     public UUID belongingArea = null;
     public transient Set<UUID> subAreas = new HashSet<>();
+    public transient BigInteger volume = BigInteger.ZERO;
 
     public final Map<String, Object> properties = new ConcurrentHashMap<>();
 

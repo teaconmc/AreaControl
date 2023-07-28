@@ -1,6 +1,9 @@
 package org.teacon.areacontrol.impl;
 
+import org.jetbrains.annotations.Nullable;
 import org.teacon.areacontrol.api.Area;
+
+import java.math.BigInteger;
 
 public class AreaMath {
 
@@ -18,8 +21,13 @@ public class AreaMath {
         }
     }
 
-    public static boolean isPointIn(Area area, double x, double y, double z) {
-        return distanceSqBetween(area, x, y, z) <= 0; // TODO Yes I am being lazy here
+    /**
+     * Sufficiently large number used for calculating area volume.
+     */
+    public static final BigInteger VERY_BIG_NUMBER = BigInteger.valueOf(Long.MAX_VALUE).pow(3);
+
+    public static boolean isPointIn(@Nullable Area area, double x, double y, double z) {
+        return area == null || (area.minX <= x && area.maxX >= x && area.minY <= y && area.maxY >= y && area.minZ <= z && area.maxZ >= z);
     }
 
     public static double distanceSqBetween(Area area, double x, double y, double z) {
@@ -42,7 +50,16 @@ public class AreaMath {
         return Math.min(dx, Math.min(dy, dz));
     }
 
-    public static boolean isEnclosing(Area parent, Area maybeChild) {
+    public static boolean isEnclosing(@Nullable Area parent, @Nullable Area maybeChild) {
+        // Null area means wildness: wildness is the parent of any area.
+        if (parent == null) {
+            return true;
+        }
+        // Parent is non-wildness area, but maybeChild is the wildness.
+        // Naturally, parent cannot be the parent of maybeChild in this case.
+        if (maybeChild == null) {
+            return false;
+        }
         return parent.minX <= maybeChild.minX && maybeChild.maxX <= parent.maxX
                 && parent.minY <= maybeChild.minY && maybeChild.maxY <= parent.maxY
                 && parent.minZ <= maybeChild.minZ && maybeChild.maxZ <= parent.maxZ;
