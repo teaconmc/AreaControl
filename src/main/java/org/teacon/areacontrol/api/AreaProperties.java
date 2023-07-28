@@ -22,11 +22,8 @@ public final class AreaProperties {
 
     public static final String SHOW_WELCOME = register("area.display_welcome_message");
     public static final String ALLOW_SPAWN = register("area.allow_spawn");
-    @Deprecated(forRemoval = true)
-    public static final String ALLOW_SPECIAL_SPAWN = register("area.allow_special_spawn");
     public static final String ALLOW_PVP = register("area.allow_pvp");
     public static final String ALLOW_PVE = register("area.allow_attack");
-    public static final String ALLOW_INTERACT_ENTITY_SP = register("area.allow_interact_entity_specific");
     public static final String ALLOW_INTERACT_ENTITY = register("area.allow_interact_entity");
     public static final String ALLOW_BREAK = register("area.allow_break_block");
     public static final String ALLOW_CLICK = register("area.allow_click_block");

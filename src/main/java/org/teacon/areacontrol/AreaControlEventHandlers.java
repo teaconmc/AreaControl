@@ -44,15 +44,6 @@ public final class AreaControlEventHandlers {
         }
     }
 
-    //@SubscribeEvent(priority = EventPriority.HIGHEST) // TODO (3TUSK): Re-evaluate
-    public static void onSpecialSpawn(MobSpawnEvent event) {
-        final BlockPos spawnPos = BlockPos.containing(event.getX(), event.getY(), event.getZ());
-        final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), spawnPos);
-        if (!AreaProperties.getBool(targetArea, "area.allow_special_spawn")) {
-            event.setCanceled(true);
-        }
-    }
-
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onInteractEntitySpecific(PlayerInteractEvent.EntityInteractSpecific event) {
         if (event.getEntity().level().isClientSide) {
@@ -74,7 +65,7 @@ public final class AreaControlEventHandlers {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
         final var targetType = event.getTarget().getType();
         final var targetTypeId = ForgeRegistries.ENTITY_TYPES.getKey(targetType);
-        if (!AreaChecks.checkPropFor(targetArea, event.getEntity(), AreaProperties.ALLOW_INTERACT_ENTITY_SP, targetTypeId)) {
+        if (!AreaChecks.checkPropFor(targetArea, event.getEntity(), AreaProperties.ALLOW_INTERACT_ENTITY, targetTypeId)) {
             event.setCanceled(true);
         }
     }
