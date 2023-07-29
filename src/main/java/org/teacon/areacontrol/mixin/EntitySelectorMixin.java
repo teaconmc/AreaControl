@@ -19,7 +19,8 @@ public class EntitySelectorMixin {
      * @param e Entity in question
      * @param cir callback
      */
-    @Inject(method = "lambda$findEntities$1", at = @At("HEAD"), cancellable = true)
+    @Inject(method = { "lambda$findEntities$1", "m_244752_" }, at = @At("HEAD"),
+            cancellable = true, remap = false, require = 1)
     private static void checkArea(CommandSourceStack sourceStack, Entity e, CallbackInfoReturnable<Boolean> cir) {
         if (!AreaEntitySelectorChecker.check(sourceStack, e)) {
             cir.setReturnValue(Boolean.FALSE);
