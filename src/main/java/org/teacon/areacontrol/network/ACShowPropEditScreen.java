@@ -52,11 +52,17 @@ public class ACShowPropEditScreen {
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
         var context = contextSupplier.get();
-        context.enqueueWork(() -> Minecraft.getInstance().setScreen(new EditPropertiesScreen(this.areaName, this.props)));
+        context.enqueueWork(() -> HandlerImpl.openScreen0(this.areaName, this.props));
         context.setPacketHandled(true);
     }
 
     public record Info(String prop, Boolean triStateValue) {
 
+    }
+
+    private static final class HandlerImpl {
+        static void openScreen0(String areaName, List<ACShowPropEditScreen.Info> props) {
+            Minecraft.getInstance().setScreen(new EditPropertiesScreen(areaName, props));
+        }
     }
 }
