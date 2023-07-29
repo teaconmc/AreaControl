@@ -16,6 +16,7 @@ public enum AreaControlContextCalculator implements ContextCalculator<ServerPlay
 
     private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
 
+    private static final String CONTEXT_IS_WILDNESS = "area_control:wildness";
     private static final String CONTEXT_AREA_ID = "area_control:current_area_id";
     private static final String CONTEXT_AREA_NAME = "area_control:current_area_name";
     private static final String CONTEXT_OWNER = "area_control:owning_current_position";
@@ -24,7 +25,12 @@ public enum AreaControlContextCalculator implements ContextCalculator<ServerPlay
     @Override
     public void calculate(@NonNull ServerPlayer target, @NonNull ContextConsumer consumer) {
         var uid = target.getGameProfile().getId();
-        var area = AreaControlPlayerTracker.INSTANCE.getCurrentAreaForPlayer(uid);
+        final var area = AreaControlPlayerTracker.INSTANCE.getCurrentAreaForPlayer(uid);
+        if (area == null) {
+            consumer.accept(CONTEXT_IS_WILDNESS, "true");
+            return;
+        }
+        consumer.accept(CONTEXT_IS_WILDNESS, "false");
         consumer.accept(CONTEXT_AREA_ID, area.uid.toString());
         consumer.accept(CONTEXT_AREA_NAME, area.name);
         consumer.accept(CONTEXT_OWNER, Boolean.toString(area.owners.contains(uid)));

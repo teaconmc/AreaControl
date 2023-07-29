@@ -246,7 +246,7 @@ public enum AreaControlPlayerTracker {
         }
     }
 
-    public Area getCurrentAreaForPlayer(UUID playerUUID) {
+    public @Nullable Area getCurrentAreaForPlayer(UUID playerUUID) {
         var areaId = this.playerLocation.get(playerUUID);
         return AreaManager.INSTANCE.findBy(areaId);
     }
