@@ -7,7 +7,24 @@
   "area_control.screen.ok": "确认",
 
   "area_control.admin.welcome": "AreaControl：欢迎回来，管理员 %s",
-  
+
+  "area_control.property.area.allow_spawn.tooltip": "是否允许实体在该领地中生成。",
+  "area_control.property.area.allow_pvp.tooltip": "是否允许该领地中玩家攻击其他玩家。",
+  "area_control.property.area.allow_attack.tooltip": "是否允许该领地中玩家攻击非玩家实体。",
+  "area_control.property.area.allow_interact_entity.tooltip": "是否允许玩家与该领地中的实体交互。",
+  "area_control.property.area.allow_ride.tooltip": "是否允许玩家在该领地中骑乘（特定）载具。",
+  "area_control.property.area.allow_break_block.tooltip": "是否允许玩家破坏该领地中的方块。",
+  "area_control.property.area.allow_click_block.tooltip": "是否允许玩家点击（左击）该领地中的方块。",
+  "area_control.property.area.allow_activate_block.tooltip": "是否允许玩家与该领地中的方块互动（右击方块）。",
+  "area_control.property.area.allow_place_block.tooltip": "是否允许玩家在该领地中放置方块。",
+  "area_control.property.area.allow_use_item.tooltip": "是否允许玩家在该领地中使用物品。",
+  "area_control.property.area.allow_possess.tooltip": "是否允许玩家在该领地中持有（特定）物品。",
+  "area_control.property.area.allow_explosion.tooltip": "是否允许爆炸。",
+  "area_control.property.area.allow_explosion_affect_blocks.tooltip": "是否允许爆炸破坏该领地中方块。",
+  "area_control.property.area.allow_explosion_affect_entities.tooltip": "是否允许爆炸伤害该领地中实体。",
+  "area_control.property.area.allow_trample_farmland.tooltip": "是否允许踩坏该领地内耕地。",
+  "area_control.property.area.allow_fire_spread.tooltip": "是否允许火焰蔓延至该领地内。",
+
   "area_control.owner.aka": "在游戏中又名 %s",
 
   "area_control.claim.how_to": "你需要%1$s来声明领地。首先你要手持%1$s右击你要声明的区域的左下角。\n然后你要手持一样的物品右击你要声明的区域的右上角，然后执行命令 /ac claim marked 即可。\n你也可以使用 /ac claim chunk 来将一个或多个区块声明为你的领地。\n不同的服务器可能会附加不一样的规则，请以实际情况为准。",
@@ -19,6 +36,7 @@
   "area_control.claim.abandoned": "AreaControl: 成功放弃领地 %s（%s）",
 
   "area_control.claim.welcome": "欢迎来到%s",
+  "area_control.claim.default_name": "%s 的领地",
   "area_control.claim.detail": "  - 领地 '%s'，位于维度 %s 中，%s %s %s",
 
   "area_control.claim.owner.multiple": "%s 以及其他人",

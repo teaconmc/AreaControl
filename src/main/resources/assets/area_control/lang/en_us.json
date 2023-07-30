@@ -7,6 +7,23 @@
   "area_control.screen.ok": "OK",
 
   "area_control.admin.welcome": "AreaControl: Welcome back, administrator %s",
+
+  "area_control.property.area.allow_spawn.tooltip": "If allowed, entities can spawn in this area.",
+  "area_control.property.area.allow_pvp.tooltip": "If allowed, players can attack each other in this area.",
+  "area_control.property.area.allow_attack.tooltip": "If allowed, players can attack other entities (except players) in this area.",
+  "area_control.property.area.allow_interact_entity.tooltip": "If allowed, players can interact with entities in this area.",
+  "area_control.property.area.allow_ride.tooltip": "If allowed, players can mount on (specified) entities in this area.",
+  "area_control.property.area.allow_break_block.tooltip": "If allowed, players can break blocks in this area.",
+  "area_control.property.area.allow_click_block.tooltip": "If allowed, players can click on block in this area.",
+  "area_control.property.area.allow_activate_block.tooltip": "If allowed, players can interact with blocks in this area.",
+  "area_control.property.area.allow_place_block.tooltip": "If allowed, players can place blocks in this area.",
+  "area_control.property.area.allow_use_item.tooltip": "If allowed, players can use items in this area.",
+  "area_control.property.area.allow_possess.tooltip": "If allowed, players can have (specified) items in their inventory while in this area.",
+  "area_control.property.area.allow_explosion.tooltip": "If allowed, explosion can happen in this area.",
+  "area_control.property.area.allow_explosion_affect_blocks.tooltip": "If allowed, explosion can break blocks in this area.",
+  "area_control.property.area.allow_explosion_affect_entities.tooltip": "If allowed, explosion can hurt entities in this area.",
+  "area_control.property.area.allow_trample_farmland.tooltip": "If allowed, anyone can trample farmland back into dirt in this area.",
+  "area_control.property.area.allow_fire_spread.tooltip": "If allowed, fire can spread within this area.",
   
   "area_control.owner.aka": "Known as %s in-game",
 
@@ -19,6 +36,7 @@
   "area_control.claim.abandoned": "AreaControl: Claim %s (%s) has now been abandoned",
   
   "area_control.claim.welcome": "Welcome to %s",
+  "area_control.claim.default_name": "%s's Area",
   "area_control.claim.detail": "  - Area '%s', in dimension %s, %s %s %s",
 
   "area_control.claim.owner.multiple": "%s, et al.",

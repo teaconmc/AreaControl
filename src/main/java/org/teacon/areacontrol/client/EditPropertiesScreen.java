@@ -5,7 +5,6 @@
  */
 package org.teacon.areacontrol.client;
 
-import com.google.common.collect.ImmutableList;
 import net.minecraft.client.GameNarrator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -50,7 +49,9 @@ public final class EditPropertiesScreen extends Screen {
         super(GameNarrator.NO_TITLE);
         this.areaName = areaName;
         this.states = new LinkedHashMap<>(infos.size());
-        this.infoCollection = ImmutableList.copyOf(infos);
+        for (var entry : this.infoCollection = List.copyOf(infos)) {
+            this.states.put(entry.prop(), entry.triStateValue());
+        }
     }
 
     @Override
@@ -90,11 +91,10 @@ public final class EditPropertiesScreen extends Screen {
     private void onSlideClick(double dx, double dy) {
         int current = Mth.floor((this.slideTop + dy) / 24);
         if (current >= 0 && current < this.infoCollection.size()) {
-            // FIXME 偶尔会触发到别的属性上去，原因未知
-            int offsetX = Mth.floor((dx - 91) / 25);
+            int offsetX = Mth.floor((dx - 100) / 30);
             int offsetY = Mth.floor((this.slideTop + dy - current * 24 - 4) / 15);
-            if (offsetX >= 1 && offsetX <= 5 && offsetY == 0) {
-                Boolean newState = offsetX == 1 ? Boolean.FALSE : offsetX == 2 ? null : Boolean.TRUE;
+            if (offsetX >= 0 && offsetX <= 2 && offsetY == 0) {
+                Boolean newState = offsetX == 0 ? Boolean.FALSE : offsetX == 1 ? null : Boolean.TRUE;
                 var prop = this.infoCollection.get(current).prop();
                 this.states.put(prop, newState);
                 // Execute command on behalf of player
@@ -122,13 +122,18 @@ public final class EditPropertiesScreen extends Screen {
 
     private void drawTooltips(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
         int dx = mouseX - this.width / 2, dy = mouseY - this.height / 2;
-        if (dx >= -103 && dy >= -55 && dx < -6 && dy < 77) {
+        if (dy >= -55 && dy < 77) {
             int current = (this.slideTop + dy + 55) / 24;
             if (current >= 0 && current < this.infoCollection.size()) {
-                // FIXME[3TUSK] 别装了，这里没有 tooltip
-                //var descList = this.font.split(Component.literal("装作这里有 Tooltip"), 191);
-                //this.renderTooltip(matrixStack, descList.subList(0, Math.min(7, descList.size())), mouseX, mouseY);
-                this.setTooltipForNextRenderPass(Component.literal("装作这里有 Tooltip"));
+                if (dx >= -103 && dx < -6) {
+                    this.setTooltipForNextRenderPass(Component.translatable("area_control.property." + this.infoCollection.get(current).prop() + ".tooltip"));
+                } else if (dx >= -2 && dx < 27) {
+                    this.setTooltipForNextRenderPass(Component.literal("禁止"));
+                } else if (dx >= 27 && dx < 56) {
+                    this.setTooltipForNextRenderPass(Component.literal("继承默认值"));
+                } else if (dx >= 56 && dx < 85) {
+                    this.setTooltipForNextRenderPass(Component.literal("允许"));
+                }
             }
         }
     }
@@ -155,10 +160,9 @@ public final class EditPropertiesScreen extends Screen {
                 // draw button group background
                 guiGraphics.blit(TEXTURE, x0, y0, 8, 256, 192, 24, TEXTURE_WIDTH, TEXTURE_HEIGHT);
                 ACShowPropEditScreen.Info info = this.infoCollection.get(i);
-                // draw category string
-                int x1 = x0 + 48 - font.width(info.prop()) / 2, y1 = y0 + 8;
-                guiGraphics.drawString(this.font, info.prop(), x1, y1, TEXT_COLOR, false);
-                // FIXME[3TUSK]: Draw 3 buttons: Allow, Unset, Deny
+                // draw property name
+                int y1 = y0 + 8;
+                drawScrollingString(guiGraphics, font, Component.literal(info.prop()), x0 + 4, y1, x0 + 92, y1 + 10, TEXT_COLOR);
                 Boolean state = this.states.get(info.prop());
                 if (state == null) {
                     // Unset is selected
@@ -195,6 +199,26 @@ public final class EditPropertiesScreen extends Screen {
         int x3 = this.width / 2 + 1, y3 = this.height / 2 - 82, dx = font.width(this.areaName) / 2;
         guiGraphics.drawString(font, Component.literal(this.areaName), (int)(x3 / scale - dx), (int)(y3 / scale), TEXT_COLOR, false);
         guiGraphics.pose().popPose();
+    }
+
+    // Copied from AbstractWidget::drawScrollingString, modified to not dropping shadow
+    private static void drawScrollingString(GuiGraphics guiGraphics, Font font, Component text, int minX, int minY, int maxX, int maxY, int color) {
+        int textWidth = font.width(text);
+        int renderY = (minY + maxY - 9) / 2 + 1;
+        int allowedWidth = maxX - minX;
+        if (textWidth > allowedWidth) {
+            int overflow = textWidth - allowedWidth;
+            double time = System.currentTimeMillis() / 1000.0;
+            double cappedOverflow = Math.max(overflow * 0.5, 3.0);
+            double phase = Math.sin((Math.PI / 2D) * Math.cos((Math.PI * 2D) * time / cappedOverflow)) / 2.0D + 0.5D;
+            double diff = Mth.lerp(phase, 0.0, overflow);
+            guiGraphics.enableScissor(minX, minY, maxX, maxY);
+            guiGraphics.drawString(font, text, minX - (int)diff, renderY, color, false);
+            guiGraphics.disableScissor();
+        } else {
+            guiGraphics.drawString(font, text, (minX + maxX) / 2 - font.width(text) / 2, renderY, color, false);
+        }
+
     }
 
     private class BottomButton extends Button {
