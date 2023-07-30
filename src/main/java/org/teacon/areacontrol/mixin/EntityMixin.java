@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.teacon.areacontrol.AreaControlConfig;
 import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.impl.AreaChecks;
@@ -55,11 +56,11 @@ public abstract class EntityMixin {
             Component deniedFeedback;
             var damageSrc = src.getEntity();
             if (Player.class.isInstance(this) && damageSrc instanceof Player) {
-                allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_PVP, null);
+                allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_PVP, null, AreaControlConfig.allowPvP);
                 deniedFeedback = Component.translatable("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY);
             } else {
                 var entityTypeRegName = ForgeRegistries.ENTITY_TYPES.getKey(this.getType());
-                allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_PVE, entityTypeRegName);
+                allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_PVE, entityTypeRegName, AreaControlConfig.allowPvE);
                 deniedFeedback = Component.translatable("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY);
             }
             if (!allow) {

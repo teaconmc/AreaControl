@@ -20,6 +20,7 @@ import org.teacon.areacontrol.api.AreaControlAPI;
 import org.teacon.areacontrol.api.AreaProperties;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public class AreaChecks {
 
@@ -104,7 +105,9 @@ public class AreaChecks {
      * @param targetId The object on which the action is being carried out.
      * @return true if such action is allowed; false otherwise.
      */
-    public static boolean checkPropFor(final @Nullable Area area, final @Nullable Entity actor, final @NotNull String prop, final @Nullable ResourceLocation targetId) {
+    public static boolean checkPropFor(final @Nullable Area area, final @Nullable Entity actor,
+                                       final @NotNull String prop, final @Nullable ResourceLocation targetId,
+                                       final @Nullable Supplier<@NotNull Boolean> defaultValue) {
         if (actor != null) {
             // If actor is in single-player (without being published to LAN), then skip all checks.
             if (AreaControl.singlePlayerServerChecker.test(actor.getServer())) {
@@ -126,7 +129,11 @@ public class AreaChecks {
                 }
             }
         }
-        return AreaProperties.getBool(area, prop); // TODO: Do we want to check builder/owner as well???
+        if (defaultValue != null) {
+            return AreaProperties.getBoolOptional(area, prop).orElseGet(defaultValue);
+        } else {
+            return AreaProperties.getBool(area, prop);
+        }
     }
 
 }

@@ -37,7 +37,7 @@ public final class AreaControlEventHandlers {
             }
             final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel().dimension(), event.getEntity().blockPosition());
             final var entityId = ForgeRegistries.ENTITY_TYPES.getKey(entityInQuestion.getType());
-            if (!AreaChecks.checkPropFor(targetArea, null, AreaProperties.ALLOW_SPAWN, entityId)) {
+            if (!AreaChecks.checkPropFor(targetArea, null, AreaProperties.ALLOW_SPAWN, entityId, AreaControlConfig.allowSpawnEntity)) {
                 event.setCanceled(true);
             }
         }
@@ -51,7 +51,7 @@ public final class AreaControlEventHandlers {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
         final var targetType = event.getTarget().getType();
         final var targetTypeId = ForgeRegistries.ENTITY_TYPES.getKey(targetType);
-        if (!AreaChecks.checkPropFor(targetArea, event.getEntity(), AreaProperties.ALLOW_INTERACT_ENTITY, targetTypeId)) {
+        if (!AreaChecks.checkPropFor(targetArea, event.getEntity(), AreaProperties.ALLOW_INTERACT_ENTITY, targetTypeId, AreaControlConfig.allowInteractEntity)) {
             event.setCanceled(true);
         }
     }
@@ -64,7 +64,7 @@ public final class AreaControlEventHandlers {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
         final var targetType = event.getTarget().getType();
         final var targetTypeId = ForgeRegistries.ENTITY_TYPES.getKey(targetType);
-        if (!AreaChecks.checkPropFor(targetArea, event.getEntity(), AreaProperties.ALLOW_INTERACT_ENTITY, targetTypeId)) {
+        if (!AreaChecks.checkPropFor(targetArea, event.getEntity(), AreaProperties.ALLOW_INTERACT_ENTITY, targetTypeId, AreaControlConfig.allowInteractEntity)) {
             event.setCanceled(true);
         }
     }
@@ -78,7 +78,7 @@ public final class AreaControlEventHandlers {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
         final var block = event.getLevel().getBlockState(event.getPos());
         final var blockId = ForgeRegistries.BLOCKS.getKey(block.getBlock());
-        var allowed = AreaChecks.checkPropFor(targetArea, p, AreaProperties.ALLOW_BREAK, blockId);
+        var allowed = AreaChecks.checkPropFor(targetArea, p, AreaProperties.ALLOW_BREAK, blockId, AreaControlConfig.allowBreakBlock);
         if (!allowed) {
             p.displayClientMessage(Component.translatable("area_control.notice.break_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
@@ -94,7 +94,7 @@ public final class AreaControlEventHandlers {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
         final var block = event.getLevel().getBlockState(event.getPos());
         final var blockId = ForgeRegistries.BLOCKS.getKey(block.getBlock());
-        var allowed = AreaChecks.checkPropFor(targetArea, p, AreaProperties.ALLOW_CLICK, blockId);
+        var allowed = AreaChecks.checkPropFor(targetArea, p, AreaProperties.ALLOW_CLICK, blockId, AreaControlConfig.allowClickBlock);
         if (!allowed) {
             p.displayClientMessage(Component.translatable("area_control.notice.click_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
@@ -110,7 +110,7 @@ public final class AreaControlEventHandlers {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
         final var block = event.getLevel().getBlockState(event.getPos());
         final var blockId = ForgeRegistries.BLOCKS.getKey(block.getBlock());
-        var allowed = AreaChecks.checkPropFor(targetArea, player, AreaProperties.ALLOW_ACTIVATE, blockId);
+        var allowed = AreaChecks.checkPropFor(targetArea, player, AreaProperties.ALLOW_ACTIVATE, blockId, AreaControlConfig.allowActivateBlock);
         if (!allowed) {
             player.displayClientMessage(Component.translatable("area_control.notice.activate_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
@@ -126,7 +126,7 @@ public final class AreaControlEventHandlers {
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
         final var theItem = event.getItemStack().getItem();
         final var itemId = ForgeRegistries.ITEMS.getKey(theItem);
-        var allowed = AreaChecks.checkPropFor(targetArea, p, AreaProperties.ALLOW_USE_ITEM, itemId);
+        var allowed = AreaChecks.checkPropFor(targetArea, p, AreaProperties.ALLOW_USE_ITEM, itemId, AreaControlConfig.allowUseItem);
         if (!allowed) {
             p.displayClientMessage(Component.translatable("area_control.notice.use_item_disabled", ObjectArrays.EMPTY_ARRAY), true);
             event.setCanceled(true);
@@ -139,7 +139,7 @@ public final class AreaControlEventHandlers {
             return;
         }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
-        if (!AreaChecks.checkPropFor(targetArea, event.getEntity(), AreaProperties.ALLOW_TRAMPLE_FARMLAND, null)) {
+        if (!AreaChecks.checkPropFor(targetArea, event.getEntity(), AreaProperties.ALLOW_TRAMPLE_FARMLAND, null, null)) {
             event.setCanceled(true);
         }
     }
@@ -153,7 +153,7 @@ public final class AreaControlEventHandlers {
         final var block = event.getLevel().getBlockState(event.getPos());
         final var blockId = ForgeRegistries.BLOCKS.getKey(block.getBlock());
         final var placer = event.getEntity();
-        var allowed = AreaChecks.checkPropFor(targetArea, placer, AreaProperties.ALLOW_PLACE_BLOCK, blockId);
+        var allowed = AreaChecks.checkPropFor(targetArea, placer, AreaProperties.ALLOW_PLACE_BLOCK, blockId, AreaControlConfig.allowPlaceBlock);
         if (!allowed) {
             // TODO Client will falsely report item being consumed; however it will return to normal if you click again in inventory GUI
             event.setCanceled(true);
@@ -169,7 +169,7 @@ public final class AreaControlEventHandlers {
             return;
         }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getExplosion().getPosition());
-        if (!AreaChecks.checkPropFor(targetArea, null, AreaProperties.ALLOW_EXPLOSION, null)) {
+        if (!AreaChecks.checkPropFor(targetArea, null, AreaProperties.ALLOW_EXPLOSION, null, null)) {
             event.setCanceled(true);
         }
     }
@@ -180,18 +180,18 @@ public final class AreaControlEventHandlers {
             return;
         }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getExplosion().getPosition());
-        if (!AreaChecks.checkPropFor(targetArea, null, AreaProperties.ALLOW_EXPLOSION_AFFECT_BLOCKS, null)) {
+        if (!AreaChecks.checkPropFor(targetArea, null, AreaProperties.ALLOW_EXPLOSION_AFFECT_BLOCKS, null, null)) {
             event.getAffectedBlocks().clear();
         } else {
             for (var itr = event.getAffectedBlocks().iterator(); itr.hasNext();) {
                 BlockPos affected = itr.next();
                 final Area a = AreaManager.INSTANCE.findBy(event.getLevel(), affected);
-                if (!AreaChecks.checkPropFor(a, null, AreaProperties.ALLOW_EXPLOSION_AFFECT_ENTITIES, null)) {
+                if (!AreaChecks.checkPropFor(a, null, AreaProperties.ALLOW_EXPLOSION_AFFECT_ENTITIES, null, null)) {
                     itr.remove();
                 }
             }
         }
-        if (!AreaChecks.checkPropFor(targetArea, null, AreaProperties.ALLOW_EXPLOSION_AFFECT_ENTITIES, null)) {
+        if (!AreaChecks.checkPropFor(targetArea, null, AreaProperties.ALLOW_EXPLOSION_AFFECT_ENTITIES, null, null)) {
             event.getAffectedEntities().clear();
         }
     }
@@ -203,7 +203,7 @@ public final class AreaControlEventHandlers {
             var entityId = ForgeRegistries.ENTITY_TYPES.getKey(vehicle.getType());
             var area = AreaManager.INSTANCE.findBy(event.getLevel(), vehicle.blockPosition());
             var rider = event.getEntityMounting();
-            if (!AreaChecks.checkPropFor(area, rider, AreaProperties.ALLOW_RIDE, entityId)) {
+            if (!AreaChecks.checkPropFor(area, rider, AreaProperties.ALLOW_RIDE, entityId, AreaControlConfig.allowRideEntity)) {
                 if (rider instanceof Player p) {
                     p.displayClientMessage(Component.translatable("area_control.notice.ride_disabled", vehicle.getDisplayName()), true);
                 }

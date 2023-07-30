@@ -13,6 +13,9 @@ public class AreaControlConfig {
 
     public static ForgeConfigSpec.ConfigValue<String> groupProvider;
 
+    public static ForgeConfigSpec.BooleanValue allowBreakBlock, allowPlaceBlock, allowClickBlock, allowActivateBlock;
+    public static ForgeConfigSpec.BooleanValue allowPossessItem, allowUseItem;
+    public static ForgeConfigSpec.BooleanValue allowSpawnEntity, allowRideEntity, allowInteractEntity, allowPvP, allowPvE;
     public static ForgeConfigSpec.BooleanValue allowEntitySelectingFromParent;
     public static ForgeConfigSpec.BooleanValue allowEntitySelectingFromChild;
     public static ForgeConfigSpec.BooleanValue allowCBSelectingFromParent;
@@ -40,6 +43,21 @@ public class AreaControlConfig {
                 .define("groupProvider", "vanilla");
 
         configSpec.push("Default properties");
+        allowBreakBlock = configSpec.comment("Default value for area.allow_break_block")
+                        .define("allowBreakBlock", false);
+        allowPlaceBlock = configSpec.comment("Default value for area.allow_place_block")
+                .define("allowPlaceBlock", false);
+        allowActivateBlock = configSpec.comment("Default value for area.allow_activate_block")
+                .define("allowActivateBlock", true);
+        allowClickBlock = configSpec.comment("Default value for area.allow_click_block")
+                .define("allowClickBlock", true);
+        allowPossessItem = configSpec.define("allowPossessItem", true);
+        allowUseItem = configSpec.define("allowUseItem", true);
+        allowSpawnEntity = configSpec.define("allowSpawnEntity", true);
+        allowRideEntity = configSpec.define("allowRideEntity", true);
+        allowInteractEntity = configSpec.define("allowInteractEntity", true);
+        allowPvP = configSpec.define("allowPvP", false);
+        allowPvE = configSpec.define("allowPvE", false);
         allowEntitySelectingFromParent = configSpec.comment("Default value for area.allow_select_from_parent_area_by_entity")
                         .define("allowEntityUseEntitySelectorToSelectEntitiesFromParentArea", true);
         allowEntitySelectingFromChild = configSpec.comment("Default value for area.allow_select_from_child_area_by_entity")
