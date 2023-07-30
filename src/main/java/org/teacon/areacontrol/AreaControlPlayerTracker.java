@@ -115,7 +115,7 @@ public enum AreaControlPlayerTracker {
             AreaChecks.checkInv(mainInv.offhand, currentArea, player);
             // Seize vehicles if disallowed
             var riding = player.getVehicle();
-            if (riding != null && !AreaChecks.checkPropFor(currentArea, player, AreaProperties.ALLOW_RIDE, ForgeRegistries.ENTITY_TYPES.getKey(riding.getType()))) {
+            if (riding != null && !AreaChecks.checkPropFor(currentArea, player, AreaProperties.ALLOW_RIDE, ForgeRegistries.ENTITY_TYPES.getKey(riding.getType()), AreaControlConfig.allowRideEntity)) {
                 player.displayClientMessage(Component.translatable("area_control.notice.ride_disabled", riding.getDisplayName()), true);
                 player.stopRiding();
             }
