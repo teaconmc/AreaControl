@@ -281,6 +281,9 @@ public enum AreaControlPlayerTracker {
         }
         if (global) {
             this.playersWithGlobalExempt.add(p.getGameProfile().getId());
+            if (!AreaChecks.isACtrlAreaBuilder(p, area)) {
+                return;
+            }
             if (area == null) {
                 this.playersWithWildnessExemption.add(playerId);
                 p.displayClientMessage(Component.translatable("area_control.bypass.global.wildness.on"), false);
@@ -291,6 +294,9 @@ public enum AreaControlPlayerTracker {
                 p.displayClientMessage(HOW_TO_TURN_OFF, false);
             }
         } else {
+            if (!AreaChecks.isACtrlAreaBuilder(p, area)) {
+                return;
+            }
             if (area == null) {
                 this.playersWithWildnessExemption.add(playerId);
                 p.displayClientMessage(Component.translatable("area_control.bypass.local.wildness.on"), false);
