@@ -281,7 +281,7 @@ public enum AreaControlPlayerTracker {
         }
         if (global) {
             this.playersWithGlobalExempt.add(p.getGameProfile().getId());
-            if (!AreaChecks.isACtrlAreaBuilder(p, area)) {
+            if (!AreaChecks.isACtrlAreaBuilder(p, area, false)) {
                 return;
             }
             if (area == null) {
@@ -294,7 +294,7 @@ public enum AreaControlPlayerTracker {
                 p.displayClientMessage(HOW_TO_TURN_OFF, false);
             }
         } else {
-            if (!AreaChecks.isACtrlAreaBuilder(p, area)) {
+            if (!AreaChecks.isACtrlAreaBuilder(p, area, false)) {
                 return;
             }
             if (area == null) {

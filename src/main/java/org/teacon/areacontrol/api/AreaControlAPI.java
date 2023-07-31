@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 
 public class AreaControlAPI {
@@ -30,17 +31,17 @@ public class AreaControlAPI {
 
         @Override
         public @NotNull Collection<String> getGroups() {
-            throw new IllegalStateException("Not initialized yet!");
+            return Collections.emptyList();
         }
 
         @Override
         public boolean isValidGroup(@Nullable String groupIdentifier) {
-            throw new IllegalStateException("Not initialized yet!");
+            return false;
         }
 
         @Override
         public @Nullable String getGroupFor(@NotNull UUID playerId) {
-            throw new IllegalStateException("Not initialized yet!");
+            return null;
         }
     };
 }

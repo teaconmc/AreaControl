@@ -47,6 +47,10 @@ public class AreaChecks {
     }
 
     public static boolean isACtrlAreaBuilder(@NotNull ServerPlayer p, @Nullable Area area) {
+        return isACtrlAreaBuilder(p, area, true);
+    }
+
+    public static boolean isACtrlAreaBuilder(@NotNull ServerPlayer p, @Nullable Area area, boolean includeParent) {
         if (area != null) {
             var uid = p.getGameProfile().getId();
             var group = AreaControlAPI.groupProvider.getGroupFor(uid);
@@ -55,9 +59,11 @@ public class AreaChecks {
                 return true;
             }
             // 2. If area has parent area, check if it owns parent
-            var parent = AreaManager.INSTANCE.findBy(area.belongingArea);
-            if (parent != null && (parent.builders.contains(uid) || parent.builderGroups.contains(group))) {
-                return true;
+            if (includeParent) {
+                var parent = AreaManager.INSTANCE.findBy(area.belongingArea);
+                if (parent != null && (parent.builders.contains(uid) || parent.builderGroups.contains(group))) {
+                    return true;
+                }
             }
         }
         // 3. Check if player is admin.
