@@ -55,13 +55,13 @@ public class AreaChecks {
             var uid = p.getGameProfile().getId();
             var group = AreaControlAPI.groupProvider.getGroupFor(uid);
             // 1. Check if player is one of builders
-            if (area.builders.contains(uid) || area.builderGroups.contains(group)) {
+            if (area.owners.contains(uid) || area.builders.contains(uid) || area.ownerGroups.contains(group) || area.builderGroups.contains(group)) {
                 return true;
             }
             // 2. If area has parent area, check if it owns parent
             if (includeParent) {
                 var parent = AreaManager.INSTANCE.findBy(area.belongingArea);
-                if (parent != null && (parent.builders.contains(uid) || parent.builderGroups.contains(group))) {
+                if (parent != null && (parent.owners.contains(uid) || parent.builders.contains(uid) || parent.ownerGroups.contains(group) || parent.builderGroups.contains(group))) {
                     return true;
                 }
             }
