@@ -282,6 +282,7 @@ public enum AreaControlPlayerTracker {
         if (global) {
             this.playersWithGlobalExempt.add(p.getGameProfile().getId());
             if (!AreaChecks.isACtrlAreaBuilder(p, area, false)) {
+                p.displayClientMessage(Component.translatable("area_control.error.insufficient_permission_for_bypass"), false);
                 return;
             }
             if (area == null) {
@@ -295,6 +296,7 @@ public enum AreaControlPlayerTracker {
             }
         } else {
             if (!AreaChecks.isACtrlAreaBuilder(p, area, false)) {
+                p.displayClientMessage(Component.translatable("area_control.error.insufficient_permission_for_bypass"), false);
                 return;
             }
             if (area == null) {

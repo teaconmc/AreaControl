@@ -112,7 +112,7 @@
   "area_control.error.cannot_change_range": "Cannot change range for area %s because it would cause area overlapping",
   "area_control.error.cannot_set_property": "AreaControl: Cannot set property for area %s because you are not authorized to do so.",
   "area_control.error.cannot_set_builder": "AreaControl: Cannot add/remove builder for area %s because you are not authorized to do so.",
-  "area_control.error.cannot_set_tag": "AreaControl: Cannot add/remove tag for area %s because you are not authorized to do so.",
+  "area_control.error.insufficient_permission_for_bypass": "ACtrl: Failed to turn on bypass for current area because you are not owner or builder. For wildness, you must have ACtrl admin permission to turn on bypass for wildness.",
   "area_control.error.unclaim_wildness": "AreaControl: You are in the wildness. Are you returning the wild nature to the nature itself?",
   "area_control.error.unclaim_without_permission": "AreaControl: Cannot to abandon claim %s (internally as %s, %s) because it doesn't belong to you, or you are not authorized."
 }
