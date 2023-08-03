@@ -316,10 +316,13 @@ public enum AreaControlPlayerTracker {
         var id = p.getGameProfile().getId();
         if (this.playersWithGlobalExempt.remove(id)) {
             var previouslyExempted = this.playerExemptionStatus.remove(id);
-            for (var areaId : previouslyExempted) {
-                var areaName = AreaManager.INSTANCE.findBy(areaId);
-                p.displayClientMessage(Component.translatable("area_control.bypass.global.area.off", areaName), false);
-                p.displayClientMessage(HOW_TO_TURN_ON, false);
+            // This can happen if player disconnected before its first tick.
+            if (previouslyExempted != null) {
+                for (var areaId : previouslyExempted) {
+                    var areaName = AreaManager.INSTANCE.findBy(areaId);
+                    p.displayClientMessage(Component.translatable("area_control.bypass.global.area.off", areaName), false);
+                    p.displayClientMessage(HOW_TO_TURN_ON, false);
+                }
             }
             if (this.playersWithWildnessExemption.remove(id)) {
                 p.displayClientMessage(Component.translatable("area_control.bypass.global.wildness.off"), false);
@@ -327,10 +330,13 @@ public enum AreaControlPlayerTracker {
             }
         } else {
             var previouslyExempted = this.playerExemptionStatus.remove(id);
-            for (var areaId : previouslyExempted) {
-                var areaName = AreaManager.INSTANCE.findBy(areaId);
-                p.displayClientMessage(Component.translatable("area_control.bypass.local.area.off", areaName), false);
-                p.displayClientMessage(HOW_TO_TURN_ON, false);
+            // This can happen if player disconnected before its first tick.
+            if (previouslyExempted != null) {
+                for (var areaId : previouslyExempted) {
+                    var areaName = AreaManager.INSTANCE.findBy(areaId);
+                    p.displayClientMessage(Component.translatable("area_control.bypass.local.area.off", areaName), false);
+                    p.displayClientMessage(HOW_TO_TURN_ON, false);
+                }
             }
             if (this.playersWithWildnessExemption.remove(id)) {
                 p.displayClientMessage(Component.translatable("area_control.bypass.local.wildness.off"), false);
