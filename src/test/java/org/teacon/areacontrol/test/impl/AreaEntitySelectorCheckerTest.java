@@ -105,7 +105,7 @@ public class AreaEntitySelectorCheckerTest {
     @Test
     public void testSelectingWithinSameAreaByPlayer() {
         Mockito.when(this.mockLevel.dimension()).thenReturn(Level.OVERWORLD);
-        var commandSrc = new CommandSourceStack(this.mockEntity, Vec3.ZERO, Vec2.ZERO, this.mockLevel, 4, "Mockito", Component.literal("Mockito"), this.mockServer, null);
+        var commandSrc = new CommandSourceStack(this.mockPlayer, Vec3.ZERO, Vec2.ZERO, this.mockLevel, 4, "Mockito", Component.literal("Mockito"), this.mockServer, null);
         // Position mock entity to [0.5, 0.5, 0.5] of overworld (in area A)
         Mockito.when(this.mockEntity.level()).thenReturn(this.mockLevel);
         this.mockEntity.xo = 0.0;
@@ -139,6 +139,24 @@ public class AreaEntitySelectorCheckerTest {
         this.mockEntity.yo = 0.0;
         this.mockEntity.zo = 5.0;
         // Verify that the command source can use entity selector to select the mock entity
+        Assertions.assertTrue(AreaEntitySelectorChecker.check(commandSrc, this.mockEntity));
+    }
+
+    /**
+     * Test that a player in the wildness can select an entity within an area, provided that
+     * related properties are set to true.
+     * Verify that the checker returns {@code true}, and no exception is thrown.
+     */
+    @Test
+    public void testSelectingByPlayerFromWildness() {
+        Mockito.when(this.mockLevel.dimension()).thenReturn(Level.OVERWORLD);
+        var playerPos = new Vec3(100, 100, 100);
+        var commandSrc = new CommandSourceStack(this.mockPlayer, playerPos, Vec2.ZERO, this.mockLevel, 4, "Mockito", Component.literal("Mockito"), this.mockServer, null);
+        // Position mock entity to [0.5, 0.5, 0.5] of overworld (in area A)
+        Mockito.when(this.mockEntity.level()).thenReturn(this.mockLevel);
+        this.mockEntity.xo = 0.0;
+        this.mockEntity.yo = 5.0;
+        this.mockEntity.zo = 0.0;
         Assertions.assertTrue(AreaEntitySelectorChecker.check(commandSrc, this.mockEntity));
     }
 

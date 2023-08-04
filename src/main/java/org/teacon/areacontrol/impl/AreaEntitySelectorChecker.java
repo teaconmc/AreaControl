@@ -4,6 +4,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BaseCommandBlock;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.teacon.areacontrol.AreaControlConfig;
 import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.AreaProperties;
@@ -45,22 +46,36 @@ public class AreaEntitySelectorChecker {
             selectFromChildFallBack = AreaControlConfig.allowCBSelectingFromChild;
             selectFromParentFallBack = AreaControlConfig.allowCBSelectingFromParent;
         }
-        if (selectFromChild != null) {
-            var area = AreaManager.INSTANCE.findBy(sourceStack.getLevel(), sourceStack.getPosition());
-            // Get the area in which the target entity locates.
-            // Do note that, EntitySelector can select entities from a different dimension,
-            // so we must use the level from the target entity.
-            final var targetArea = AreaManager.INSTANCE.findBy(e.level(), new Vec3(e.xo, e.yo, e.zo));
-            // If the entity is in the same area as the selector initiator, then it may be selected
-            if (area == targetArea) {
-                return true;
-            }
-            // Otherwise, we follow this procedure to determine.
-            var currentlyChecking = area;
-            // 1. Walk up from the area hierarchy tree, checking if all the parent areas
-            //    allow "selecting entities from child area".
-            //    The walking stops at the area that is common ancestor to both the
-            //    origin area and target area.
+        // If the command source is neither entity nor command block, we will skip the check.
+        // Otherwise, we will do the actual check.
+        return selectFromChild == null || check0(sourceStack, e, selectFromChild, selectFromParent,
+                selectFromChildFallBack, selectFromParentFallBack);
+    }
+
+    private static boolean check0(CommandSourceStack sourceStack, Entity e,
+                                  String selectFromChild, String selectFromParent,
+                                  Supplier<@NotNull Boolean> selectFromChildFallBack,
+                                  Supplier<@NotNull Boolean> selectFromParentFallBack) {
+        var area = AreaManager.INSTANCE.findBy(sourceStack.getLevel(), sourceStack.getPosition());
+        // Get the area in which the target entity locates.
+        // Do note that, EntitySelector can select entities from a different dimension,
+        // so we must use the level from the target entity.
+        final var targetArea = AreaManager.INSTANCE.findBy(e.level(), new Vec3(e.xo, e.yo, e.zo));
+        // If the entity is in the same area as the selector initiator, then it may be selected
+        if (area == targetArea) {
+            return true;
+        }
+        // Otherwise, we follow this procedure to determine.
+        var currentlyChecking = area;
+        // 1. Walk up from the area hierarchy tree, checking if all the parent areas
+        //    allow "selecting entities from child area".
+        //    The walking stops at the area that is common ancestor to both the
+        //    origin area and target area.
+        //    Notably, if currentlyChecking is null, it means that the command source
+        //    locates in the wildness, then there is no need to "walk up the tree".
+        //    Otherwise, we'd have NPE. This is specifically the case for vanilla
+        //    /tp command.
+        if (currentlyChecking != null) {
             do {
                 currentlyChecking = AreaManager.INSTANCE.findBy(currentlyChecking.belongingArea);
                 var result = AreaProperties.getBoolOptional(currentlyChecking, selectFromChild);
@@ -68,23 +83,22 @@ public class AreaEntitySelectorChecker {
                     return false;
                 }
             } while (!AreaMath.isEnclosing(currentlyChecking, targetArea));
-            // 2. If we are at the target area, then we are done, we can select this entity.
-            //    Else, we have to walk down along the hierarchy tree, to the target area.
-            if (currentlyChecking != targetArea) {
-                var reverseChecking = targetArea;
-                // 3. For each area that we encounter, we check if it allows "selecting entities
-                //    from parent area".
-                do {
-                    var result = AreaProperties.getBoolOptional(reverseChecking, selectFromParent);
-                    if (!result.orElseGet(selectFromParentFallBack)) {
-                        return false;
-                    }
-                    reverseChecking = AreaManager.INSTANCE.findBy(reverseChecking.belongingArea);
-                } while (reverseChecking != currentlyChecking);
-            }
         }
-        // If the program hits here, it means that we have successfully conducted all checks,
-        // or there isn't anything to check (because it was server console or other sources).
+        // 2. If we are at the target area, then we are done, we can select this entity.
+        //    Else, we have to walk down along the hierarchy tree, to the target area.
+        if (currentlyChecking != targetArea) {
+            var reverseChecking = targetArea;
+            // 3. For each area that we encounter, we check if it allows "selecting entities
+            //    from parent area".
+            do {
+                var result = AreaProperties.getBoolOptional(reverseChecking, selectFromParent);
+                if (!result.orElseGet(selectFromParentFallBack)) {
+                    return false;
+                }
+                reverseChecking = AreaManager.INSTANCE.findBy(reverseChecking.belongingArea);
+            } while (reverseChecking != currentlyChecking);
+        }
+        // If the program hits here, it means that we have successfully conducted all checks.
         // Return true as our result.
         return true;
     }
