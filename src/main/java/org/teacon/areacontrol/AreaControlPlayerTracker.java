@@ -57,10 +57,10 @@ public enum AreaControlPlayerTracker {
                             .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("/ac current bypass local")))
                             .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ac current bypass local"))));
     private static final Component HOW_TO_TURN_OFF = Component.translatable("area_control.bypass.how_to_turn_off",
-            Component.literal("/ac current bypass off")
+            Component.literal("/ac current bypass none")
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.AQUA)
-                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("/ac current bypass off")))
-                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ac current bypass off"))));
+                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("/ac current bypass none")))
+                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ac current bypass none"))));
 
     private final Map<UUID, UUID> playerLocation = new ConcurrentHashMap<>();
     private final Set<UUID> playersWithExt = ConcurrentHashMap.newKeySet();
