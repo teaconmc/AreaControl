@@ -101,6 +101,7 @@
   "area_control.notice.place_block_disabled": "ACtrl: placing blocks is disabled here; turn on bypass mode if you own this area",
   "area_control.notice.possess_disabled_item": "ACtrl: this area has disabled possession of %s and it is now seized",
   "area_control.notice.ride_disabled": "ACtrl: riding %s is disabled here; turn on bypass mode if you own this area",
+  "area_control.notice.selector_filtered": "%s entity/entities that were matched by selector are excluded by AreaControl due to area restrictions.",
 
   "area_control.error.must_be_player": "This command requires a real player to execute",
   "area_control.error.no_client_ext": "This function requires AreaControl to be installed on client.",

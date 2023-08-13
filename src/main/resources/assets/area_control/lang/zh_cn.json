@@ -101,6 +101,7 @@
   "area_control.notice.place_block_disabled": "ACtrl：该地禁止放置方块；如果你是该地建筑师，请打开 Bypass 模式",
   "area_control.notice.possess_disabled_item": "ACtrl：该地禁止持有%s，因此已没收",
   "area_control.notice.ride_disabled": "ACtrl：该地禁止骑乘 %s；如果你是该地建筑师，请打开 Bypass 模式",
+  "area_control.notice.selector_filtered": "AreaControl 已根据领地检查排除了 %s 个实体选择器此前选中的实体。",
 
   "area_control.error.must_be_player": "只有玩家可以执行该命令。",
   "area_control.error.no_client_ext": "该功能需要客户端也安装 AreaControl 才能使用。",
