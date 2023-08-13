@@ -37,8 +37,10 @@ public abstract class EntitySelectorMixin {
                 removedDueToACtrl++;
             }
         }
-        final String formattedCount = Integer.toString(removedDueToACtrl);
-        sourceStack.sendSuccess(() -> Component.translatable("area_control.notice.selector_filtered", formattedCount), true);
+        if (removedDueToACtrl > 0) {
+            final String formattedCount = Integer.toString(removedDueToACtrl);
+            sourceStack.sendSuccess(() -> Component.translatable("area_control.notice.selector_filtered", formattedCount), true);
+        }
         cir.setReturnValue(original);
     }
 

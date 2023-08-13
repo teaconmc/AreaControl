@@ -215,6 +215,8 @@ public final class AreaManager {
                         area.belongingArea = theEnclosingArea.uid;
                         theEnclosingArea.subAreas.add(area.uid);
                     }
+                    var dimId = worldIndex.location();
+                    area.dimension = dimId.getNamespace() + ":" + dimId.getPath();
                     return true;
                 }
                 return false;
