@@ -11,11 +11,13 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.RegisterShadersEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -50,8 +52,18 @@ public final class AreaControlClientSupport {
 
         MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ClientPlayerNetworkEvent.LoggingIn.class,
                 AreaControlClientSupport::afterLogin);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, EntityJoinLevelEvent.class,
+                AreaControlClientSupport::resetNearbyAreas);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, RenderLevelStageEvent.class,
                 AreaControlClientSupport::renderAreaBorder);
+    }
+
+    static void resetNearbyAreas(EntityJoinLevelEvent event) {
+        // If player enters a new level, reset nearby areas
+        if (event.getLevel().isClientSide() && event.getEntity() instanceof Player) {
+            knownAreas = Collections.emptyList();
+            knownAreasExpiresAt = 0L;
+        }
     }
 
     static void afterLogin(ClientPlayerNetworkEvent.LoggingIn event) {
@@ -68,8 +80,13 @@ public final class AreaControlClientSupport {
         }
         final Minecraft mc = Minecraft.getInstance();
         final var transform = event.getPoseStack();
+        final var camera = mc.getEntityRenderDispatcher().camera;
+        if (camera == null) {
+            // BloCamLimb said this can be null when OptiFine is installed.
+            return;
+        }
         transform.pushPose();
-        final var proj = mc.getEntityRenderDispatcher().camera.getPosition();
+        final var proj = camera.getPosition();
         transform.translate(-proj.x, -proj.y, -proj.z);
 
         var buffers = mc.renderBuffers().bufferSource();
