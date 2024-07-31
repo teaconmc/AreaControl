@@ -25,7 +25,7 @@ public class GroupArgument implements ArgumentType<String> {
     public String parse(StringReader reader) throws CommandSyntaxException {
         // FIXME This forbids group name to contain whitespace (U+0020)
         int start = reader.getCursor();
-        while(reader.canRead() && reader.peek() != ' ') {
+        while (reader.canRead() && reader.peek() != ' ') {
             reader.skip();
         }
         var maybeGroupName = reader.getString().substring(start, reader.getCursor());

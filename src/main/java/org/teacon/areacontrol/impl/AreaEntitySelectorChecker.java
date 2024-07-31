@@ -15,8 +15,9 @@ public class AreaEntitySelectorChecker {
 
     /**
      * Check whether the command source may use entity selector to select given entity
+     *
      * @param sourceStack The initiator of entity selector
-     * @param e The entity that may or may not be selected
+     * @param e           The entity that may or may not be selected
      * @return true if the entity may be selected; false otherwise.
      */
     public static boolean check(CommandSourceStack sourceStack, Entity e) {

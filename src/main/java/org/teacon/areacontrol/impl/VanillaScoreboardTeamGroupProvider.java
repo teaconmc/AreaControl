@@ -1,6 +1,6 @@
 package org.teacon.areacontrol.impl;
 
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.teacon.areacontrol.api.GroupProvider;

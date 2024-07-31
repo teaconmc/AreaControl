@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class EditPropertiesScreen extends Screen {
-    private static final ResourceLocation TEXTURE = new ResourceLocation("area_control:textures/gui/edit_properties.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.parse("area_control:textures/gui/edit_properties.png");
 
     private static final int BUTTON_TEXT_COLOR = 0xFFFFFFFF;
     private static final int TEXT_COLOR = 0xFF000000 | DyeColor.BLACK.getTextColor();
@@ -62,7 +62,7 @@ public final class EditPropertiesScreen extends Screen {
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(guiGraphics);
+        // TODO: this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         this.drawGuiContainerBackgroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.drawGuiContainerForegroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
@@ -100,7 +100,7 @@ public final class EditPropertiesScreen extends Screen {
                 // Execute command on behalf of player
                 String commandToExec;
                 if (newState == null) {
-                    commandToExec = "ac current properties unset " +  prop;
+                    commandToExec = "ac current properties unset " + prop;
                 } else {
                     commandToExec = "ac current properties set " + prop + " " + newState;
                 }
@@ -186,7 +186,7 @@ public final class EditPropertiesScreen extends Screen {
 
             MutableComponent prev = Component.translatable("area_control.screen.no_properties");
             int x2 = this.width / 2 - 7, dx2 = this.font.width(prev) / 2, y2 = this.height / 2 - 9;
-            guiGraphics.drawString(this.font, prev, (int)(x2 / scale - dx2), (int)(y2 / scale), HINT_COLOR, false);
+            guiGraphics.drawString(this.font, prev, (int) (x2 / scale - dx2), (int) (y2 / scale), HINT_COLOR, false);
 
             guiGraphics.pose().popPose();
         }
@@ -197,7 +197,7 @@ public final class EditPropertiesScreen extends Screen {
         float scale = ARTIFACT_SCALE_FACTOR;
         guiGraphics.pose().scale(scale, scale, scale);
         int x3 = this.width / 2 + 1, y3 = this.height / 2 - 82, dx = font.width(this.areaName) / 2;
-        guiGraphics.drawString(font, Component.literal(this.areaName), (int)(x3 / scale - dx), (int)(y3 / scale), TEXT_COLOR, false);
+        guiGraphics.drawString(font, Component.literal(this.areaName), (int) (x3 / scale - dx), (int) (y3 / scale), TEXT_COLOR, false);
         guiGraphics.pose().popPose();
     }
 
@@ -213,7 +213,7 @@ public final class EditPropertiesScreen extends Screen {
             double phase = Math.sin((Math.PI / 2D) * Math.cos((Math.PI * 2D) * time / cappedOverflow)) / 2.0D + 0.5D;
             double diff = Mth.lerp(phase, 0.0, overflow);
             guiGraphics.enableScissor(minX, minY, maxX, maxY);
-            guiGraphics.drawString(font, text, minX - (int)diff, renderY, color, false);
+            guiGraphics.drawString(font, text, minX - (int) diff, renderY, color, false);
             guiGraphics.disableScissor();
         } else {
             guiGraphics.drawString(font, text, (minX + maxX) / 2 - font.width(text) / 2, renderY, color, false);
@@ -237,7 +237,7 @@ public final class EditPropertiesScreen extends Screen {
             // render button text
             float dx = EditPropertiesScreen.this.font.width(this.getMessage()) / 2F;
             float x = this.getX() + (this.width + 1) / 2F - dx, y = this.getY() + (this.height - 8) / 2F;
-            guiGraphics.drawString(EditPropertiesScreen.this.font, this.getMessage(), (int)x, (int)y, BUTTON_TEXT_COLOR, false);
+            guiGraphics.drawString(EditPropertiesScreen.this.font, this.getMessage(), (int) x, (int) y, BUTTON_TEXT_COLOR, false);
         }
     }
 
@@ -281,9 +281,10 @@ public final class EditPropertiesScreen extends Screen {
         }
 
         @Override
-        public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-            if (delta != 0) {
-                this.changeSlideCenter(this.slideCenter - 12 * delta);
+        public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+            scrollY = Mth.clamp(scrollY, -1.0, 1.0);
+            if (scrollY != 0) {
+                this.changeSlideCenter(this.slideCenter - 12 * scrollY);
                 return true;
             }
             return false;

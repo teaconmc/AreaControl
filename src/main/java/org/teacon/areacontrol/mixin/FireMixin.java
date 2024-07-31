@@ -7,15 +7,12 @@ import net.minecraft.world.level.block.FireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 
 import java.util.Optional;
-import java.util.Random;
 
 @Mixin(FireBlock.class)
 public class FireMixin {

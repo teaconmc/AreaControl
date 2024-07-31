@@ -12,17 +12,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.RegisterShadersEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -31,30 +29,24 @@ import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.network.ACNetworking;
 import org.teacon.areacontrol.network.ACPingServer;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = "area_control", value = Dist.CLIENT)
+@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, modid = "area_control", value = Dist.CLIENT)
 public final class AreaControlClientSupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
     private static final Marker MARKER = MarkerFactory.getMarker("Client");
 
-    //@SubscribeEvent
-    public static void shaderSetup(RegisterShadersEvent event) throws IOException {
-        /*event.registerShader(...);*/
-    }
-
     @SubscribeEvent
     public static void clientSetup(FMLClientSetupEvent event) {
         LOGGER.info(MARKER, "AreaControl is installed on client; enabling enhanced client support");
 
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ClientPlayerNetworkEvent.LoggingIn.class,
+        NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ClientPlayerNetworkEvent.LoggingIn.class,
                 AreaControlClientSupport::afterLogin);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, EntityJoinLevelEvent.class,
+        NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, EntityJoinLevelEvent.class,
                 AreaControlClientSupport::resetNearbyAreas);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, RenderLevelStageEvent.class,
+        NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, RenderLevelStageEvent.class,
                 AreaControlClientSupport::renderAreaBorder);
     }
 
@@ -67,7 +59,7 @@ public final class AreaControlClientSupport {
     }
 
     static void afterLogin(ClientPlayerNetworkEvent.LoggingIn event) {
-        ACNetworking.acNetworkChannel.send(PacketDistributor.SERVER.with(null), new ACPingServer());
+        ACNetworking.send(new ACPingServer());
     }
 
     public static volatile List<Area.Summary> knownAreas = Collections.emptyList();
@@ -91,7 +83,7 @@ public final class AreaControlClientSupport {
 
         var buffers = mc.renderBuffers().bufferSource();
 
-        var builder =  buffers.getBuffer(Holder.BORDER);
+        var builder = buffers.getBuffer(Holder.BORDER);
 
         var renderDistance = mc.options.getEffectiveRenderDistance() * 16;
         BlockPos playerPos;
@@ -118,7 +110,7 @@ public final class AreaControlClientSupport {
         transform.popPose();
     }
 
-    static void box(PoseStack pose, VertexConsumer vertexConsumer, int argbColor, 
+    static void box(PoseStack pose, VertexConsumer vertexConsumer, int argbColor,
                     int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         int diffX = maxX - minX;
         int diffY = maxY - minY;
@@ -126,76 +118,77 @@ public final class AreaControlClientSupport {
         var x = pose.last().pose();
 
         // Bottom interior
-        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
-        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(0, diffZ).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(diffX, diffZ).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(diffX, 0).endVertex();
+        vertexConsumer.addVertex(x, minX, minY, minZ).setColor(argbColor).setUv(0, 0);
+
+        vertexConsumer.addVertex(x, minX, minY, maxZ).setColor(argbColor).setUv(0, diffZ);
+        vertexConsumer.addVertex(x, maxX, minY, maxZ).setColor(argbColor).setUv(diffX, diffZ);
+        vertexConsumer.addVertex(x, maxX, minY, minZ).setColor(argbColor).setUv(diffX, 0);
 
         // Bottom exterior
-        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(0, diffX).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(diffZ, diffX).endVertex();
-        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(diffZ, 0).endVertex();
+        vertexConsumer.addVertex(x, minX, minY, minZ).setColor(argbColor).setUv(0, 0);
+        vertexConsumer.addVertex(x, maxX, minY, minZ).setColor(argbColor).setUv(0, diffX);
+        vertexConsumer.addVertex(x, maxX, minY, maxZ).setColor(argbColor).setUv(diffZ, diffX);
+        vertexConsumer.addVertex(x, minX, minY, maxZ).setColor(argbColor).setUv(diffZ, 0);
 
         // Top interior
-        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(0, 0).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(0, diffX).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffZ, diffX).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(diffZ, 0).endVertex();
+        vertexConsumer.addVertex(x, minX, maxY, minZ).setColor(argbColor).setUv(0, 0);
+        vertexConsumer.addVertex(x, maxX, maxY, minZ).setColor(argbColor).setUv(0, diffX);
+        vertexConsumer.addVertex(x, maxX, maxY, maxZ).setColor(argbColor).setUv(diffZ, diffX);
+        vertexConsumer.addVertex(x, minX, maxY, maxZ).setColor(argbColor).setUv(diffZ, 0);
 
         // Top exterior
-        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(0, 0).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(0, diffZ).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffX, diffZ).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(diffX, 0).endVertex();
+        vertexConsumer.addVertex(x, minX, maxY, minZ).setColor(argbColor).setUv(0, 0);
+        vertexConsumer.addVertex(x, minX, maxY, maxZ).setColor(argbColor).setUv(0, diffZ);
+        vertexConsumer.addVertex(x, maxX, maxY, maxZ).setColor(argbColor).setUv(diffX, diffZ);
+        vertexConsumer.addVertex(x, maxX, maxY, minZ).setColor(argbColor).setUv(diffX, 0);
 
         // Front interior
-        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(0, 0).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(0, diffY).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffX, diffY).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(diffX, 0).endVertex();
+        vertexConsumer.addVertex(x, minX, minY, maxZ).setColor(argbColor).setUv(0, 0);
+        vertexConsumer.addVertex(x, minX, maxY, maxZ).setColor(argbColor).setUv(0, diffY);
+        vertexConsumer.addVertex(x, maxX, maxY, maxZ).setColor(argbColor).setUv(diffX, diffY);
+        vertexConsumer.addVertex(x, maxX, minY, maxZ).setColor(argbColor).setUv(diffX, 0);
 
         // Front exterior
-        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(0, 0).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(0, diffX).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffY, diffX).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(diffY, 0).endVertex();
+        vertexConsumer.addVertex(x, minX, minY, maxZ).setColor(argbColor).setUv(0, 0);
+        vertexConsumer.addVertex(x, maxX, minY, maxZ).setColor(argbColor).setUv(0, diffX);
+        vertexConsumer.addVertex(x, maxX, maxY, maxZ).setColor(argbColor).setUv(diffY, diffX);
+        vertexConsumer.addVertex(x, minX, maxY, maxZ).setColor(argbColor).setUv(diffY, 0);
 
         // Back interior
-        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(0, diffX).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(diffY, diffX).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(diffY, 0).endVertex();
+        vertexConsumer.addVertex(x, minX, minY, minZ).setColor(argbColor).setUv(0, 0);
+        vertexConsumer.addVertex(x, maxX, minY, minZ).setColor(argbColor).setUv(0, diffX);
+        vertexConsumer.addVertex(x, maxX, maxY, minZ).setColor(argbColor).setUv(diffY, diffX);
+        vertexConsumer.addVertex(x, minX, maxY, minZ).setColor(argbColor).setUv(diffY, 0);
 
         // Back exterior
-        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(0, diffY).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(diffX, diffY).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(diffX, 0).endVertex();
+        vertexConsumer.addVertex(x, minX, minY, minZ).setColor(argbColor).setUv(0, 0);
+        vertexConsumer.addVertex(x, minX, maxY, minZ).setColor(argbColor).setUv(0, diffY);
+        vertexConsumer.addVertex(x, maxX, maxY, minZ).setColor(argbColor).setUv(diffX, diffY);
+        vertexConsumer.addVertex(x, maxX, minY, minZ).setColor(argbColor).setUv(diffX, 0);
 
         // Left interior
-        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(0, diffY).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(diffZ, diffY).endVertex();
-        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(diffZ, 0).endVertex();
+        vertexConsumer.addVertex(x, minX, minY, minZ).setColor(argbColor).setUv(0, 0);
+        vertexConsumer.addVertex(x, minX, maxY, minZ).setColor(argbColor).setUv(0, diffY);
+        vertexConsumer.addVertex(x, minX, maxY, maxZ).setColor(argbColor).setUv(diffZ, diffY);
+        vertexConsumer.addVertex(x, minX, minY, maxZ).setColor(argbColor).setUv(diffZ, 0);
 
         // Left exterior
-        vertexConsumer.vertex(x, minX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
-        vertexConsumer.vertex(x, minX, minY, maxZ).color(argbColor).uv(0, diffZ).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, maxZ).color(argbColor).uv(diffY, diffZ).endVertex();
-        vertexConsumer.vertex(x, minX, maxY, minZ).color(argbColor).uv(diffY, 0).endVertex();
+        vertexConsumer.addVertex(x, minX, minY, minZ).setColor(argbColor).setUv(0, 0);
+        vertexConsumer.addVertex(x, minX, minY, maxZ).setColor(argbColor).setUv(0, diffZ);
+        vertexConsumer.addVertex(x, minX, maxY, maxZ).setColor(argbColor).setUv(diffY, diffZ);
+        vertexConsumer.addVertex(x, minX, maxY, minZ).setColor(argbColor).setUv(diffY, 0);
 
         // Right interior
-        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(0, diffZ).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffY, diffZ).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(diffY, 0).endVertex();
+        vertexConsumer.addVertex(x, maxX, minY, minZ).setColor(argbColor).setUv(0, 0);
+        vertexConsumer.addVertex(x, maxX, minY, maxZ).setColor(argbColor).setUv(0, diffZ);
+        vertexConsumer.addVertex(x, maxX, maxY, maxZ).setColor(argbColor).setUv(diffY, diffZ);
+        vertexConsumer.addVertex(x, maxX, maxY, minZ).setColor(argbColor).setUv(diffY, 0);
 
         // Right exterior
-        vertexConsumer.vertex(x, maxX, minY, minZ).color(argbColor).uv(0, 0).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, minZ).color(argbColor).uv(0, diffY).endVertex();
-        vertexConsumer.vertex(x, maxX, maxY, maxZ).color(argbColor).uv(diffZ, diffY).endVertex();
-        vertexConsumer.vertex(x, maxX, minY, maxZ).color(argbColor).uv(diffZ, 0).endVertex();
+        vertexConsumer.addVertex(x, maxX, minY, minZ).setColor(argbColor).setUv(0, 0);
+        vertexConsumer.addVertex(x, maxX, maxY, minZ).setColor(argbColor).setUv(0, diffY);
+        vertexConsumer.addVertex(x, maxX, maxY, maxZ).setColor(argbColor).setUv(diffZ, diffY);
+        vertexConsumer.addVertex(x, maxX, minY, maxZ).setColor(argbColor).setUv(diffZ, 0);
     }
 
     private static final class Holder extends RenderStateShard {
@@ -209,12 +202,12 @@ public final class AreaControlClientSupport {
         //static final ShaderStateShard AREA_CONTROL_SHADER = new ShaderStateShard(() -> areaControlShader);
 
         // This is the vanilla world border texture; we are merely referring it, but using a custom texture state.
-        static final EmptyTextureStateShard REPEATED_FORCE_FIELD = new TextureStateShard(new ResourceLocation("textures/misc/forcefield.png"), false, false);
+        static final EmptyTextureStateShard REPEATED_FORCE_FIELD = new TextureStateShard(ResourceLocation.withDefaultNamespace("textures/misc/forcefield.png"), false, false);
 
         static final RenderType BORDER = RenderType.create("area_control_border",
-                DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 256, false, false,
+                DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, 256, false, false,
                 RenderType.CompositeState.builder()
-                        .setShaderState(POSITION_COLOR_TEX_SHADER) // Must be here
+                        .setShaderState(POSITION_COLOR_TEX_LIGHTMAP_SHADER) // Must be here
                         .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
                         .setTextureState(REPEATED_FORCE_FIELD)
                         // 海螺 told me that vanilla avoids z-fighting during world border rendering

@@ -1,6 +1,7 @@
 package org.teacon.areacontrol;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -10,13 +11,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -31,15 +29,10 @@ import org.teacon.areacontrol.network.ACNetworking;
 import org.teacon.areacontrol.network.ACSendCurrentSelection;
 import org.teacon.areacontrol.network.ACSendNearbyArea;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mod.EventBusSubscriber(modid = "area_control")
+@EventBusSubscriber(modid = "area_control")
 public enum AreaControlPlayerTracker {
 
     INSTANCE;
@@ -89,9 +82,9 @@ public enum AreaControlPlayerTracker {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.side == LogicalSide.SERVER && event.phase == TickEvent.Phase.START) {
-            var player = event.player;
+    public static void onPlayerTick(PlayerTickEvent.Pre event) {
+        var player = event.getEntity();
+        if (player instanceof ServerPlayer) {
             var playerId = player.getGameProfile().getId();
             var prevAreaId = INSTANCE.playerLocation.get(playerId);
 
@@ -115,7 +108,7 @@ public enum AreaControlPlayerTracker {
             AreaChecks.checkInv(mainInv.offhand, currentArea, player);
             // Seize vehicles if disallowed
             var riding = player.getVehicle();
-            if (riding != null && !AreaChecks.checkPropFor(currentArea, player, AreaProperties.ALLOW_RIDE, ForgeRegistries.ENTITY_TYPES.getKey(riding.getType()), AreaControlConfig.allowRideEntity)) {
+            if (riding != null && !AreaChecks.checkPropFor(currentArea, player, AreaProperties.ALLOW_RIDE, BuiltInRegistries.ENTITY_TYPE.getKey(riding.getType()), AreaControlConfig.allowRideEntity)) {
                 player.displayClientMessage(Component.translatable("area_control.notice.ride_disabled", riding.getDisplayName()), true);
                 player.stopRiding();
             }
@@ -140,7 +133,7 @@ public enum AreaControlPlayerTracker {
         var playerId = p.getGameProfile().getId();
         // 玩家 Reach Distance（默认 6 格，需要动态获取）的两倍范围，并且平方
         // Reach distance 选取 Block Reach 和 Entity Reach 中的较大值
-        var doubleReachDistance = Math.max(p.getBlockReach(), p.getEntityReach()) * 2;
+        var doubleReachDistance = Math.max(p.blockInteractionRange(), p.entityInteractionRange()) * 2;
         var doubleReachDistanceSq = doubleReachDistance * doubleReachDistance;
         Set<UUID> exemptedAreas = INSTANCE.playerExemptionStatus.get(playerId);
         if (exemptedAreas == null) {
@@ -199,7 +192,7 @@ public enum AreaControlPlayerTracker {
         }
     }
 
-    public void markPlayerAsSupportExt(ServerPlayer player) {
+    public void markPlayerAsSupportExt(Player player) {
         if (player != null) {
             this.playersWithExt.add(player.getGameProfile().getId());
         }
@@ -223,7 +216,7 @@ public enum AreaControlPlayerTracker {
         }
         if (this.playersWithExt.contains(requester.getGameProfile().getId())) {
             var expire = permanent ? Long.MAX_VALUE : System.currentTimeMillis() + 60000;
-            ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> requester), new ACSendNearbyArea(summaries, expire));
+            ACNetworking.send(requester, new ACSendNearbyArea(summaries, expire));
         } else {
             requester.displayClientMessage(Component.translatable("area_control.claim.nearby.visual"), false);
         }
@@ -231,18 +224,18 @@ public enum AreaControlPlayerTracker {
     }
 
     public void clearNearbyAreasForClient(ServerPlayer requester) {
-        ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> requester), new ACSendNearbyArea(Collections.emptyList(), 0L));
+        ACNetworking.send(requester, new ACSendNearbyArea(Collections.emptyList(), 0L));
     }
 
     public void sendCurrentSelectionToClient(ServerPlayer receiver, AreaControlClaimHandler.RectangleRegion region) {
         if (this.playersWithExt.contains(receiver.getGameProfile().getId())) {
-            ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> receiver), new ACSendCurrentSelection(false, region.start(), region.end()));
+            ACNetworking.send(receiver, new ACSendCurrentSelection(false, region.start(), region.end()));
         }
     }
 
     public void clearSelectionForClient(ServerPlayer receiver) {
         if (this.playersWithExt.contains(receiver.getGameProfile().getId())) {
-            ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> receiver), new ACSendCurrentSelection(true, null, null));
+            ACNetworking.send(receiver, new ACSendCurrentSelection(true, null, null));
         }
     }
 

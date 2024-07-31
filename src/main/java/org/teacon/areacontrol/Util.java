@@ -35,6 +35,7 @@ public final class Util {
     public static Component describe(Area area) {
         return describe(area, null);
     }
+
     public static Component describe(Area area, LevelAccessor level) {
         var midX = (area.minX + area.maxX) / 2;
         var midY = (area.minY + area.maxY) / 2;

@@ -14,6 +14,7 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -26,9 +27,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.permission.PermissionAPI;
+import net.neoforged.neoforge.server.permission.PermissionAPI;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
@@ -68,98 +67,98 @@ public final class AreaControlCommand {
     public AreaControlCommand(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("ac")
                 .redirect(dispatcher.register(Commands.literal("areacontrol")
-                        .then(Commands.literal("about").executes(AreaControlCommand::about))
-                        .then(Commands.literal("help").executes(AreaControlCommand::help))
-                        .then(Commands.literal("admin").executes(AreaControlCommand::admin))
-                        .then(Commands.literal("nearby")
-                                .then(Commands.literal("on").executes(context -> AreaControlCommand.nearby(context, true)))
-                                .then(Commands.literal("off").executes(AreaControlCommand::nearbyClear))
-                                .executes(context -> AreaControlCommand.nearby(context, false)))
-                        .then(Commands.literal("desel").requires(OWNER_OR_ADMIN).executes(AreaControlCommand::clearMarked))
-                        .then(Commands.literal("deselect").requires(OWNER_OR_ADMIN).executes(AreaControlCommand::clearMarked))
-                        .then(Commands.literal("claim")
-                                .then(Commands.literal("cancel")
-                                        .requires(OWNER_OR_ADMIN)
-                                        .executes(AreaControlCommand::clearMarked))
-                                .then(Commands.literal("marked")
-                                        .requires(OWNER_OR_ADMIN)
-                                        .executes(AreaControlCommand::claimMarked))
-                                .then(Commands.literal("chunk")
-                                        .requires(OWNER_OR_ADMIN)
-                                        .then(Commands.argument("x", IntegerArgumentType.integer())
-                                                .then(Commands.argument("z", IntegerArgumentType.integer())
-                                                        .executes(AreaControlCommand::claimChunkWithSize)))
-                                        .executes(AreaControlCommand::claimChunk)))
-                        .then(Commands.literal("current")
-                                .then(Commands.literal("edit").requires(BUILDER_OR_ADMIN)
-                                        .executes(AreaControlCommand::showEditScreen))
-                                .then(Commands.literal("bypass")
-                                        .then(Commands.literal("global")
-                                                .requires(BUILDER_OR_ADMIN)
-                                                .executes(AreaControlCommand::setGloballyBypass))
-                                        .then(Commands.literal("local")
-                                                .requires(BUILDER_OR_ADMIN)
-                                                .executes(AreaControlCommand::setLocallyBypass))
-                                        .then(Commands.literal("none")
-                                                .executes(AreaControlCommand::clearBypassStatus)))
-                                .then(Commands.literal("name")
-                                        .then(Commands.literal("set").requires(BUILDER_OR_ADMIN)
-                                                .then(Commands.argument("name", StringArgumentType.greedyString())
-                                                        .executes(AreaControlCommand::setAreaName)))
-                                        .executes(AreaControlCommand::displayAreaName))
-                                .then(Commands.literal("range")
-                                        .then(Commands.literal("expand").requires(OWNER_OR_ADMIN)
-                                                .then(Commands.argument("direction", DirectionArgument.direction())
-                                                        .then(Commands.argument("amount", IntegerArgumentType.integer())
-                                                                .executes(AreaControlCommand::changeAreaRange)))))
-                                .then(Commands.literal("claimer")
-                                        .then(Commands.literal("add").requires(OWNER_OR_ADMIN)
-                                                .then(Commands.literal("player")
-                                                        .then(Commands.argument("player", GameProfileArgument.gameProfile())
-                                                                .executes(AreaControlCommand::addClaimer)))
-                                                .then(Commands.literal("group")
-                                                        .then(Commands.argument("group", GroupArgument.group())
-                                                                .executes(AreaControlCommand::addClaimerGroup))))
-                                        .then(Commands.literal("remove").requires(OWNER_OR_ADMIN)
-                                                .then(Commands.literal("player")
-                                                        .then(Commands.argument("player", GameProfileArgument.gameProfile())
-                                                                .executes(AreaControlCommand::removeClaimer)))
-                                                .then(Commands.literal("group")
-                                                        .then(Commands.argument("group", GroupArgument.group())
-                                                                .executes(AreaControlCommand::removeClaimerGroup))))
-                                        .executes(AreaControlCommand::listClaimers))
-                                .then(Commands.literal("builder")
-                                        .then(Commands.literal("add").requires(OWNER_OR_ADMIN)
-                                                .then(Commands.literal("player")
-                                                        .then(Commands.argument("player", GameProfileArgument.gameProfile())
-                                                                .executes(AreaControlCommand::addBuilder)))
-                                                .then(Commands.literal("group")
-                                                        .then(Commands.argument("group", GroupArgument.group())
-                                                                .executes(AreaControlCommand::addBuilderGroup))))
-                                        .then(Commands.literal("remove").requires(OWNER_OR_ADMIN)
-                                                .then(Commands.literal("player")
-                                                        .then(Commands.argument("player", GameProfileArgument.gameProfile())
-                                                                .executes(AreaControlCommand::removeBuilder)))
-                                                .then(Commands.literal("group")
-                                                        .then(Commands.argument("group", GroupArgument.group())
-                                                                .executes(AreaControlCommand::removeBuilderGroup))))
-                                        .executes(AreaControlCommand::listBuilders))
-                                .then(Commands.literal("properties").requires(BUILDER_OR_ADMIN)
-                                        .then(Commands.literal("set")
-                                                .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
-                                                        .then(Commands.argument("value", StringArgumentType.greedyString())
-                                                                .executes(AreaControlCommand::setProperty))
-                                                        .executes(AreaControlCommand::displayProperty)))
-                                        .then(Commands.literal("unset")
-                                                .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
-                                                        .executes(AreaControlCommand::unsetProperty)))
-                                        .executes(AreaControlCommand::listProperties))
-                                .executes(AreaControlCommand::displayCurrent))
-                         .then(Commands.literal("mine")
-                                 .executes(AreaControlCommand::displayMine))
-                        .then(Commands.literal("mark").requires(OWNER_OR_ADMIN).then(
-                                Commands.argument("pos", Vec3Argument.vec3()).executes(AreaControlCommand::mark)))
-                        .then(Commands.literal("unclaim").requires(OWNER_OR_ADMIN).executes(AreaControlCommand::unclaim))
+                                .then(Commands.literal("about").executes(AreaControlCommand::about))
+                                .then(Commands.literal("help").executes(AreaControlCommand::help))
+                                .then(Commands.literal("admin").executes(AreaControlCommand::admin))
+                                .then(Commands.literal("nearby")
+                                        .then(Commands.literal("on").executes(context -> AreaControlCommand.nearby(context, true)))
+                                        .then(Commands.literal("off").executes(AreaControlCommand::nearbyClear))
+                                        .executes(context -> AreaControlCommand.nearby(context, false)))
+                                .then(Commands.literal("desel").requires(OWNER_OR_ADMIN).executes(AreaControlCommand::clearMarked))
+                                .then(Commands.literal("deselect").requires(OWNER_OR_ADMIN).executes(AreaControlCommand::clearMarked))
+                                .then(Commands.literal("claim")
+                                        .then(Commands.literal("cancel")
+                                                .requires(OWNER_OR_ADMIN)
+                                                .executes(AreaControlCommand::clearMarked))
+                                        .then(Commands.literal("marked")
+                                                .requires(OWNER_OR_ADMIN)
+                                                .executes(AreaControlCommand::claimMarked))
+                                        .then(Commands.literal("chunk")
+                                                .requires(OWNER_OR_ADMIN)
+                                                .then(Commands.argument("x", IntegerArgumentType.integer())
+                                                        .then(Commands.argument("z", IntegerArgumentType.integer())
+                                                                .executes(AreaControlCommand::claimChunkWithSize)))
+                                                .executes(AreaControlCommand::claimChunk)))
+                                .then(Commands.literal("current")
+                                        .then(Commands.literal("edit").requires(BUILDER_OR_ADMIN)
+                                                .executes(AreaControlCommand::showEditScreen))
+                                        .then(Commands.literal("bypass")
+                                                .then(Commands.literal("global")
+                                                        .requires(BUILDER_OR_ADMIN)
+                                                        .executes(AreaControlCommand::setGloballyBypass))
+                                                .then(Commands.literal("local")
+                                                        .requires(BUILDER_OR_ADMIN)
+                                                        .executes(AreaControlCommand::setLocallyBypass))
+                                                .then(Commands.literal("none")
+                                                        .executes(AreaControlCommand::clearBypassStatus)))
+                                        .then(Commands.literal("name")
+                                                .then(Commands.literal("set").requires(BUILDER_OR_ADMIN)
+                                                        .then(Commands.argument("name", StringArgumentType.greedyString())
+                                                                .executes(AreaControlCommand::setAreaName)))
+                                                .executes(AreaControlCommand::displayAreaName))
+                                        .then(Commands.literal("range")
+                                                .then(Commands.literal("expand").requires(OWNER_OR_ADMIN)
+                                                        .then(Commands.argument("direction", DirectionArgument.direction())
+                                                                .then(Commands.argument("amount", IntegerArgumentType.integer())
+                                                                        .executes(AreaControlCommand::changeAreaRange)))))
+                                        .then(Commands.literal("claimer")
+                                                .then(Commands.literal("add").requires(OWNER_OR_ADMIN)
+                                                        .then(Commands.literal("player")
+                                                                .then(Commands.argument("player", GameProfileArgument.gameProfile())
+                                                                        .executes(AreaControlCommand::addClaimer)))
+                                                        .then(Commands.literal("group")
+                                                                .then(Commands.argument("group", GroupArgument.group())
+                                                                        .executes(AreaControlCommand::addClaimerGroup))))
+                                                .then(Commands.literal("remove").requires(OWNER_OR_ADMIN)
+                                                        .then(Commands.literal("player")
+                                                                .then(Commands.argument("player", GameProfileArgument.gameProfile())
+                                                                        .executes(AreaControlCommand::removeClaimer)))
+                                                        .then(Commands.literal("group")
+                                                                .then(Commands.argument("group", GroupArgument.group())
+                                                                        .executes(AreaControlCommand::removeClaimerGroup))))
+                                                .executes(AreaControlCommand::listClaimers))
+                                        .then(Commands.literal("builder")
+                                                .then(Commands.literal("add").requires(OWNER_OR_ADMIN)
+                                                        .then(Commands.literal("player")
+                                                                .then(Commands.argument("player", GameProfileArgument.gameProfile())
+                                                                        .executes(AreaControlCommand::addBuilder)))
+                                                        .then(Commands.literal("group")
+                                                                .then(Commands.argument("group", GroupArgument.group())
+                                                                        .executes(AreaControlCommand::addBuilderGroup))))
+                                                .then(Commands.literal("remove").requires(OWNER_OR_ADMIN)
+                                                        .then(Commands.literal("player")
+                                                                .then(Commands.argument("player", GameProfileArgument.gameProfile())
+                                                                        .executes(AreaControlCommand::removeBuilder)))
+                                                        .then(Commands.literal("group")
+                                                                .then(Commands.argument("group", GroupArgument.group())
+                                                                        .executes(AreaControlCommand::removeBuilderGroup))))
+                                                .executes(AreaControlCommand::listBuilders))
+                                        .then(Commands.literal("properties").requires(BUILDER_OR_ADMIN)
+                                                .then(Commands.literal("set")
+                                                        .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
+                                                                .then(Commands.argument("value", StringArgumentType.greedyString())
+                                                                        .executes(AreaControlCommand::setProperty))
+                                                                .executes(AreaControlCommand::displayProperty)))
+                                                .then(Commands.literal("unset")
+                                                        .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
+                                                                .executes(AreaControlCommand::unsetProperty)))
+                                                .executes(AreaControlCommand::listProperties))
+                                        .executes(AreaControlCommand::displayCurrent))
+                                .then(Commands.literal("mine")
+                                        .executes(AreaControlCommand::displayMine))
+                                .then(Commands.literal("mark").requires(OWNER_OR_ADMIN).then(
+                                        Commands.argument("pos", Vec3Argument.vec3()).executes(AreaControlCommand::mark)))
+                                .then(Commands.literal("unclaim").requires(OWNER_OR_ADMIN).executes(AreaControlCommand::unclaim))
                         )
                 )
         );
@@ -171,7 +170,7 @@ public final class AreaControlCommand {
     }
 
     private static int help(CommandContext<CommandSourceStack> context) {
-        var markerTool = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(AreaControlConfig.areaClaimTool.get())));
+        var markerTool = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(AreaControlConfig.areaClaimTool.get())));
         var markerToolName = markerTool.getDisplayName();
         var displayName = markerToolName.copy()
                 .withStyle(Style.EMPTY
@@ -384,9 +383,10 @@ public final class AreaControlCommand {
         if (player == null) {
             src.sendFailure(Component.translatable("area_control.error.must_be_player"));
             return 0;
-        } if (AreaControlPlayerTracker.INSTANCE.thisPlayerHasClientExt(player)) {
+        }
+        if (AreaControlPlayerTracker.INSTANCE.thisPlayerHasClientExt(player)) {
             if (AreaChecks.isACtrlAreaBuilder(player, area)) {
-                ACNetworking.acNetworkChannel.send(PacketDistributor.PLAYER.with(() -> player), new ACShowPropEditScreen(area));
+                ACNetworking.send(player, new ACShowPropEditScreen(area));
                 return Command.SINGLE_SUCCESS;
             } else {
                 src.sendFailure(Component.translatable("area_control.error.cannot_set_property", area.name));
@@ -484,7 +484,7 @@ public final class AreaControlCommand {
         }
         src.sendSuccess(() -> Component.translatable("area_control.claim.owner.list.header", area.name), false);
         final var builders = area.owners;
-        for (var builder :builders) {
+        for (var builder : builders) {
             src.sendSuccess(() -> Component.translatable("area_control.claim.owner.list.entry", Util.getPlayerDisplayName(builder, profileCache, playerList)), false);
         }
         src.sendSuccess(() -> Component.translatable("area_control.claim.owner.list.footer", builders.size()), false);
@@ -582,7 +582,7 @@ public final class AreaControlCommand {
         }
         src.sendSuccess(() -> Component.translatable("area_control.claim.builder.list.header", area.name), false);
         final var builders = area.builders;
-        for (var builder :builders) {
+        for (var builder : builders) {
             src.sendSuccess(() -> Component.translatable("area_control.claim.builder.list.entry", Util.getPlayerDisplayName(builder, profileCache, playerList)), false);
         }
         src.sendSuccess(() -> Component.translatable("area_control.claim.builder.list.footer", builders.size()), false);

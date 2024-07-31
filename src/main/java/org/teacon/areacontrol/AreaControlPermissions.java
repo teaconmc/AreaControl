@@ -1,7 +1,7 @@
 package org.teacon.areacontrol;
 
-import net.minecraftforge.server.permission.nodes.PermissionNode;
-import net.minecraftforge.server.permission.nodes.PermissionTypes;
+import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
+import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
 
 public class AreaControlPermissions {
 

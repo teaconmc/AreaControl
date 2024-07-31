@@ -2,6 +2,7 @@ package org.teacon.areacontrol.mixin;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
@@ -10,7 +11,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -59,7 +59,7 @@ public abstract class EntityMixin {
                 allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_PVP, null, AreaControlConfig.allowPvP);
                 deniedFeedback = Component.translatable("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY);
             } else {
-                var entityTypeRegName = ForgeRegistries.ENTITY_TYPES.getKey(this.getType());
+                var entityTypeRegName = BuiltInRegistries.ENTITY_TYPE.getKey(this.getType());
                 allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_PVE, entityTypeRegName, AreaControlConfig.allowPvE);
                 deniedFeedback = Component.translatable("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY);
             }

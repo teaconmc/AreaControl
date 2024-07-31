@@ -1,5 +1,6 @@
 package org.teacon.areacontrol.impl;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -7,8 +8,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.permission.PermissionAPI;
+import net.neoforged.neoforge.server.permission.PermissionAPI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.teacon.areacontrol.AreaControl;
@@ -87,7 +87,7 @@ public class AreaChecks {
 
     // This is a separate method because area.allow_possess currently has a different logic
     private static boolean checkPossess(Area area, Item item) {
-        var targetId = ForgeRegistries.ITEMS.getKey(item);
+        var targetId = BuiltInRegistries.ITEM.getKey(item);
         if (targetId != null) {
             var objSpecific = AreaProperties.getBoolOptional(area, AreaProperties.ALLOW_POSSESS + "." + targetId);
             if (objSpecific.isPresent()) {
@@ -105,9 +105,10 @@ public class AreaChecks {
 
     /**
      * Recursively checks if an action is allowed in given area
-     * @param area Area to check
-     * @param actor The entity that carries out the action
-     * @param prop The action, represented by a string property
+     *
+     * @param area     Area to check
+     * @param actor    The entity that carries out the action
+     * @param prop     The action, represented by a string property
      * @param targetId The object on which the action is being carried out.
      * @return true if such action is allowed; false otherwise.
      */

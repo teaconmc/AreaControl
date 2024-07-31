@@ -20,7 +20,7 @@ public enum AreaLookupImpl implements AreaLookup {
     private final Map<String, ResourceKey<Level>> cache = new HashMap<>();
 
     private ResourceKey<Level> getOrCreate(String dimKey) {
-        return this.cache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registries.DIMENSION, new ResourceLocation(k)));
+        return this.cache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(k)));
     }
 
     @Override

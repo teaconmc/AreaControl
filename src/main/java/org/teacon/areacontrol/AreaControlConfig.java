@@ -1,27 +1,27 @@
 package org.teacon.areacontrol;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class AreaControlConfig {
 
-    public static ForgeConfigSpec.BooleanValue disableInSinglePlayer;
+    public static ModConfigSpec.BooleanValue disableInSinglePlayer;
 
-    public static ForgeConfigSpec.ConfigValue<String> persistenceMode;
+    public static ModConfigSpec.ConfigValue<String> persistenceMode;
 
-    public static ForgeConfigSpec.ConfigValue<String> areaClaimTool;
+    public static ModConfigSpec.ConfigValue<String> areaClaimTool;
 
-    public static ForgeConfigSpec.ConfigValue<String> groupProvider;
+    public static ModConfigSpec.ConfigValue<String> groupProvider;
 
-    public static ForgeConfigSpec.BooleanValue allowBreakBlock, allowPlaceBlock, allowClickBlock, allowActivateBlock;
-    public static ForgeConfigSpec.BooleanValue allowPossessItem, allowUseItem;
-    public static ForgeConfigSpec.BooleanValue allowSpawnEntity, allowRideEntity, allowInteractEntity, allowPvP, allowPvE;
-    public static ForgeConfigSpec.BooleanValue allowEntitySelectingFromParent;
-    public static ForgeConfigSpec.BooleanValue allowEntitySelectingFromChild;
-    public static ForgeConfigSpec.BooleanValue allowCBSelectingFromParent;
-    public static ForgeConfigSpec.BooleanValue allowCBSelectingFromChild;
+    public static ModConfigSpec.BooleanValue allowBreakBlock, allowPlaceBlock, allowClickBlock, allowActivateBlock;
+    public static ModConfigSpec.BooleanValue allowPossessItem, allowUseItem;
+    public static ModConfigSpec.BooleanValue allowSpawnEntity, allowRideEntity, allowInteractEntity, allowPvP, allowPvE;
+    public static ModConfigSpec.BooleanValue allowEntitySelectingFromParent;
+    public static ModConfigSpec.BooleanValue allowEntitySelectingFromChild;
+    public static ModConfigSpec.BooleanValue allowCBSelectingFromParent;
+    public static ModConfigSpec.BooleanValue allowCBSelectingFromChild;
 
-    public static ForgeConfigSpec setup(ForgeConfigSpec.Builder configSpec) {
+    public static ModConfigSpec setup(ModConfigSpec.Builder configSpec) {
         disableInSinglePlayer = configSpec.comment("Disable nearly all protection measures when in singleplayer.")
                 .translation("area_control.config.disable_in_single_player")
                 .define("disableInSinglePlayer", true);
@@ -32,7 +32,7 @@ public class AreaControlConfig {
                 .translation("area_control.config.area_claim_tool")
                 .define("areaClaimTool", "minecraft:stick", input -> {
                     try {
-                        new ResourceLocation(input.toString());
+                        ResourceLocation.parse(input.toString());
                         return true;
                     } catch (Exception e) {
                         return false;
@@ -44,7 +44,7 @@ public class AreaControlConfig {
 
         configSpec.push("Default properties");
         allowBreakBlock = configSpec.comment("Default value for area.allow_break_block")
-                        .define("allowBreakBlock", false);
+                .define("allowBreakBlock", false);
         allowPlaceBlock = configSpec.comment("Default value for area.allow_place_block")
                 .define("allowPlaceBlock", false);
         allowActivateBlock = configSpec.comment("Default value for area.allow_activate_block")
@@ -59,13 +59,13 @@ public class AreaControlConfig {
         allowPvP = configSpec.define("allowPvP", false);
         allowPvE = configSpec.define("allowPvE", false);
         allowEntitySelectingFromParent = configSpec.comment("Default value for area.allow_select_from_parent_area_by_entity")
-                        .define("allowEntityUseEntitySelectorToSelectEntitiesFromParentArea", true);
+                .define("allowEntityUseEntitySelectorToSelectEntitiesFromParentArea", true);
         allowEntitySelectingFromChild = configSpec.comment("Default value for area.allow_select_from_child_area_by_entity")
-                        .define("allowEntityUseEntitySelectorToSelectEntitiesFromChildArea", true);
+                .define("allowEntityUseEntitySelectorToSelectEntitiesFromChildArea", true);
         allowCBSelectingFromParent = configSpec.comment("Default value for area.allow_select_from_parent_area_by_command_block")
-                        .define("allowCommandBlockUseEntitySelectorToSelectEntitiesFromParentArea", true);
+                .define("allowCommandBlockUseEntitySelectorToSelectEntitiesFromParentArea", true);
         allowCBSelectingFromChild = configSpec.comment("Default value for area.allow_select_from_child_area_by_command_block")
-                        .define("allowCommandBlockUseEntitySelectorToSelectEntitiesFromChildArea", true);
+                .define("allowCommandBlockUseEntitySelectorToSelectEntitiesFromChildArea", true);
         configSpec.pop();
         return configSpec.build();
     }

@@ -10,7 +10,7 @@ import org.teacon.areacontrol.api.Area;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-public class AreaSelectorOption  {
+public class AreaSelectorOption {
 
     public static final SimpleCommandExceptionType ERROR_INVALID_NAME_OR_UUID = new SimpleCommandExceptionType(Component.translatable("argument.entity.invalid"));
 

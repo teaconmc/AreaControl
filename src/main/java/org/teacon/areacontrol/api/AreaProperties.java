@@ -42,7 +42,7 @@ public final class AreaProperties {
     public static final String ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT = register("area.allow_select_from_parent_area_by_entity");
 
     public static final String ALLOW_CB_USE_SELECTOR_FROM_CHILD = register("area.allow_select_from_child_area_by_command_block");
-    public static final String ALLOW_CB_USE_SELECTOR_FROM_PARENT  = register("area.allow_select_from_parent_area_by_command_block");
+    public static final String ALLOW_CB_USE_SELECTOR_FROM_PARENT = register("area.allow_select_from_parent_area_by_command_block");
 
     static String register(String property) {
         KNOWN_PROPERTIES.add(property);
@@ -111,6 +111,7 @@ public final class AreaProperties {
             return "true".equals(o) || "t".equals(o) || Character.valueOf('t').equals(o);
         }
     }
-    
-    private AreaProperties() {}
+
+    private AreaProperties() {
+    }
 }

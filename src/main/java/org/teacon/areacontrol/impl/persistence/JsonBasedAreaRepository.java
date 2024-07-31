@@ -11,11 +11,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.util.*;
 
 public class JsonBasedAreaRepository implements AreaRepository {
 

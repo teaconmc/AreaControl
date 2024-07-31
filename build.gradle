@@ -1,83 +1,140 @@
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
-
-buildscript {
-    repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        mavenCentral()
-        maven { url = "https://maven.parchmentmc.org" }
-        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0.11', changing: true
-        classpath group: 'org.parchmentmc', name: 'librarian', version: '1.2.+'
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
-    }
+plugins {
+    id 'java-library'
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '1.0.14'
 }
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-apply plugin: 'org.spongepowered.mixin'
 
-version = '0.7.15'
-group = 'org.teacon'
-archivesBaseName = 'AreaControl-Forge-1.20'
+tasks.named('wrapper', Wrapper).configure {
+    // Define wrapper values here so as to not have to always do so when updating gradlew.properties.
+    // Switching this to Wrapper.DistributionType.ALL will download the full gradle sources that comes with
+    // documentation attached on cursor hover of gradle classes and methods. However, this comes with increased
+    // file size for Gradle. If you do switch this to ALL, run the Gradle wrapper task twice afterwards.
+    // (Verify by checking gradle/wrapper/gradle-wrapper.properties to see if distributionUrl now points to `-all`)
+    distributionType = Wrapper.DistributionType.BIN
+}
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+version = mod_version
+group = mod_group_id
 
-minecraft {
-    mappings channel: 'parchment', version: '2023.07.16-1.20.1'
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+repositories {
+    mavenLocal()
+}
+
+base {
+    archivesName = mod_id
+}
+
+// Mojang ships Java 21 to end users starting in 1.20.5, so mods should target Java 21.
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    // Specify the version of NeoForge to use.
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    // This line is optional. Access Transformers are automatically detected
+    // accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
+
+    // Default run configurations.
+    // These can be tweaked, removed, or duplicated as needed.
     runs {
         client {
-            workingDirectory project.file('run')
-            property 'forge.logging.console.level', 'info'
-            property 'area_control.dev', 'true'
-            args '--username', 'Dev-###'
-            mods {
-                area_control {
-                    source sourceSets.main
-                }
-            }
+            client()
+
+            // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         server {
-            workingDirectory project.file('run_server')
-            property 'forge.logging.console.level', 'info'
-            mods {
-                area_control {
-                    source sourceSets.main
-                }
-            }
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        // This run config launches GameTestServer and runs all registered gametests, then exits.
+        // By default, the server will crash when no gametests are provided.
+        // The gametest system is also enabled by default for other run configs under the /test command.
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         data {
-            workingDirectory project.file('run')
-            property 'forge.logging.console.level', 'info'
-            args '--mod', 'area_control', '--all', '--output', file('src/generated/resources/')
-            mods {
-                area_control {
-                    source sourceSets.main
-                }
-            }
+            data()
+
+            // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
+            // gameDirectory = project.file('run-data')
+
+            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+
+        // applies to all the run configs above
+        configureEach {
+            // Recommended logging data for a userdev environment
+            // The markers can be added/remove as needed separated by commas.
+            // "SCAN": For mods scan.
+            // "REGISTRIES": For firing of registry events.
+            // "REGISTRYDUMP": For getting the contents of all registries.
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+
+            // Recommended logging level for the console
+            // You can set various levels here.
+            // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        // define mod <-> source bindings
+        // these are used to tell the game which sources are for which mod
+        // mostly optional in a single mod project
+        // but multi mod projects should define one per mod
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
         }
     }
 }
 
-repositories {
-    mavenCentral()
+// Include resources generated by data generators.
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+// Sets up a dependency configuration called 'localRuntime'.
+// This configuration should be used instead of 'runtimeOnly' to declare
+// a dependency that will be present for runtime testing but that is
+// "optional", meaning it will not be pulled by dependents of this mod.
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.20.1-47.1.1'
+    // Example optional mod dependency with JEI
+    // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
+    // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
+    // compileOnly "mezz.jei:jei-${mc_version}-neoforge-api:${jei_version}"
+    // We add the full version to localRuntime, not runtimeOnly, so that we do not publish a dependency on it
+    // localRuntime "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
 
-    // Yes you see this right, LuckPerms.
-    // This is for our custom ContextCalculator support.
-    compileOnly 'net.luckperms:api:5.4'
+    // Example mod dependency using a mod jar from ./libs with a flat dir repository
+    // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
+    // The group id is ignored when searching -- in this case, it is "blank"
+    // implementation "blank:coolmod-${mc_version}:${coolmod_version}"
 
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    // Example mod dependency using a file as dependency
+    // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
+
+    // Example project dependency using a sister or child project:
+    // implementation project(":myproject")
+
+    // For more info:
+    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
+    // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -89,90 +146,53 @@ test {
     useJUnitPlatform()
 }
 
-mixin {
-    add sourceSets.main, "area_control.refmap.json"
+// This block of code expands all declared replace properties in the specified resource targets.
+// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
+// When "copyIdeResources" is enabled, this will also run before the game launches in IDE environments.
+// See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
+tasks.withType(ProcessResources).configureEach {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description
+    ]
+    inputs.properties replaceProperties
 
-    config "area_control.mixins.json"
-}
-
-jar {
-    manifest {
-        attributes([
-            "Specification-Title": "Area-Control",
-            "Specification-Vendor": "TeaConMC",
-            "Specification-Version": "1",
-            "Implementation-Title": project.name,
-            "Implementation-Version": "${version}",
-            "Implementation-Vendor": "TeaConMC",
-            "Implementation-Timestamp": DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS))
-        ])
+    filesMatching(['META-INF/neoforge.mods.toml']) {
+        expand replaceProperties
     }
 }
 
-jar.finalizedBy('reobfJar')
-publish.dependsOn('reobfJar')
+// Example configuration to allow publishing using the maven-publish plugin
 publishing {
     publications {
-        release(MavenPublication) {
-            groupId = "org.teacon"
-            artifactId = "AreaControl-Forge-1.20"
-
-            artifact jar
-            pom {
-                name = 'AreaControl for Minecraft 1.20'
-                description = 'Comprehensive (eventually) plot management mod'
-                url = 'https://github.com/teaconmc/AreaControl'
-                licenses {
-                    license {
-                        name = 'BSD-3-Clause'
-                        url = 'https://github.com/teaconmc/AreaControl/blob/1.20-forge/LICENSE'
-                    }
-                }
-                developers {
-                    developer {
-                        id = '3TUSK'
-                        name = '3TUSK'
-                    }
-                }
-                issueManagement {
-                    system = 'GitHub Issues'
-                    url = 'https://github.com/teaconmc/AreaControl/issues'
-                }
-                scm {
-                    url = 'https://github.com/teaconmc/AreaControl'
-                    connection = 'scm:git:git://github.com/teaconmc/AreaControl.git'
-                    developerConnection = 'scm:git:git@github.com:teaconmc/AreaControl.git'
-                }
-            }
+        register('mavenJava', MavenPublication) {
+            from components.java
         }
     }
     repositories {
         maven {
-            name = "teacon"
-            url = "s3://maven/"
-            credentials(AwsCredentials) {
-                accessKey = System.env.ARCHIVE_ACCESS_KEY
-                secretKey = System.env.ARCHIVE_SECRET_KEY
-            }
+            url "file://${project.projectDir}/repo"
         }
     }
 }
 
-tasks.withType(PublishToMavenRepository) {
-    onlyIf {
-        System.env.ARCHIVE_ACCESS_KEY && System.env.ARCHIVE_SECRET_KEY
-    }
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
 
-/**
- * A simple task to pass down the artifact name and path to other GitHub actions.
- */
-task("githubActionOutput") {
-    onlyIf {
-        System.env.GITHUB_ACTIONS
-    }
-    doLast {
-        println "::set-output name=artifact_path::${jar.archiveFile.get().asFile.absolutePath}"
-        println "::set-output name=artifact_name::${jar.archiveFileName.get()}"
+// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
     }
 }

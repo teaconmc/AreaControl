@@ -1,20 +1,5 @@
 package org.teacon.areacontrol;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
@@ -27,7 +12,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -35,6 +20,12 @@ import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.impl.AreaMath;
 import org.teacon.areacontrol.impl.persistence.AreaRepository;
+
+import java.math.BigInteger;
+import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 public final class AreaManager {
 
@@ -66,7 +57,7 @@ public final class AreaManager {
     private final Map<String, ResourceKey<Level>> levelKeyCache = new HashMap<>();
 
     private ResourceKey<Level> getOrCreate(String dimKey) {
-        return this.levelKeyCache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registries.DIMENSION, new ResourceLocation(k)));
+        return this.levelKeyCache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(k)));
     }
 
     private void buildCacheFor(Area area, ResourceKey<Level> worldIndex) {

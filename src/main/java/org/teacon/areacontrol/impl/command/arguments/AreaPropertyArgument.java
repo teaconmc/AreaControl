@@ -7,9 +7,9 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraft.core.DefaultedRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.fml.ModList;
 import org.teacon.areacontrol.api.AreaProperties;
 
 import java.util.Collection;
@@ -37,7 +37,7 @@ public class AreaPropertyArgument implements ArgumentType<String> {
     @Override
     public String parse(StringReader reader) {
         int start = reader.getCursor();
-        while(reader.canRead() && reader.peek() != ' ') {
+        while (reader.canRead() && reader.peek() != ' ') {
             reader.skip();
         }
         return reader.getString().substring(start, reader.getCursor());
@@ -49,11 +49,11 @@ public class AreaPropertyArgument implements ArgumentType<String> {
         for (var prop : AreaProperties.KNOWN_PROPERTIES) {
             if (current.startsWith(prop)) {
                 if (SUGGEST_BLOCKS.contains(prop)) {
-                    fillSuggestions(current, prop, ForgeRegistries.BLOCKS, builder);
+                    fillSuggestions(current, prop, BuiltInRegistries.BLOCK, builder);
                 } else if (SUGGEST_ITEM.contains(prop)) {
-                    fillSuggestions(current, prop, ForgeRegistries.ITEMS, builder);
+                    fillSuggestions(current, prop, BuiltInRegistries.ITEM, builder);
                 } else if (SUGGEST_ENTITY.contains(prop)) {
-                    fillSuggestions(current, prop, ForgeRegistries.ENTITY_TYPES, builder);
+                    fillSuggestions(current, prop, BuiltInRegistries.ENTITY_TYPE, builder);
                 }
             } else if (prop.startsWith(current)) {
                 builder.suggest(prop);
@@ -62,7 +62,7 @@ public class AreaPropertyArgument implements ArgumentType<String> {
         return builder.buildFuture();
     }
 
-    private static void fillSuggestions(String current, String prop, IForgeRegistry<?> registry, SuggestionsBuilder builder) {
+    private static void fillSuggestions(String current, String prop, DefaultedRegistry<?> registry, SuggestionsBuilder builder) {
         String sub = current.substring(prop.length());
         if (sub.startsWith(".")) {
             for (var mod : ModList.get().getMods()) {
@@ -71,7 +71,7 @@ public class AreaPropertyArgument implements ArgumentType<String> {
                     builder.suggest(prop + "." + modId);
                 }
             }
-            SharedSuggestionProvider.suggestResource(registry.getKeys(), builder, prop + ".");
+            SharedSuggestionProvider.suggestResource(registry.keySet(), builder, prop + ".");
         }
     }
 

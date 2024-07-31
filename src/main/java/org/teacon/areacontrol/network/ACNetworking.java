@@ -1,25 +1,30 @@
 package org.teacon.areacontrol.network;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
-
-import java.util.Optional;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public class ACNetworking {
+    public static void init(RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar registrar = event.registrar("area_control")
+                .versioned("0.4.0")
+                .optional();
 
-    public static SimpleChannel acNetworkChannel = NetworkRegistry.newSimpleChannel(
-            new ResourceLocation("area_control", "network"),
-            () -> "0.3.0",
-            remoteVer -> "0.3.0".equals(remoteVer) || NetworkRegistry.ABSENT.equals(remoteVer) || NetworkRegistry.ACCEPTVANILLA.equals(remoteVer),
-            clientVer -> "0.3.0".equals(clientVer) || NetworkRegistry.ABSENT.equals(clientVer) || NetworkRegistry.ACCEPTVANILLA.equals(clientVer)
-    );
+        registrar.playToServer(ACPingServer.TYPE, ACPingServer.STREAM_CODEC, ACPingServer::handle);
+        registrar.playToClient(ACSendNearbyArea.TYPE, ACSendNearbyArea.STREAM_CODEC, ACSendNearbyArea::handle);
+        registrar.playToClient(ACSendCurrentSelection.TYPE, ACSendCurrentSelection.STREAM_CODEC, ACSendCurrentSelection::handle);
+        registrar.playToClient(ACShowPropEditScreen.TYPE, ACShowPropEditScreen.STREAM_CODEC, ACShowPropEditScreen::handle);
+    }
 
-    public static void init() {
-        acNetworkChannel.registerMessage(0, ACPingServer.class, ACPingServer::write, ACPingServer::new, ACPingServer::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        acNetworkChannel.registerMessage(1, ACSendNearbyArea.class, ACSendNearbyArea::write, ACSendNearbyArea::new, ACSendNearbyArea::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        acNetworkChannel.registerMessage(2, ACSendCurrentSelection.class, ACSendCurrentSelection::write, ACSendCurrentSelection::new, ACSendCurrentSelection::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        acNetworkChannel.registerMessage(3, ACShowPropEditScreen.class, ACShowPropEditScreen::write, ACShowPropEditScreen::new, ACShowPropEditScreen::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+    private static final CustomPacketPayload[] EMPTY = new CustomPacketPayload[0];
+
+    public static void send(ServerPlayer player, CustomPacketPayload payload) {
+        PacketDistributor.sendToPlayer(player, payload, EMPTY);
+    }
+
+    public static void send(CustomPacketPayload payload) {
+        PacketDistributor.sendToServer(payload, EMPTY);
     }
 }

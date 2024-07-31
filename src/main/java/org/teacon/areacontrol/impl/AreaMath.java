@@ -41,6 +41,7 @@ public class AreaMath {
      * Calculate the shortest distance between a point inside the given area and the bounding
      * planes of the given area.
      * This method does not check if the point is inside the area or not.
+     *
      * @return Shortest distance
      */
     public static double distanceFromInteriorToBoundary(Area area, double x, double y, double z) {
@@ -86,6 +87,7 @@ public class AreaMath {
 
     /**
      * Determine the relation between area A and area B.
+     *
      * @param aMinX Smaller X of area A
      * @param aMinY Smaller Y of area A
      * @param aMinZ Smaller Z of area A

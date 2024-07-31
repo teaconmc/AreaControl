@@ -11,13 +11,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * A cuboid area defined by dimension id, min. coordinate and max. coordinate.
  */
 public final class Area {
-	
-	public UUID uid = UUID.randomUUID();
+
+    public UUID uid = UUID.randomUUID();
 
     public String name = "Area " + uid.toString().substring(0, 8);
 
     public String dimension = "minecraft:overworld";
-    
+
     public Set<UUID> owners = new HashSet<>();
     public Set<String> ownerGroups = new HashSet<>();
     public Set<UUID> builders = new HashSet<>();
@@ -35,9 +35,11 @@ public final class Area {
         public final int minX, minY, minZ, maxX, maxY, maxZ;
         public final int midX, midY, midZ;
         public final boolean enclosed;
+
         public Summary(Area area) {
             this(area.uid, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ, area.belongingArea != null);
         }
+
         public Summary(UUID uid, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, boolean enclosed) {
             this.uid = uid;
             this.minX = minX;

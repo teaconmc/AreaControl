@@ -1,24 +1,24 @@
 package org.teacon.areacontrol;
 
-import javax.annotation.Nonnull;
-import java.util.WeakHashMap;
-
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.permission.PermissionAPI;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.LogicalSide;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.server.permission.PermissionAPI;
 import org.teacon.areacontrol.impl.AreaChecks;
 
-@Mod.EventBusSubscriber(modid = "area_control")
+import javax.annotation.Nonnull;
+import java.util.WeakHashMap;
+
+@EventBusSubscriber(modid = "area_control")
 public final class AreaControlClaimHandler {
 
     private static final WeakHashMap<Player, RectangleRegion> records = new WeakHashMap<>();
@@ -27,7 +27,7 @@ public final class AreaControlClaimHandler {
     public static void onRightClick(PlayerInteractEvent.RightClickBlock event) {
         if (event.getSide() == LogicalSide.SERVER) {
             final var player = (ServerPlayer) event.getEntity();
-            final var areaClaimTool = ForgeRegistries.ITEMS.getValue(new ResourceLocation(AreaControlConfig.areaClaimTool.get()));
+            final var areaClaimTool = BuiltInRegistries.ITEM.get(ResourceLocation.parse(AreaControlConfig.areaClaimTool.get()));
             if (areaClaimTool != Items.AIR && event.getItemStack().getItem() == areaClaimTool) {
                 var currentArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
                 if (AreaChecks.isACtrlAreaBuilder(player, currentArea) || PermissionAPI.getPermission(player, AreaControlPermissions.AC_CLAIMER)) {
@@ -48,5 +48,6 @@ public final class AreaControlClaimHandler {
         AreaControlPlayerTracker.INSTANCE.sendCurrentSelectionToClient(player, selection);
     }
 
-    record RectangleRegion(BlockPos start, BlockPos end) {}
+    record RectangleRegion(BlockPos start, BlockPos end) {
+    }
 }
