@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
@@ -207,7 +208,7 @@ public final class AreaControlClientSupport {
         static final RenderType BORDER = RenderType.create("area_control_border",
                 DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, 256, false, false,
                 RenderType.CompositeState.builder()
-                        .setShaderState(POSITION_COLOR_TEX_LIGHTMAP_SHADER) // Must be here
+                        .setShaderState(new ShaderStateShard(GameRenderer::getPositionTexColorShader)) // Must be here
                         .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
                         .setTextureState(REPEATED_FORCE_FIELD)
                         // 海螺 told me that vanilla avoids z-fighting during world border rendering

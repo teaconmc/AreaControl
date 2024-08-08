@@ -1,6 +1,7 @@
 package org.teacon.areacontrol;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -229,13 +230,13 @@ public enum AreaControlPlayerTracker {
 
     public void sendCurrentSelectionToClient(ServerPlayer receiver, AreaControlClaimHandler.RectangleRegion region) {
         if (this.playersWithExt.contains(receiver.getGameProfile().getId())) {
-            ACNetworking.send(receiver, new ACSendCurrentSelection(false, region.start(), region.end()));
+            ACNetworking.send(receiver, ACSendCurrentSelection.of(false, region.start(), region.end()));
         }
     }
 
     public void clearSelectionForClient(ServerPlayer receiver) {
         if (this.playersWithExt.contains(receiver.getGameProfile().getId())) {
-            ACNetworking.send(receiver, new ACSendCurrentSelection(true, null, null));
+            ACNetworking.send(receiver, ACSendCurrentSelection.of(true, BlockPos.ZERO, BlockPos.ZERO));
         }
     }
 
@@ -312,8 +313,8 @@ public enum AreaControlPlayerTracker {
             // This can happen if player disconnected before its first tick.
             if (previouslyExempted != null) {
                 for (var areaId : previouslyExempted) {
-                    var areaName = AreaManager.INSTANCE.findBy(areaId);
-                    p.displayClientMessage(Component.translatable("area_control.bypass.global.area.off", areaName), false);
+                    var area = AreaManager.INSTANCE.findBy(areaId);
+                    p.displayClientMessage(Component.translatable("area_control.bypass.global.area.off", area.name), false);
                     p.displayClientMessage(HOW_TO_TURN_ON, false);
                 }
             }

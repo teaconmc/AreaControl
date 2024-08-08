@@ -14,7 +14,6 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +23,6 @@ import org.teacon.areacontrol.impl.ClientSinglePlayerServerChecker;
 import org.teacon.areacontrol.impl.ServerSinglePlayerServerChecker;
 import org.teacon.areacontrol.impl.VanillaScoreboardTeamGroupProvider;
 import org.teacon.areacontrol.impl.persistence.AreaRepositoryManager;
-import org.teacon.areacontrol.network.ACNetworking;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,11 +47,6 @@ public final class AreaControl {
             case DEDICATED_SERVER -> new ServerSinglePlayerServerChecker();
         };
         AreaControlPreSetup.ARG_TYPES.register(Objects.requireNonNull(container.getEventBus(), "AreaControl should have a eventbus.")); // TODO Check if it breaks vanilla connection?
-    }
-
-    @SubscribeEvent
-    public static void register(RegisterPayloadHandlersEvent event) {
-        ACNetworking.init(event);
     }
 
     @SubscribeEvent

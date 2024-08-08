@@ -36,29 +36,7 @@ public record ACShowPropEditScreen(String areaName, List<Info> props) implements
             StreamCodec.composite(
                     ByteBufCodecs.STRING_UTF8,
                     Info::prop,
-                    new StreamCodec<FriendlyByteBuf, Boolean>() {
-                        private static final byte V_NULL = 1, V_TRUE = 2, V_FALSE = 3;
-
-                        @Override
-                        public void encode(@NotNull FriendlyByteBuf buf, @NotNull Boolean value) {
-                            if (value == null) {
-                                buf.writeByte(V_NULL);
-                            } else {
-                                buf.writeShort(value ? V_TRUE : V_FALSE);
-                            }
-                        }
-
-                        @Override
-                        @NotNull
-                        public Boolean decode(@NotNull FriendlyByteBuf buf) {
-                            return switch (buf.readByte()) {
-                                case V_NULL -> null;
-                                case V_TRUE -> Boolean.TRUE;
-                                case V_FALSE -> Boolean.FALSE;
-                                default -> throw new IllegalArgumentException("Invalid nullable boolean value.");
-                            };
-                        }
-                    },
+                    ACNetworking.asNullableCodecValue(ByteBufCodecs.BOOL),
                     Info::triStateValue,
                     Info::new
             ).apply(ByteBufCodecs.list()),

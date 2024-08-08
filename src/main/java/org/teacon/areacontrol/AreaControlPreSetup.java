@@ -7,12 +7,14 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
 import org.teacon.areacontrol.impl.command.arguments.DirectionArgument;
 import org.teacon.areacontrol.impl.command.arguments.GroupArgument;
 import org.teacon.areacontrol.impl.command.selector.AreaSelectorOption;
+import org.teacon.areacontrol.network.ACNetworking;
 
 @EventBusSubscriber(modid = "area_control", bus = EventBusSubscriber.Bus.MOD)
 public class AreaControlPreSetup {
@@ -31,5 +33,10 @@ public class AreaControlPreSetup {
         ArgumentTypeInfos.registerByClass(GroupArgument.class, GROUP_ARG_TYPE.get());
 
         AreaSelectorOption.register();
+    }
+
+    @SubscribeEvent
+    public static void registerNetworkPayload(RegisterPayloadHandlersEvent event) {
+        ACNetworking.init(event);
     }
 }

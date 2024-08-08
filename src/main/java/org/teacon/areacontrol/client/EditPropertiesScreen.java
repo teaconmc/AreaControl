@@ -11,6 +11,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -63,8 +64,11 @@ public final class EditPropertiesScreen extends Screen {
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         // TODO: this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         this.drawGuiContainerBackgroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        for (Renderable renderable : this.renderables) {
+            renderable.render(guiGraphics, mouseX, mouseY, partialTicks);
+        }
         this.drawGuiContainerForegroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
         this.drawTooltips(guiGraphics, partialTicks, mouseX, mouseY);
     }

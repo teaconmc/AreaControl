@@ -1,10 +1,13 @@
 package org.teacon.areacontrol.network;
 
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import org.jetbrains.annotations.Nullable;
 
 public class ACNetworking {
     public static void init(RegisterPayloadHandlersEvent event) {
@@ -26,5 +29,28 @@ public class ACNetworking {
 
     public static void send(CustomPacketPayload payload) {
         PacketDistributor.sendToServer(payload, EMPTY);
+    }
+
+    public static <T> StreamCodec<ByteBuf, T> asNullableCodecValue(StreamCodec<ByteBuf, @Nullable T> delegate) {
+        return new StreamCodec<>() {
+            @Override
+            public T decode(ByteBuf byteBuf) {
+                return switch (byteBuf.readByte()) {
+                    case 0 -> null;
+                    case 1 -> delegate.decode(byteBuf);
+                    default -> throw new IllegalStateException("Unexpected boolean: " + byteBuf.readByte());
+                };
+            }
+
+            @Override
+            public void encode(ByteBuf byteBuf, T value) {
+                if (value == null) {
+                    byteBuf.writeByte(0);
+                } else {
+                    byteBuf.writeByte(1);
+                    delegate.encode(byteBuf, value);
+                }
+            }
+        };
     }
 }

@@ -385,7 +385,10 @@ public final class AreaControlCommand {
             return 0;
         }
         if (AreaControlPlayerTracker.INSTANCE.thisPlayerHasClientExt(player)) {
-            if (AreaChecks.isACtrlAreaBuilder(player, area)) {
+            if (area == null) {
+                src.sendSuccess(ERROR_WILD, true);
+                return 0;
+            } else if (AreaChecks.isACtrlAreaBuilder(player, area)) {
                 ACNetworking.send(player, new ACShowPropEditScreen(area));
                 return Command.SINGLE_SUCCESS;
             } else {

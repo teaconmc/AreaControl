@@ -17,12 +17,22 @@ public record ACSendCurrentSelection(boolean clear, BlockPos pos1, BlockPos pos2
     public static final StreamCodec<FriendlyByteBuf, ACSendCurrentSelection> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.BOOL,
             ACSendCurrentSelection::clear,
-            BlockPos.STREAM_CODEC,
+            ACNetworking.asNullableCodecValue(BlockPos.STREAM_CODEC),
             ACSendCurrentSelection::pos1,
-            BlockPos.STREAM_CODEC,
+            ACNetworking.asNullableCodecValue(BlockPos.STREAM_CODEC),
             ACSendCurrentSelection::pos2,
             ACSendCurrentSelection::new
     );
+
+    public static ACSendCurrentSelection of(boolean clear, BlockPos pos1, BlockPos pos2) {
+        if (pos1 == null && pos2 != null) {
+            pos1 = pos2;
+        } else if (pos1 != null && pos2 == null) {
+            pos2 = pos1;
+        }
+
+        return new ACSendCurrentSelection(clear, pos1, pos2);
+    }
 
     public void handle(IPayloadContext context) {
         if (clear) {
