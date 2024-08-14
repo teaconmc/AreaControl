@@ -6,6 +6,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.teacon.areacontrol.compat.luckperm.LuckPermsCompat;
 
 @EventBusSubscriber(modid = "area_control")
 public class AreaControlCompatibilities {
@@ -17,7 +18,7 @@ public class AreaControlCompatibilities {
         // Mod ID is taken from here:
         // https://github.com/LuckPerms/LuckPerms/blob/master/forge/loader/src/main/java/me/lucko/luckperms/forge/loader/ForgeLoaderPlugin.java
         if (ModList.get().isLoaded("luckperms")) {
-            throw new IllegalArgumentException("Luckperms should NOT be on NeoForge.");
+            LuckPermsCompat.init();
         } else {
             LOGGER.info("LuckPerms doesn't seem to be present, skip initializing LuckPerm compatibilities.");
         }
