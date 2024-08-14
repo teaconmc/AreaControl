@@ -6,7 +6,6 @@
   "refmap": "area_control.refmap.json",
   "mixins": [
     "CommandSourceStackAccessor",
-    "EntityMixin",
     "EntitySelectorMixin",
     "FireMixin",
     "LavaMixin"
