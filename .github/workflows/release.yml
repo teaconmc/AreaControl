@@ -12,6 +12,10 @@ jobs:
         with:
           # Fetch all history 
           fetch-depth: 0
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
       - name: Apply Cache
         uses: actions/cache@v2
         with:
