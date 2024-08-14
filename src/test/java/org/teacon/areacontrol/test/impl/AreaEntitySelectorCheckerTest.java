@@ -1,5 +1,17 @@
 package org.teacon.areacontrol.test.impl;
 
+import net.minecraft.SharedConstants;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.Bootstrap;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.BaseCommandBlock;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -7,7 +19,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.teacon.areacontrol.AreaControlConfig;
 import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaControlAPI;
@@ -37,8 +48,9 @@ public class AreaEntitySelectorCheckerTest {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
 
-        var spec = AreaControlConfig.setup(new ForgeConfigSpec.Builder());
-        spec.acceptConfig(CommentedConfig.inMemory());
+        // FIXME[3TUSK] NeoForge fully encapsulated config system
+        //var spec = AreaControlConfig.setup(new ModConfigSpec.Builder());
+        //spec.acceptConfig(new net.neoforged.fml.config.LoadedConfig());
 
         initAreaManager();
     }
