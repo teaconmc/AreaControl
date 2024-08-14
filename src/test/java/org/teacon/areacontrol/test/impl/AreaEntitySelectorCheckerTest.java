@@ -12,6 +12,7 @@ import net.minecraft.world.level.BaseCommandBlock;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.teacon.areacontrol.AreaControlConfig;
 import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaControlAPI;
@@ -48,9 +50,21 @@ public class AreaEntitySelectorCheckerTest {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
 
-        // FIXME[3TUSK] NeoForge fully encapsulated config system
-        //var spec = AreaControlConfig.setup(new ModConfigSpec.Builder());
-        //spec.acceptConfig(new net.neoforged.fml.config.LoadedConfig());
+        var allowEntitySelectingFromParent = Mockito.mock(ModConfigSpec.BooleanValue.class);
+        Mockito.when(allowEntitySelectingFromParent.get()).thenReturn(true);
+        AreaControlConfig.allowEntitySelectingFromParent = allowEntitySelectingFromParent;
+
+        var allowEntitySelectingFromChild = Mockito.mock(ModConfigSpec.BooleanValue.class);
+        Mockito.when(allowEntitySelectingFromChild.get()).thenReturn(true);
+        AreaControlConfig.allowEntitySelectingFromChild = allowEntitySelectingFromChild;
+
+        var allowCBSelectingFromParent = Mockito.mock(ModConfigSpec.BooleanValue.class);
+        Mockito.when(allowCBSelectingFromParent.get()).thenReturn(true);
+        AreaControlConfig.allowCBSelectingFromParent = allowCBSelectingFromParent;
+
+        var allowCBSelectingFromChild = Mockito.mock(ModConfigSpec.BooleanValue.class);
+        Mockito.when(allowCBSelectingFromChild.get()).thenReturn(true);
+        AreaControlConfig.allowCBSelectingFromChild = allowCBSelectingFromChild;
 
         initAreaManager();
     }
