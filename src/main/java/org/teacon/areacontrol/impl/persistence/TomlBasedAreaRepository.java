@@ -1,14 +1,20 @@
 package org.teacon.areacontrol.impl.persistence;
 
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.InMemoryFormat;
-import com.electronwill.nightconfig.core.conversion.Conversion;
-import com.electronwill.nightconfig.core.conversion.Converter;
-import com.electronwill.nightconfig.core.conversion.ObjectConverter;
-import com.electronwill.nightconfig.core.conversion.SpecNotNull;
 import com.electronwill.nightconfig.core.file.FileConfig;
+import com.electronwill.nightconfig.core.serde.DeserializerContext;
+import com.electronwill.nightconfig.core.serde.ObjectDeserializer;
+import com.electronwill.nightconfig.core.serde.ObjectSerializer;
+import com.electronwill.nightconfig.core.serde.SerializerContext;
+import com.electronwill.nightconfig.core.serde.TypeConstraint;
+import com.electronwill.nightconfig.core.serde.ValueDeserializer;
+import com.electronwill.nightconfig.core.serde.ValueDeserializerProvider;
+import com.electronwill.nightconfig.core.serde.ValueSerializer;
+import com.electronwill.nightconfig.core.serde.ValueSerializerProvider;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeAssert;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeSkipDeserializingIf;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeSkipSerializingIf;
+import com.electronwill.nightconfig.toml.TomlFormat;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.common.io.MoreFiles;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 import net.minecraft.core.BlockPos;
@@ -24,22 +30,30 @@ public class TomlBasedAreaRepository implements AreaRepository {
 
     private final Path dataDirRoot;
 
+    private final ObjectSerializer writer;
+    private final ObjectDeserializer reader;
+
     public TomlBasedAreaRepository(Path dataDirRoot) {
         this.dataDirRoot = dataDirRoot;
+        var desBuilder = ObjectDeserializer.builder();
+        desBuilder.withDefaultDeserializerProvider(BlockPosSerDeProvider.INSTANCE);
+        this.reader = desBuilder.build();
+
+        var seBuilder = ObjectSerializer.builder();
+        seBuilder.withSerializerProvider(BlockPosSerDeProvider.INSTANCE);
+        this.writer = seBuilder.build();
     }
 
     @Override
     public Collection<Area> load() throws Exception {
         var areas = new TreeMap<UUID, Area>();
         @Nullable var exception = (IOException) null;
-        // noinspection UnstableApiUsage
         for (Path file : MoreFiles.listFiles(this.dataDirRoot)) {
             var fileName = file.getFileName().toString();
             if (fileName.startsWith("claim-") && fileName.endsWith(".toml")) {
-                try (FileConfig areasData = FileConfig.of(file)) {
+                try (FileConfig areasData = FileConfig.of(file, TomlFormat.instance())) {
                     areasData.load();
-                    var converter = new ObjectConverter();
-                    var model = converter.toObject(areasData, AreaModel::new);
+                    var model = reader.deserializeFields(areasData, AreaModel::new);
                     Preconditions.checkArgument("claim-%s.toml".formatted(model.uid).equals(fileName),
                             "The name of the claim file (" + fileName + ") does not match the claim uid: " + model.uid);
                     areas.put(model.uid, model.toRealArea());
@@ -68,8 +82,8 @@ public class TomlBasedAreaRepository implements AreaRepository {
         for (Area area : areas) {
             var model = new AreaModel(area);
             try (FileConfig areasData = FileConfig.builder(this.dataDirRoot.resolve("claim-%s.toml".formatted(area.uid))).sync().build()) {
-                var converter = new ObjectConverter();
-                converter.toConfig(model, areasData);
+                var saved = this.writer.serializeFields(model, TomlFormat::newConfig);
+                areasData.addAll(saved);
                 areasData.save();
             } catch (Exception e) {
                 if (exception == null) {
@@ -84,32 +98,37 @@ public class TomlBasedAreaRepository implements AreaRepository {
     }
 
     public static final class AreaModel {
-        @Conversion(UUIDConverter.class)
-        @SpecNotNull
+        @SerdeAssert(SerdeAssert.AssertThat.NOT_EMPTY)
         public UUID uid;
-        @SpecNotNull
+        @SerdeAssert(SerdeAssert.AssertThat.NOT_EMPTY)
         public String name;
-        @SpecNotNull
+        @SerdeAssert(SerdeAssert.AssertThat.NOT_NULL) // TODO[3TUSK]: Custom check
         public String dimension = "minecraft:overworld";
-        @Conversion(UUIDCollectionConverter.class)
-        @SpecNotNull
+        @SerdeAssert(SerdeAssert.AssertThat.NOT_NULL)
         public Collection<UUID> owners = new HashSet<>();
-        @SpecNotNull
+        @SerdeAssert(SerdeAssert.AssertThat.NOT_NULL)
         public List<String> ownerGroups = new ArrayList<>();
-        @Conversion(UUIDCollectionConverter.class)
+        @SerdeAssert(SerdeAssert.AssertThat.NOT_NULL)
         public Collection<UUID> builders = new HashSet<>();
-        @SpecNotNull
+        @SerdeAssert(SerdeAssert.AssertThat.NOT_NULL)
         public List<String> builderGroups = new ArrayList<>();
-        @Conversion(BlockPosConverter.class)
-        @SpecNotNull
+        @SerdeAssert(SerdeAssert.AssertThat.NOT_EMPTY)
         public BlockPos min = new BlockPos(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
-        @Conversion(BlockPosConverter.class)
-        @SpecNotNull
+        @SerdeAssert(SerdeAssert.AssertThat.NOT_EMPTY)
         public BlockPos max = new BlockPos(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-        @Conversion(NullableUUIDConverter.class)
+
+        @SerdeSkipDeserializingIf({
+                SerdeSkipDeserializingIf.SkipDeIf.IS_MISSING,
+                SerdeSkipDeserializingIf.SkipDeIf.IS_EMPTY,
+                SerdeSkipDeserializingIf.SkipDeIf.IS_NULL
+        })
+        @SerdeSkipSerializingIf({
+                SerdeSkipSerializingIf.SkipSerIf.IS_EMPTY,
+                SerdeSkipSerializingIf.SkipSerIf.IS_NULL
+        })
         public UUID belongingArea;
 
-        public Config properties;
+        public Map<String, Object> properties;
 
         public AreaModel() {
         }
@@ -125,7 +144,7 @@ public class TomlBasedAreaRepository implements AreaRepository {
             this.min = new BlockPos(realArea.minX, realArea.minY, realArea.minZ);
             this.max = new BlockPos(realArea.maxX, realArea.maxY, realArea.maxZ);
             this.belongingArea = realArea.belongingArea;
-            this.properties = Config.wrap(realArea.properties, InMemoryFormat.defaultInstance());
+            this.properties = realArea.properties;
         }
 
         public Area toRealArea() {
@@ -145,60 +164,46 @@ public class TomlBasedAreaRepository implements AreaRepository {
             area.maxZ = Math.max(this.min.getZ(), this.max.getZ());
             area.belongingArea = this.belongingArea;
             area.properties.clear();
-            area.properties.putAll(this.properties.valueMap());
+            area.properties.putAll(this.properties);
             return area;
         }
     }
 
-    private static final class BlockPosConverter implements Converter<BlockPos, List<Integer>> {
+    private enum BlockPosSerDe
+            implements ValueDeserializer<List<Integer>, BlockPos>, ValueSerializer<BlockPos, List<Integer>> {
+
+        INSTANCE;
+
         @Override
-        public BlockPos convertToField(List<Integer> value) {
+        public BlockPos deserialize(List<Integer> value, Optional<TypeConstraint> resultType, DeserializerContext ctx) {
             Preconditions.checkArgument(value.size() == 3);
             return new BlockPos(value.get(0), value.get(1), value.get(2));
         }
 
         @Override
-        public List<Integer> convertFromField(BlockPos value) {
-            return Lists.newArrayList(value.getX(), value.getY(), value.getZ());
+        public List<Integer> serialize(BlockPos value, SerializerContext ctx) {
+            return List.of(value.getX(), value.getY(), value.getZ());
         }
     }
 
-    private static final class UUIDConverter implements Converter<UUID, String> {
+    private enum BlockPosSerDeProvider implements ValueDeserializerProvider<List<Integer>, BlockPos>, ValueSerializerProvider<BlockPos, List<Integer>> {
+        INSTANCE;
 
         @Override
-        public UUID convertToField(String value) {
-            return UUID.fromString(value);
+        public ValueDeserializer<List<Integer>, BlockPos> provide(Class<?> valueClass, TypeConstraint resultType) {
+            if (List.class.isAssignableFrom(valueClass)) { // TODO[3TUSK]: type check
+                return BlockPosSerDe.INSTANCE;
+            }
+            return null;
         }
 
         @Override
-        public String convertFromField(UUID value) {
-            return value.toString();
-        }
-    }
-
-    private static final class NullableUUIDConverter implements Converter<UUID, String> {
-
-        @Override
-        public UUID convertToField(String value) {
-            return value == null || "null".equals(value) ? null : UUID.fromString(value);
-        }
-
-        @Override
-        public String convertFromField(UUID value) {
-            return Objects.toString(value);
+        public ValueSerializer<BlockPos, List<Integer>> provide(Class<?> valueClass, SerializerContext ctx) {
+            if (valueClass == BlockPos.class) {
+                return BlockPosSerDe.INSTANCE;
+            }
+            return null;
         }
     }
 
-    private static final class UUIDCollectionConverter implements Converter<Collection<UUID>, List<String>> {
-
-        @Override
-        public Collection<UUID> convertToField(List<String> value) {
-            return value == null ? new ArrayList<>() : value.stream().map(UUID::fromString).toList();
-        }
-
-        @Override
-        public List<String> convertFromField(Collection<UUID> value) {
-            return value.stream().map(UUID::toString).toList();
-        }
-    }
 }
