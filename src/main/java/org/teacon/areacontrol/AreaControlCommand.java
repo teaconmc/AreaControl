@@ -444,15 +444,10 @@ public final class AreaControlCommand {
         final var area = AreaManager.INSTANCE.findBy(level, pos);
         if (AreaChecks.isACtrlAreaBuilder(requester, area)) {
             final var newName = context.getArgument("name", String.class);
-            if (AreaManager.INSTANCE.findBy(newName) == null) {
-                final var oldName = area.name;
-                AreaManager.INSTANCE.rename(area, newName);
-                src.sendSuccess(() -> Component.translatable("area_control.claim.name.update", oldName, newName), true);
-                return Command.SINGLE_SUCCESS;
-            } else {
-                src.sendSuccess(() -> Component.translatable("area_control.error.name_clash", newName), true);
-                return -1;
-            }
+            final var oldName = area.name;
+            area.name = newName;
+            src.sendSuccess(() -> Component.translatable("area_control.claim.name.update", oldName, newName), true);
+            return Command.SINGLE_SUCCESS;
         } else {
             src.sendFailure(Component.translatable("area_control.error.cannot_set_property", area.name));
             return -1;

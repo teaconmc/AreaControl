@@ -28,24 +28,14 @@ public class AreaSelectorOption {
                     invert = true;
                 }
                 if (reader.canRead()) {
-                    if (reader.peek() == '#') {
-                        reader.skip();
-                        Area area = AreaManager.INSTANCE.findBy(reader.readString());
+                    try {
+                        UUID uid = UUID.fromString(reader.readString());
+                        Area area = AreaManager.INSTANCE.findBy(uid);
                         if (area != null) {
                             parser.addPredicate(new InsideArea(area, invert));
-                        } else {
-                            throw ERROR_INVALID_NAME_OR_UUID.createWithContext(reader);
                         }
-                    } else {
-                        try {
-                            UUID uid = UUID.fromString(reader.readString());
-                            Area area = AreaManager.INSTANCE.findBy(uid);
-                            if (area != null) {
-                                parser.addPredicate(new InsideArea(area, invert));
-                            }
-                        } catch (Exception ignored) {
-                            throw ERROR_INVALID_NAME_OR_UUID.createWithContext(reader);
-                        }
+                    } catch (Exception ignored) {
+                        throw ERROR_INVALID_NAME_OR_UUID.createWithContext(reader);
                     }
                 }
             }

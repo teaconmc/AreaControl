@@ -38,7 +38,6 @@ public final class AreaManager {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     private final HashMap<UUID, Area> areasById = new HashMap<>();
-    private final HashMap<String, Area> areasByName = new HashMap<>();
 
     // TODO Get rid of ResourceKey<Level> as key
 
@@ -66,7 +65,6 @@ public final class AreaManager {
         area.volume = BigInteger.valueOf(dx).multiply(BigInteger.valueOf(dy)).multiply(BigInteger.valueOf(dz));
         // not locked since every method invoking this one has been locked
         this.areasById.put(area.uid, area);
-        this.areasByName.put(area.name, area);
         this.areasByWorld.compute(worldIndex, (key, areas) -> {
             if (areas == null) {
                 areas = new HashSet<>();
@@ -84,7 +82,6 @@ public final class AreaManager {
     public void init(AreaRepository repository) {
         this.repository = repository;
         this.areasById.clear();
-        this.areasByName.clear();
         this.areasByWorld.clear();
         this.perWorldAreaCache.clear();
     }
@@ -103,7 +100,7 @@ public final class AreaManager {
                     if (parent != null) {
                         parent.subAreas.add(a.uid);
                     } else {
-                        LOGGER.warn("Found a dangling area " + a.uid + ", will try to auto-fix this...");
+                        LOGGER.warn("Found a dangling area {}, will try to auto-fix this...", a.uid);
                         danglingAreas.add(a);
                     }
                 }
@@ -222,7 +219,6 @@ public final class AreaManager {
         try {
             writeLock.lock();
             this.areasById.remove(area.uid, area);
-            this.areasByName.remove(area.name, area);
             this.perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(uid -> uid == area.uid)));
             this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet()).remove(area.uid);
             if (area.belongingArea != null) {
@@ -241,12 +237,6 @@ public final class AreaManager {
         } finally {
             writeLock.unlock();
         }
-    }
-
-    public void rename(Area area, String newName) {
-        this.areasByName.remove(area.name);
-        area.name = newName;
-        this.areasByName.put(newName, area);
     }
 
     public boolean changeRangeForArea(ResourceKey<Level> dim, Area area, Direction direction, int amount) {
@@ -510,16 +500,6 @@ public final class AreaManager {
 
     public Collection<Area> findByOwner(UUID ownerId) {
         return this.areasById.values().stream().filter(area -> area.owners.contains(ownerId)).toList();
-    }
-
-    public Area findBy(String name) {
-        var readLock = this.lock.readLock();
-        try {
-            readLock.lock();
-            return this.areasByName.get(name);
-        } finally {
-            readLock.unlock();
-        }
     }
 
     public List<Area> getAreaSummariesSurround(ResourceKey<Level> dim, BlockPos center, double radius) {
