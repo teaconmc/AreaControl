@@ -3,6 +3,7 @@ package org.teacon.areacontrol;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.LevelResource;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -26,7 +27,6 @@ import org.teacon.areacontrol.impl.persistence.AreaRepositoryManager;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 @Mod("area_control")
@@ -39,14 +39,14 @@ public final class AreaControl {
 
     public static Predicate<MinecraftServer> singlePlayerServerChecker;
 
-    public AreaControl(ModContainer container) {
+    public AreaControl(ModContainer container, IEventBus modBus) {
         AreaRepositoryManager.init();
         container.registerConfig(ModConfig.Type.SERVER, AreaControlConfig.setup(new ModConfigSpec.Builder()));
         singlePlayerServerChecker = switch (FMLEnvironment.dist) {
             case CLIENT -> new ClientSinglePlayerServerChecker();
             case DEDICATED_SERVER -> new ServerSinglePlayerServerChecker();
         };
-        AreaControlPreSetup.ARG_TYPES.register(Objects.requireNonNull(container.getEventBus(), "AreaControl should have a eventbus.")); // TODO Check if it breaks vanilla connection?
+        AreaControlPreSetup.ARG_TYPES.register(modBus); // TODO Check if it breaks vanilla connection?
     }
 
     @SubscribeEvent
