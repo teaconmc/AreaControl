@@ -690,7 +690,7 @@ public final class AreaControlCommand {
         final var properties = area.properties;
         src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.header", area.name), false);
         for (var prop : properties.entrySet()) {
-            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.entry", prop.getKey(), prop.getValue()), false);
+            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.entry", prop.getKey(), prop.getValue().toString()), false);
         }
         src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.footer", properties.size()), false);
         return Command.SINGLE_SUCCESS;
