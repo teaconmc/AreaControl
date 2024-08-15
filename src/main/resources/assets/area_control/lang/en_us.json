@@ -5,6 +5,7 @@
   "area_control.screen.no_properties": "No Properties",
   "area_control.screen.no_properties.hints": "Maybe check parent claim?",
   "area_control.screen.ok": "OK",
+  "area_control.screen.confiscated_items.title": "Confiscated Items Safe",
 
   "area_control.admin.welcome": "AreaControl: Welcome back, administrator %s",
 

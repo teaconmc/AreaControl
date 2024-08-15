@@ -5,6 +5,7 @@
   "area_control.screen.no_properties": "没有属性",
   "area_control.screen.no_properties.hints": "也许你需要检查一下上级领地？",
   "area_control.screen.ok": "确认",
+  "area_control.screen.confiscated_items.title": "没收物品保险箱",
 
   "area_control.admin.welcome": "AreaControl：欢迎回来，管理员 %s",
 
