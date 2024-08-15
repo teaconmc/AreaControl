@@ -10,6 +10,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
@@ -42,6 +44,7 @@ public final class AreaControl {
     public AreaControl(ModContainer container, IEventBus modBus) {
         AreaRepositoryManager.init();
         container.registerConfig(ModConfig.Type.SERVER, AreaControlConfig.setup(new ModConfigSpec.Builder()));
+        container.registerExtensionPoint(IConfigScreenFactory.class, (mc, parent) -> new ConfigurationScreen(container, parent));
         singlePlayerServerChecker = switch (FMLEnvironment.dist) {
             case CLIENT -> new ClientSinglePlayerServerChecker();
             case DEDICATED_SERVER -> new ServerSinglePlayerServerChecker();
