@@ -83,14 +83,14 @@ public class AreaEntitySelectorCheckerTest {
         allAreas.add(i = createArea("I", "minecraft:overworld", 41, 41, 41, 43, 43, 43));
         allAreas.add(j = createArea("J", "minecraft:overworld", 42, 42, 42, 43, 43, 43));
 
-        j.belongingArea = i.uid;
-        g.belongingArea = f.uid;
-        h.belongingArea = f.uid;
-        f.belongingArea = e.uid;
-        e.belongingArea = a.uid;
-        d.belongingArea = c.uid;
-        c.belongingArea = a.uid;
-        b.belongingArea = a.uid;
+        j.setBelongingArea(i.uid);
+        g.setBelongingArea(f.uid);
+        h.setBelongingArea(f.uid);
+        f.setBelongingArea(e.uid);
+        e.setBelongingArea(a.uid);
+        d.setBelongingArea(c.uid);
+        c.setBelongingArea(a.uid);
+        b.setBelongingArea(a.uid);
 
         f.properties.put(AreaProperties.ALLOW_ENTITY_USE_SELECTOR_FROM_CHILD, true);
         f.properties.put(AreaProperties.ALLOW_CB_USE_SELECTOR_FROM_CHILD, true);

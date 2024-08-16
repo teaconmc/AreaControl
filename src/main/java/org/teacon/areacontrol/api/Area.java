@@ -1,5 +1,7 @@
 package org.teacon.areacontrol.api;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,11 +26,34 @@ public final class Area {
     public Set<String> builderGroups = new HashSet<>();
 
     public int minX, minY, minZ, maxX, maxY, maxZ;
-    public UUID belongingArea = null;
+    private UUID belongingArea = null;
+    public final Map<String, Object> properties = new ConcurrentHashMap<>();
+
     public transient Set<UUID> subAreas = new HashSet<>();
     public transient BigInteger volume = BigInteger.ZERO;
+    private transient Area parentAreaRef;
+    private transient boolean parentAreaResolved = false;
 
-    public final Map<String, Object> properties = new ConcurrentHashMap<>();
+    public @Nullable Area resolveParent() {
+        if (!this.parentAreaResolved) {
+            this.parentAreaRef = AreaControlAPI.areaLookup.findBy(this.belongingArea);
+            this.parentAreaResolved = true;
+        }
+        return this.parentAreaRef;
+    }
+
+    public void clearCache() {
+        this.parentAreaResolved = false;
+    }
+
+    public @Nullable UUID getBelongingArea() {
+        return this.belongingArea;
+    }
+
+    public void setBelongingArea(UUID belongingArea) {
+        this.belongingArea = belongingArea;
+        this.clearCache();
+    }
 
     public static final class Summary {
         public final UUID uid;
@@ -37,7 +62,7 @@ public final class Area {
         public final boolean enclosed;
 
         public Summary(Area area) {
-            this(area.uid, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ, area.belongingArea != null);
+            this(area.uid, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ, area.getBelongingArea() != null);
         }
 
         public Summary(UUID uid, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, boolean enclosed) {

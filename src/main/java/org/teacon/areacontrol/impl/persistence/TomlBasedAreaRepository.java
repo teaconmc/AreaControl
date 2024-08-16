@@ -143,7 +143,7 @@ public class TomlBasedAreaRepository implements AreaRepository {
             this.builderGroups = new ArrayList<>(realArea.builderGroups);
             this.min = new BlockPos(realArea.minX, realArea.minY, realArea.minZ);
             this.max = new BlockPos(realArea.maxX, realArea.maxY, realArea.maxZ);
-            this.belongingArea = realArea.belongingArea;
+            this.belongingArea = realArea.getBelongingArea();
             this.properties = realArea.properties;
         }
 
@@ -162,7 +162,7 @@ public class TomlBasedAreaRepository implements AreaRepository {
             area.maxX = Math.max(this.min.getX(), this.max.getX());
             area.maxY = Math.max(this.min.getY(), this.max.getY());
             area.maxZ = Math.max(this.min.getZ(), this.max.getZ());
-            area.belongingArea = this.belongingArea;
+            area.setBelongingArea(this.belongingArea);
             area.properties.clear();
             area.properties.putAll(this.properties);
             return area;

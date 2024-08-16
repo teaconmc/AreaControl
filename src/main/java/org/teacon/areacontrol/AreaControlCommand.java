@@ -363,8 +363,8 @@ public final class AreaControlCommand {
                             .withColor(ChatFormatting.DARK_AQUA));
             final var ownerName = Util.getOwnerName(area, server.getProfileCache(), server.getPlayerList());
             src.sendSuccess(() -> Component.translatable("area_control.claim.current", areaName, ownerName, areaUUID), true);
-            if (area.belongingArea != null) {
-                final var enclosingArea = AreaManager.INSTANCE.findBy(area.belongingArea);
+            Area enclosingArea = area.resolveParent();
+            if (enclosingArea!= null) {
                 final var enclosingAreaOwnerName = Util.getOwnerName(enclosingArea, server.getProfileCache(), server.getPlayerList());
                 src.sendSuccess(() -> Component.translatable("area_control.claim.current.enclosed", enclosingArea.name, enclosingAreaOwnerName), true);
             }

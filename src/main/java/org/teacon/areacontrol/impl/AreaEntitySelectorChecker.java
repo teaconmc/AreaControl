@@ -78,7 +78,7 @@ public class AreaEntitySelectorChecker {
         //    /tp command.
         if (currentlyChecking != null) {
             do {
-                currentlyChecking = AreaManager.INSTANCE.findBy(currentlyChecking.belongingArea);
+                currentlyChecking = currentlyChecking.resolveParent();
                 var result = AreaProperties.getBoolOptional(currentlyChecking, selectFromChild);
                 if (!result.orElseGet(selectFromChildFallBack)) {
                     return false;
@@ -96,7 +96,7 @@ public class AreaEntitySelectorChecker {
                 if (!result.orElseGet(selectFromParentFallBack)) {
                     return false;
                 }
-                reverseChecking = AreaManager.INSTANCE.findBy(reverseChecking.belongingArea);
+                reverseChecking = reverseChecking.resolveParent();
             } while (reverseChecking != currentlyChecking);
         }
         // If the program hits here, it means that we have successfully conducted all checks.

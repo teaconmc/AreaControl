@@ -95,8 +95,8 @@ public final class AreaManager {
             }
             var danglingAreas = new ArrayList<Area>();
             for (Area a : this.areasById.values()) {
-                if (a.belongingArea != null) {
-                    Area parent = this.areasById.get(a.belongingArea);
+                if (a.getBelongingArea() != null) {
+                    Area parent = this.areasById.get(a.getBelongingArea());
                     if (parent != null) {
                         parent.subAreas.add(a.uid);
                     } else {
@@ -130,7 +130,7 @@ public final class AreaManager {
                         }
                     }
                 }
-                dangling.belongingArea = theParent;
+                dangling.setBelongingArea(theParent);
             }
         } finally {
             writeLock.unlock();
@@ -200,7 +200,7 @@ public final class AreaManager {
                     if (theEnclosingArea != null) {
                         area.properties.putAll(theEnclosingArea.properties);
                         // Copy default settings over
-                        area.belongingArea = theEnclosingArea.uid;
+                        area.setBelongingArea(theEnclosingArea.uid);
                         theEnclosingArea.subAreas.add(area.uid);
                     }
                     var dimId = worldIndex.location();
@@ -221,18 +221,18 @@ public final class AreaManager {
             this.areasById.remove(area.uid, area);
             this.perWorldAreaCache.values().forEach(m -> m.values().forEach(l -> l.removeIf(uid -> uid == area.uid)));
             this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet()).remove(area.uid);
-            if (area.belongingArea != null) {
-                Area enclosing = this.areasById.get(area.belongingArea);
+            Area enclosing = area.resolveParent();
+            if (enclosing != null) {
                 enclosing.subAreas.remove(area.uid);
             }
             for (var subAreaUid : area.subAreas) {
                 var subArea = this.findBy(subAreaUid);
-                subArea.belongingArea = area.belongingArea;
+                subArea.setBelongingArea(area.getBelongingArea());
             }
             try {
                 this.repository.remove(area);
             } catch (Exception e) {
-                LOGGER.error("Failed to remove data for area " + area.uid, e);
+                LOGGER.error("Failed to remove data for area {}", area.uid, e);
             }
         } finally {
             writeLock.unlock();

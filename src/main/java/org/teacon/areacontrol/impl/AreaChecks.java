@@ -40,7 +40,7 @@ public class AreaChecks {
                 return true;
             }
             // 2. If area has parent area, check if it owns parent
-            var parent = AreaManager.INSTANCE.findBy(area.belongingArea);
+            var parent = area.resolveParent();
             if (parent != null && (parent.owners.contains(uid) || parent.ownerGroups.contains(group))) {
                 return true;
             }
@@ -63,7 +63,7 @@ public class AreaChecks {
             }
             // 2. If area has parent area, check if it owns parent
             if (includeParent) {
-                var parent = AreaManager.INSTANCE.findBy(area.belongingArea);
+                var parent = area.resolveParent();
                 if (parent != null && (parent.owners.contains(uid) || parent.builders.contains(uid) || parent.ownerGroups.contains(group) || parent.builderGroups.contains(group))) {
                     return true;
                 }

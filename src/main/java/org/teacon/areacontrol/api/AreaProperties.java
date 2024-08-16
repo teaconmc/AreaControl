@@ -62,12 +62,8 @@ public final class AreaProperties {
         Object o = area.properties.get(key);
         if (o == null || "null".equals(o)) {
             if (recursive) {
-                if (area.belongingArea != null) {
-                    var parent = AreaControlAPI.areaLookup.findBy(area.belongingArea);
-                    return getBool(parent, key, true);
-                } else {
-                    return false;
-                }
+                var parent = area.resolveParent();
+                return getBool(parent, key, true);
             } else {
                 return false;
             }
@@ -88,12 +84,8 @@ public final class AreaProperties {
         Object o = area.properties.get(key);
         if (o == null || "null".equals(o)) {
             if (recursive) {
-                if (area.belongingArea != null) {
-                    var parent = AreaControlAPI.areaLookup.findBy(area.belongingArea);
-                    return getBoolOptional(parent, key, true);
-                } else {
-                    return Optional.empty();
-                }
+                var parent = area.resolveParent();
+                return getBoolOptional(parent, key, true);
             } else {
                 return Optional.empty();
             }
