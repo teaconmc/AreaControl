@@ -79,6 +79,20 @@ public class JsonBasedAreaRepositoryTest {
 
         Assertions.assertEquals(UUID.fromString("f6b2a791-d2cd-4992-b4d6-4b0ecd242f92"), theArea.uid);
         Assertions.assertEquals(UUID.fromString("f67749a2-f85c-4891-8cb2-b61af46c7ec2"), theArea.getBelongingArea());
+        Assertions.assertEquals("Test Area", theArea.name);
+        Assertions.assertEquals("area_control:test", theArea.dimension);
+        Assertions.assertTrue(theArea.owners.isEmpty());
+        Assertions.assertFalse(theArea.ownerGroups.isEmpty());
+        Assertions.assertEquals(-1, theArea.minX);
+        Assertions.assertEquals(-1, theArea.minY);
+        Assertions.assertEquals(-1, theArea.minZ);
+        Assertions.assertEquals(1, theArea.maxX);
+        Assertions.assertEquals(1, theArea.maxY);
+        Assertions.assertEquals(1, theArea.maxZ);
+
+        var props = theArea.properties;
+        Assertions.assertFalse(props.isEmpty());
+        Assertions.assertEquals("bar", props.get("foo"));
     }
 
     @Test
