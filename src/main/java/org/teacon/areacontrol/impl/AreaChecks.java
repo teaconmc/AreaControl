@@ -12,6 +12,7 @@ import net.neoforged.neoforge.server.permission.PermissionAPI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.teacon.areacontrol.AreaControl;
+import org.teacon.areacontrol.AreaControlConfig;
 import org.teacon.areacontrol.AreaControlPermissions;
 import org.teacon.areacontrol.AreaControlPlayerTracker;
 import org.teacon.areacontrol.AreaManager;
@@ -103,8 +104,7 @@ public class AreaChecks {
                 }
             }
         }
-        // FIXME Use global fallback instead
-        return true;
+        return AreaControlConfig.allowPossessItem.get();
     }
 
     /**
