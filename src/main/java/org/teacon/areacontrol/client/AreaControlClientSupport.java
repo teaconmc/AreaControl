@@ -15,11 +15,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import org.slf4j.Logger;
@@ -33,15 +34,16 @@ import org.teacon.areacontrol.network.ACPingServer;
 import java.util.Collections;
 import java.util.List;
 
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, modid = "area_control", value = Dist.CLIENT)
+@Mod(value = "area_control", dist = Dist.CLIENT)
 public final class AreaControlClientSupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
     private static final Marker MARKER = MarkerFactory.getMarker("Client");
 
-    @SubscribeEvent
-    public static void clientSetup(FMLClientSetupEvent event) {
+    public AreaControlClientSupport(ModContainer container) {
         LOGGER.info(MARKER, "AreaControl is installed on client; enabling enhanced client support");
+
+        container.registerExtensionPoint(IConfigScreenFactory.class, (mc, parent) -> new ConfigurationScreen(container, parent));
 
         NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ClientPlayerNetworkEvent.LoggingIn.class,
                 AreaControlClientSupport::afterLogin);
