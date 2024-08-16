@@ -1,0 +1,103 @@
+package org.teacon.areacontrol.test.impl.persistence;
+
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import net.minecraft.core.BlockPos;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.teacon.areacontrol.Util;
+import org.teacon.areacontrol.api.Area;
+import org.teacon.areacontrol.impl.persistence.JsonBasedAreaRepository;
+
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
+public class JsonBasedAreaRepositoryTest {
+
+    private final FileSystem fsRoot = Jimfs.newFileSystem(Configuration.unix());
+
+    @BeforeEach
+    public void setup() {
+        Path claimStoreRoot = this.fsRoot.getPath("/area-control");
+        try {
+            Files.createDirectories(claimStoreRoot);
+        } catch (IOException e) {
+            Assertions.fail(e);
+        }
+    }
+
+    @Test
+    public void testLoad() {
+        Path claimStoreRoot = this.fsRoot.getPath("/area-control");
+        String claimData = """
+                {
+                    "uid": "f6b2a791-d2cd-4992-b4d6-4b0ecd242f92",
+                    "name": "Test Area",
+                    "dimension": "area_control:test",
+                    "owners": [],
+                    "ownerGroups": [ "test_group" ],
+                    "builders": [],
+                    "builderGroups": [],
+                    "minX": -1,
+                    "minY": -1,
+                    "minZ": -1,
+                    "maxX": 1,
+                    "maxY": 1,
+                    "maxZ": 1,
+                    "belongingArea": "f67749a2-f85c-4891-8cb2-b61af46c7ec2",
+                    "properties": {
+                        "foo": "bar"
+                    }
+                }
+                """;
+        try {
+            Files.writeString(claimStoreRoot.resolve("claim-f6b2a791-d2cd-4992-b4d6-4b0ecd242f92.json"), claimData);
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+            Assertions.fail(e);
+        }
+
+        JsonBasedAreaRepository repo = new JsonBasedAreaRepository(claimStoreRoot);
+        Collection<Area> areas = null;
+        try {
+            areas = repo.load();
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            Assertions.fail(e);
+        }
+
+        Assertions.assertNotNull(areas);
+        Assertions.assertFalse(areas.isEmpty());
+        Assertions.assertEquals(1, areas.size());
+        Area theArea = areas.iterator().next();
+
+        Assertions.assertEquals(UUID.fromString("f6b2a791-d2cd-4992-b4d6-4b0ecd242f92"), theArea.uid);
+        Assertions.assertEquals(UUID.fromString("f67749a2-f85c-4891-8cb2-b61af46c7ec2"), theArea.getBelongingArea());
+    }
+
+    @Test
+    public void testSave() {
+        Path claimStoreRoot = this.fsRoot.getPath("/area-control");
+        JsonBasedAreaRepository repo = new JsonBasedAreaRepository(claimStoreRoot);
+
+        Area area = Util.createArea(new BlockPos(-1, -1, -1), new BlockPos(1, 1,1 ));
+        area.uid = UUID.fromString("5d9e9b0d-f438-4e5a-826e-7d42ab76385a");
+
+        try {
+            repo.save(List.of(area));
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            Assertions.fail(e);
+        }
+
+        String claimFileName = "claim-5d9e9b0d-f438-4e5a-826e-7d42ab76385a.json";
+
+        Assertions.assertTrue(Files.exists(claimStoreRoot.resolve(claimFileName)));
+    }
+}
