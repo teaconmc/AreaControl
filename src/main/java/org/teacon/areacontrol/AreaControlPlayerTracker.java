@@ -327,7 +327,7 @@ public enum AreaControlPlayerTracker {
             // This can happen if player disconnected before its first tick.
             if (previouslyExempted != null) {
                 for (var areaId : previouslyExempted) {
-                    var areaName = AreaManager.INSTANCE.findBy(areaId);
+                    var areaName = AreaManager.INSTANCE.findBy(areaId).name;
                     p.displayClientMessage(Component.translatable("area_control.bypass.local.area.off", areaName), false);
                     p.displayClientMessage(HOW_TO_TURN_ON, false);
                 }
