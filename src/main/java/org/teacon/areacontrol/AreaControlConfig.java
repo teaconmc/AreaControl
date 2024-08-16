@@ -42,29 +42,53 @@ public class AreaControlConfig {
                 .translation("area_control.config.group_provider")
                 .define("groupProvider", "vanilla");
 
-        configSpec.push("Default properties");
+        configSpec
+                .translation("area_control.config.global_default_properties")
+                .push("Default properties");
         allowBreakBlock = configSpec.comment("Default value for area.allow_break_block")
+                .translation("area_control.config.global_default_properties.break_block")
                 .define("allowBreakBlock", false);
         allowPlaceBlock = configSpec.comment("Default value for area.allow_place_block")
+                .translation("area_control.config.global_default_properties.place_block")
                 .define("allowPlaceBlock", false);
         allowActivateBlock = configSpec.comment("Default value for area.allow_activate_block")
+                .translation("area_control.config.global_default_properties.activate_block")
                 .define("allowActivateBlock", true);
         allowClickBlock = configSpec.comment("Default value for area.allow_click_block")
+                .translation("area_control.config.global_default_properties.click_block")
                 .define("allowClickBlock", true);
-        allowPossessItem = configSpec.define("allowPossessItem", true);
-        allowUseItem = configSpec.define("allowUseItem", true);
-        allowSpawnEntity = configSpec.define("allowSpawnEntity", true);
-        allowRideEntity = configSpec.define("allowRideEntity", true);
-        allowInteractEntity = configSpec.define("allowInteractEntity", true);
-        allowPvP = configSpec.define("allowPvP", false);
-        allowPvE = configSpec.define("allowPvE", false);
-        allowEntitySelectingFromParent = configSpec.comment("Default value for area.allow_select_from_parent_area_by_entity")
+        allowPossessItem = configSpec
+                .translation("area_control.config.global_default_properties.possess")
+                .define("allowPossessItem", true);
+        allowUseItem = configSpec
+                .translation("area_control.config.global_default_properties.use_item")
+                .define("allowUseItem", true);
+        allowSpawnEntity = configSpec
+                .translation("area_control.config.global_default_properties.spawn")
+                .define("allowSpawnEntity", true);
+        allowRideEntity = configSpec
+                .translation("area_control.config.global_default_properties.ride")
+                .define("allowRideEntity", true);
+        allowInteractEntity = configSpec
+                .translation("area_control.config.global_default_properties.interact")
+                .define("allowInteractEntity", true);
+        allowPvP = configSpec
+                .translation("area_control.config.global_default_properties.pvp")
+                .define("allowPvP", false);
+        allowPvE = configSpec
+                .translation("area_control.config.global_default_properties.attack")
+                .define("allowPvE", false);
+        allowEntitySelectingFromParent = configSpec.comment("Default value for select_from_parent_area_by_entity")
+                .translation("area_control.config.global_default_properties.select_from_parent_area_by_entity")
                 .define("allowEntityUseEntitySelectorToSelectEntitiesFromParentArea", true);
-        allowEntitySelectingFromChild = configSpec.comment("Default value for area.allow_select_from_child_area_by_entity")
+        allowEntitySelectingFromChild = configSpec.comment("Default value for select_from_child_area_by_entity")
+                .translation("area_control.config.global_default_properties.select_from_child_area_by_entity")
                 .define("allowEntityUseEntitySelectorToSelectEntitiesFromChildArea", true);
-        allowCBSelectingFromParent = configSpec.comment("Default value for area.allow_select_from_parent_area_by_command_block")
+        allowCBSelectingFromParent = configSpec.comment("Default value for select_from_parent_area_by_command_block")
+                .translation("area_control.config.global_default_properties.select_from_parent_area_by_command_block")
                 .define("allowCommandBlockUseEntitySelectorToSelectEntitiesFromParentArea", true);
-        allowCBSelectingFromChild = configSpec.comment("Default value for area.allow_select_from_child_area_by_command_block")
+        allowCBSelectingFromChild = configSpec.comment("Default value for select_from_child_area_by_command_block")
+                .translation("area_control.config.global_default_properties.select_from_child_area_by_command_block")
                 .define("allowCommandBlockUseEntitySelectorToSelectEntitiesFromChildArea", true);
         configSpec.pop();
         return configSpec.build();
