@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public class AreaPropertyArgument implements ArgumentType<String> {
 
-    private static final List<String> EXAMPLES = List.of("area.allow_break", "area.allow_use_item");
+    private static final List<String> EXAMPLES = List.of(AreaProperties.ALLOW_BREAK, AreaProperties.ALLOW_USE_ITEM);
     // TODO Remove these hardcode
     private static final List<String> SUGGEST_BLOCKS = List.of(
             AreaProperties.ALLOW_BREAK, AreaProperties.ALLOW_PLACE_BLOCK, AreaProperties.ALLOW_ACTIVATE, AreaProperties.ALLOW_CLICK);

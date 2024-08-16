@@ -20,29 +20,29 @@ public final class AreaProperties {
      */
     public static final Set<String> SYNCED_PROPERTIES = new HashSet<>();
 
-    public static final String SHOW_WELCOME = register("area.display_welcome_message");
-    public static final String ALLOW_SPAWN = register("area.allow_spawn");
-    public static final String ALLOW_PVP = register("area.allow_pvp");
-    public static final String ALLOW_PVE = register("area.allow_attack");
-    public static final String ALLOW_INTERACT_ENTITY = register("area.allow_interact_entity");
-    public static final String ALLOW_BREAK = register("area.allow_break_block");
-    public static final String ALLOW_CLICK = register("area.allow_click_block");
-    public static final String ALLOW_ACTIVATE = register("area.allow_activate_block");
-    public static final String ALLOW_USE_ITEM = register("area.allow_use_item");
-    public static final String ALLOW_PLACE_BLOCK = register("area.allow_place_block");
-    public static final String ALLOW_TRAMPLE_FARMLAND = register("area.allow_trample_farmland");
-    public static final String ALLOW_EXPLOSION = register("area.allow_explosion");
-    public static final String ALLOW_EXPLOSION_AFFECT_BLOCKS = register("area.allow_explosion_affect_blocks");
-    public static final String ALLOW_EXPLOSION_AFFECT_ENTITIES = register("area.allow_explosion_affect_entities");
-    public static final String ALLOW_FIRE_SPREAD = register("area.allow_fire_spread");
-    public static final String ALLOW_POSSESS = register("area.allow_possess");
-    public static final String ALLOW_RIDE = register("area.allow_ride");
+    public static final String SHOW_WELCOME = register("display_welcome_message");
+    public static final String ALLOW_SPAWN = register("spawn");
+    public static final String ALLOW_PVP = register("pvp");
+    public static final String ALLOW_PVE = register("attack");
+    public static final String ALLOW_INTERACT_ENTITY = register("interact_entity");
+    public static final String ALLOW_BREAK = register("break_block");
+    public static final String ALLOW_CLICK = register("click_block");
+    public static final String ALLOW_ACTIVATE = register("activate_block");
+    public static final String ALLOW_USE_ITEM = register("use_item");
+    public static final String ALLOW_PLACE_BLOCK = register("place_block");
+    public static final String ALLOW_TRAMPLE_FARMLAND = register("trample_farmland");
+    public static final String ALLOW_EXPLOSION = register("explosion");
+    public static final String ALLOW_EXPLOSION_AFFECT_BLOCKS = register("explosion_affect_blocks");
+    public static final String ALLOW_EXPLOSION_AFFECT_ENTITIES = register("explosion_affect_entities");
+    public static final String ALLOW_FIRE_SPREAD = register("fire_spread");
+    public static final String ALLOW_POSSESS = register("possess");
+    public static final String ALLOW_RIDE = register("ride");
 
-    public static final String ALLOW_ENTITY_USE_SELECTOR_FROM_CHILD = register("area.allow_select_from_child_area_by_entity");
-    public static final String ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT = register("area.allow_select_from_parent_area_by_entity");
+    public static final String ALLOW_ENTITY_USE_SELECTOR_FROM_CHILD = register("select_from_child_area_by_entity");
+    public static final String ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT = register("select_from_parent_area_by_entity");
 
-    public static final String ALLOW_CB_USE_SELECTOR_FROM_CHILD = register("area.allow_select_from_child_area_by_command_block");
-    public static final String ALLOW_CB_USE_SELECTOR_FROM_PARENT = register("area.allow_select_from_parent_area_by_command_block");
+    public static final String ALLOW_CB_USE_SELECTOR_FROM_CHILD = register("select_from_child_area_by_command_block");
+    public static final String ALLOW_CB_USE_SELECTOR_FROM_PARENT = register("select_from_parent_area_by_command_block");
 
     static String register(String property) {
         KNOWN_PROPERTIES.add(property);
