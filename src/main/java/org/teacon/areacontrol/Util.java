@@ -95,13 +95,9 @@ public final class Util {
     }
 
     public static Component getOwnerName(Area area, GameProfileCache profileCache, PlayerList onlinePlayers) {
-        if (area.owners.isEmpty()) {
-            return Component.literal("暂缺"); // FIXME Translatable
-        } else {
-            final UUID owner = area.owners.iterator().next();
-            var oneName = getPlayerDisplayName(owner, profileCache, onlinePlayers);
-            return area.owners.size() == 1 ? oneName : Component.translatable("area_control.claim.owner.multiple", oneName);
-        }
+        final UUID owner = area.owners.iterator().next();
+        var oneName = getPlayerDisplayName(owner, profileCache, onlinePlayers);
+        return area.owners.size() == 1 ? oneName : Component.translatable("area_control.claim.owner.multiple", oneName);
     }
 
     public static Component getPlayerDisplayName(UUID playerUid, GameProfileCache profileCache, PlayerList onlinePlayers) {
