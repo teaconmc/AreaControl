@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class Area {
 
-    public UUID uid = UUID.randomUUID();
+    public UUID uid;
 
     public String name = "Area " + uid.toString().substring(0, 8);
 

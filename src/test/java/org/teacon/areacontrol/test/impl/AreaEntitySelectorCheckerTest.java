@@ -30,6 +30,7 @@ import org.teacon.areacontrol.impl.AreaLookupImpl;
 import org.teacon.areacontrol.test.InMemoryAreaRepository;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
 public class AreaEntitySelectorCheckerTest {
@@ -201,6 +202,7 @@ public class AreaEntitySelectorCheckerTest {
 
     public static Area createArea(String name, String dim, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         var area = new Area();
+        area.uid = UUID.randomUUID();
         area.name = name;
         area.dimension = dim;
         area.minX = minX;

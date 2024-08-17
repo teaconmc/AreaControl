@@ -75,6 +75,7 @@ public final class Util {
 
     public static Area createArea(BlockPos start, BlockPos end) {
         final Area a = new Area();
+        a.uid = UUID.randomUUID();
         a.minX = Math.min(start.getX(), end.getX());
         a.minY = Math.min(start.getY(), end.getY());
         a.minZ = Math.min(start.getZ(), end.getZ());
