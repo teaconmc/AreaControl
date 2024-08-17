@@ -2,10 +2,16 @@ package org.teacon.areacontrol.test.impl.persistence;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.teacon.areacontrol.Util;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.impl.persistence.JsonBasedAreaRepository;
@@ -18,9 +24,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+@ExtendWith(MockitoExtension.class)
 public class JsonBasedAreaRepositoryTest {
 
     private final FileSystem fsRoot = Jimfs.newFileSystem(Configuration.unix());
+
+    @Mock
+    private ServerPlayer mockPlayer;
 
     @BeforeEach
     public void setup() {
@@ -30,6 +40,9 @@ public class JsonBasedAreaRepositoryTest {
         } catch (IOException e) {
             Assertions.fail(e);
         }
+
+        GameProfile dummyProfile = new GameProfile(UUID.randomUUID(), "Test Player Please Ignore");
+        Mockito.when(this.mockPlayer.getGameProfile()).thenReturn(dummyProfile);
     }
 
     @Test
@@ -100,7 +113,7 @@ public class JsonBasedAreaRepositoryTest {
         Path claimStoreRoot = this.fsRoot.getPath("/area-control");
         JsonBasedAreaRepository repo = new JsonBasedAreaRepository(claimStoreRoot);
 
-        Area area = Util.createArea(new BlockPos(-1, -1, -1), new BlockPos(1, 1,1 ));
+        Area area = Util.createArea(new BlockPos(-1, -1, -1), new BlockPos(1, 1,1 ), this.mockPlayer);
         area.uid = UUID.fromString("5d9e9b0d-f438-4e5a-826e-7d42ab76385a");
 
         try {

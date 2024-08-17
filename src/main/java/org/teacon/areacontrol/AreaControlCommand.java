@@ -224,7 +224,7 @@ public final class AreaControlCommand {
             src.sendFailure(Component.translatable("area_control.error.outside_selection"));
             return -1;
         }
-        final Area area = Util.createArea(chunkStart, chunkEnd);
+        final Area area = Util.createArea(chunkStart, chunkEnd, claimer);
         final var worldIndex = src.getLevel().dimension();
         final UUID claimerUUID = claimer.getGameProfile().getId();
         if (claimerUUID != null) {
@@ -294,7 +294,7 @@ public final class AreaControlCommand {
             src.sendFailure(Component.translatable("area_control.error.outside_selection"));
             return -1;
         }
-        final Area area = Util.createArea(chunkStart, chunkEnd);
+        final Area area = Util.createArea(chunkStart, chunkEnd, claimer);
         final var worldIndex = src.getLevel().dimension();
         final UUID claimerUUID = claimer.getGameProfile().getId();
         if (claimerUUID != null) {
@@ -320,7 +320,7 @@ public final class AreaControlCommand {
                 src.sendFailure(Component.translatable("area_control.error.outside_selection"));
                 return -1;
             }
-            final Area area = Util.createArea(recordPos.start(), recordPos.end());
+            final Area area = Util.createArea(recordPos.start(), recordPos.end(), claimer);
             final UUID claimerUUID = claimer.getGameProfile().getId();
             if (claimerUUID != null) {
                 area.owners.add(claimerUUID);

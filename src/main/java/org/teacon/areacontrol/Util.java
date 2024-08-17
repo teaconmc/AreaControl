@@ -73,9 +73,10 @@ public final class Util {
     }
 
 
-    public static Area createArea(BlockPos start, BlockPos end) {
+    public static Area createArea(BlockPos start, BlockPos end, Player claimer) {
         final Area a = new Area();
         a.uid = UUID.randomUUID();
+        a.name = claimer.getGameProfile().getName() + "'s land";
         a.minX = Math.min(start.getX(), end.getX());
         a.minY = Math.min(start.getY(), end.getY());
         a.minZ = Math.min(start.getZ(), end.getZ());
