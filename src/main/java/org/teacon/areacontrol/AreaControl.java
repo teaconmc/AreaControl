@@ -46,7 +46,7 @@ public final class AreaControl {
             case CLIENT -> new ClientSinglePlayerServerChecker();
             case DEDICATED_SERVER -> new ServerSinglePlayerServerChecker();
         };
-        AreaControlPreSetup.ARG_TYPES.register(modBus); // TODO Check if it breaks vanilla connection?
+        AreaControlPreSetup.ARG_TYPES.register(modBus);
     }
 
     @SubscribeEvent
