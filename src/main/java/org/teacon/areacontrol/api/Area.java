@@ -16,7 +16,7 @@ public final class Area {
 
     public UUID uid;
 
-    public String name = "Area " + uid.toString().substring(0, 8);
+    public String name = "无主之地"; // Chinese for "Terra Nullius", or "Nobody's land"
 
     public String dimension = "minecraft:overworld";
 
