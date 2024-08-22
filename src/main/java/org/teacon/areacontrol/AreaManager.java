@@ -13,6 +13,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -519,5 +520,14 @@ public final class AreaManager {
         } finally {
             readLock.unlock();
         }
+    }
+
+    @ApiStatus.Internal
+    public Collection<Area> findAllIn(String worldId) {
+        ResourceKey<Level> realWorldId = this.levelKeyCache.get(worldId);
+        return this.areasByWorld.getOrDefault(realWorldId, Set.of())
+                .stream()
+                .map(this::findBy)
+                .collect(Collectors.toList());
     }
 }

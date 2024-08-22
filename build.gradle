@@ -43,6 +43,10 @@ group = 'org.teacon'
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        name = 'BlueMap'
+        url = 'https://repo.bluecolored.de/releases'
+    }
 }
 
 base {
@@ -109,6 +113,7 @@ dependencies {
     // Yes you see this right, LuckPerms.
     // This is for our custom ContextCalculator support.
     compileOnly 'net.luckperms:api:5.4'
+    compileOnly 'de.bluecolored.bluemap:BlueMapAPI:2.7.2'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -156,30 +161,15 @@ publishing {
             pom {
                 name = 'AreaControl for Minecraft 1.21'
                 description = 'Comprehensive (eventually) plot management mod'
-                url = 'https://github.com/teaconmc/AreaControl'
-                licenses {
-                    license {
-                        name = 'BSD-3-Clause'
-                        url = 'https://github.com/teaconmc/AreaControl/blob/1.20-forge/LICENSE'
-                    }
-                }
-                developers {
-                    developer {
-                        id = '3TUSK'
-                        name = '3TUSK'
-                    }
-                    developer {
-                        id = 'BurningTNT'
-                    }
-                }
+                url = 'https://github.com/teaconmc/XKDeco'
                 issueManagement {
                     system = 'GitHub Issues'
-                    url = 'https://github.com/teaconmc/AreaControl/issues'
+                    url = 'https://github.com/teaconmc/XKDeco/issues'
                 }
                 scm {
-                    url = 'https://github.com/teaconmc/AreaControl'
-                    connection = 'scm:git:git://github.com/teaconmc/AreaControl.git'
-                    developerConnection = 'scm:git:git@github.com:teaconmc/AreaControl.git'
+                    url = 'https://github.com/teaconmc/XKDeco'
+                    connection = 'scm:git:git://github.com/teaconmc/XKDeco.git'
+                    developerConnection = 'scm:git:git@github.com:teaconmc/XKDeco.git'
                 }
             }
         }

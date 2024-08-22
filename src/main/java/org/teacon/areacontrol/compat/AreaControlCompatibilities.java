@@ -6,6 +6,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.teacon.areacontrol.compat.bluemap.BlueMapCompat;
 import org.teacon.areacontrol.compat.luckperm.LuckPermsCompat;
 
 @EventBusSubscriber(modid = "area_control")
@@ -21,6 +22,11 @@ public class AreaControlCompatibilities {
             LuckPermsCompat.init();
         } else {
             LOGGER.info("LuckPerms doesn't seem to be present, skip initializing LuckPerm compatibilities.");
+        }
+        if (ModList.get().isLoaded("bluemap")) {
+            BlueMapCompat.init();
+        } else {
+            LOGGER.info("BlueMap doesn't seem to be present, skip initializing BlueMap compatibilities.");
         }
     }
 }
