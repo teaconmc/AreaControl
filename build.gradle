@@ -115,10 +115,10 @@ dependencies {
     compileOnly 'net.luckperms:api:5.4'
     compileOnly 'de.bluecolored.bluemap:BlueMapAPI:2.7.2'
 
-    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation platform('org.junit:junit-bom:5.10.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.mockito:mockito-core:5.4.0'
-    testImplementation 'org.mockito:mockito-junit-jupiter:5.4.0'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.12.0'
     testImplementation 'com.google.jimfs:jimfs:1.3.0'
 }
 
