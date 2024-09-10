@@ -40,9 +40,6 @@ public class JsonBasedAreaRepositoryTest {
         } catch (IOException e) {
             Assertions.fail(e);
         }
-
-        GameProfile dummyProfile = new GameProfile(UUID.randomUUID(), "Test Player Please Ignore");
-        Mockito.when(this.mockPlayer.getGameProfile()).thenReturn(dummyProfile);
     }
 
     @Test
@@ -110,6 +107,9 @@ public class JsonBasedAreaRepositoryTest {
 
     @Test
     public void testSave() {
+        GameProfile dummyProfile = new GameProfile(UUID.randomUUID(), "Test Player Please Ignore");
+        Mockito.when(this.mockPlayer.getGameProfile()).thenReturn(dummyProfile);
+
         Path claimStoreRoot = this.fsRoot.getPath("/area-control");
         JsonBasedAreaRepository repo = new JsonBasedAreaRepository(claimStoreRoot);
 
