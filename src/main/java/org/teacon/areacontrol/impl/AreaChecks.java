@@ -1,6 +1,7 @@
 package org.teacon.areacontrol.impl;
 
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,7 +16,6 @@ import org.teacon.areacontrol.AreaControl;
 import org.teacon.areacontrol.AreaControlConfig;
 import org.teacon.areacontrol.AreaControlPermissions;
 import org.teacon.areacontrol.AreaControlPlayerTracker;
-import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaControlAPI;
 import org.teacon.areacontrol.api.AreaProperties;
@@ -145,6 +145,16 @@ public class AreaChecks {
         } else {
             return AreaProperties.getBool(area, prop);
         }
+    }
+
+    public static void sendNotificationTo(@NotNull Player player, String translationKey, Object... args) {
+        if (player instanceof ServerPlayer sp) {
+            if (!sp.connection.getConnectionType().isNeoForge()) {
+                String clientLangType = sp.getLanguage();
+                // TODO
+            }
+        }
+        player.displayClientMessage(Component.translatable(translationKey, args), true);
     }
 
 }
