@@ -96,7 +96,7 @@ public enum AreaControlPlayerTracker {
                     INSTANCE.playerLocation.remove(playerId);
                 } else {
                     INSTANCE.playerLocation.put(playerId, currentArea.uid);
-                    if (AreaProperties.getBool(currentArea, "area.display_welcome_message")) {
+                    if (AreaProperties.getBoolOptional(currentArea, AreaProperties.SHOW_WELCOME).orElse(Boolean.FALSE)) {
                         player.displayClientMessage(Component.translatable("area_control.claim.welcome", currentArea.name), true);
                     }
                 }
