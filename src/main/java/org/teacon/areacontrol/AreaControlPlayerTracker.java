@@ -24,6 +24,7 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
+import org.teacon.areacontrol.compat.curios.CuriosCapability;
 import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.impl.AreaMath;
 import org.teacon.areacontrol.network.ACNetworking;
@@ -107,6 +108,10 @@ public enum AreaControlPlayerTracker {
             AreaChecks.checkInv(mainInv.items, currentArea, player);
             AreaChecks.checkInv(mainInv.armor, currentArea, player);
             AreaChecks.checkInv(mainInv.offhand, currentArea, player);
+            var extraInv = player.getCapability(CuriosCapability.CURIO_INV);
+            if (extraInv != null) {
+                AreaChecks.checkInv(extraInv, currentArea, player);
+            }
             // Seize vehicles if disallowed
             var riding = player.getVehicle();
             if (riding != null && !AreaChecks.checkPropFor(currentArea, player, AreaProperties.ALLOW_RIDE, BuiltInRegistries.ENTITY_TYPE.getKey(riding.getType()), AreaControlConfig.allowRideEntity)) {

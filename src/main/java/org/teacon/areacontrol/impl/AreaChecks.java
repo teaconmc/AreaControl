@@ -1,7 +1,7 @@
 package org.teacon.areacontrol.impl;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.locale.Language;
+
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -9,6 +9,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.server.permission.PermissionAPI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,6 +85,23 @@ public class AreaChecks {
             var item = inv.get(i);
             if (!item.isEmpty() && !checkPossess(currentArea, item.getItem())) {
                 ItemStack seized = inv.set(i, ItemStack.EMPTY);
+                seizedInv.add(seized);
+                player.displayClientMessage(Component.translatable("area_control.notice.possess_disabled_item", item.getHoverName()), true);
+            }
+        }
+    }
+
+    public static void checkInv(IItemHandler inv, Area currentArea, Player player) {
+        // If bypass mode is on, then this check can be skipped.
+        if (AreaControlPlayerTracker.INSTANCE.hasBypassModeOnForArea(player, currentArea)) {
+            return;
+        }
+        ConfiscationInv seizedInv = player.getData(AreaControlBorderControl.CONFISCATION_INV);
+        var invSize = inv.getSlots();
+        for (int i = 0; i < invSize; i++) {
+            var item = inv.getStackInSlot(i);
+            if (!item.isEmpty() && !checkPossess(currentArea, item.getItem())) {
+                ItemStack seized = inv.extractItem(i, Integer.MAX_VALUE, false);
                 seizedInv.add(seized);
                 player.displayClientMessage(Component.translatable("area_control.notice.possess_disabled_item", item.getHoverName()), true);
             }
