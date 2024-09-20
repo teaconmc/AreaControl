@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.teacon.areacontrol.impl.AreaEntitySelectorChecker;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(EntitySelector.class)
@@ -20,14 +21,12 @@ public abstract class EntitySelectorMixin {
      */
     @ModifyReturnValue(method = "findEntities", at = @At("RETURN"))
     private List<? extends Entity> checkArea(List<? extends Entity> original, CommandSourceStack sourceStack) {
-        var itr = original.iterator();
-        int removedDueToACtrl = 0;
-        while (itr.hasNext()) {
-            var e = itr.next();
-            if (!e.getType().isEnabled(sourceStack.enabledFeatures())) {
-                itr.remove();
-            } else if (!AreaEntitySelectorChecker.check(sourceStack, e)) {
-                itr.remove();
+        var removedDueToACtrl = 0;
+        var filtered = new ArrayList<Entity>();
+        for (var e : original) {
+            if (AreaEntitySelectorChecker.check(sourceStack, e)) {
+                filtered.add(e);
+            } else {
                 removedDueToACtrl++;
             }
         }
@@ -35,7 +34,6 @@ public abstract class EntitySelectorMixin {
             final String formattedCount = Integer.toString(removedDueToACtrl);
             sourceStack.sendSuccess(() -> Component.translatable("area_control.notice.selector_filtered", formattedCount), true);
         }
-
-        return original;
+        return List.copyOf(filtered);
     }
 }
