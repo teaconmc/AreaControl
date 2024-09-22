@@ -216,9 +216,10 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final var claimer = src.getPlayerOrException();
         final var pos = src.getPosition();
+        final var level = src.getLevel();
         final var chunkPos = new ChunkPos(SectionPos.blockToSectionCoord(pos.x), SectionPos.blockToSectionCoord(pos.z));
-        final var chunkStart = chunkPos.getBlockAt(0, Short.MIN_VALUE, 0);
-        final var chunkEnd = chunkPos.getBlockAt(15, Short.MAX_VALUE, 15);
+        final var chunkStart = chunkPos.getBlockAt(0, level.getMinBuildHeight(), 0);
+        final var chunkEnd = chunkPos.getBlockAt(15, level.getMaxBuildHeight(), 15);
         final var range = new AABB(Vec3.atCenterOf(chunkStart), Vec3.atCenterOf(chunkEnd));
         if (!range.expandTowards(0.5, 0.5, 0.5).contains(claimer.position())) {
             src.sendFailure(Component.translatable("area_control.error.outside_selection"));
@@ -243,50 +244,51 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final var claimer = src.getPlayerOrException();
         final var pos = src.getPosition();
+        final var level = src.getLevel();
         final var corner = new ChunkPos(SectionPos.blockToSectionCoord(pos.x), SectionPos.blockToSectionCoord(pos.z));
         int xOffset = context.getArgument("x", Integer.class), zOffset = context.getArgument("z", Integer.class);
         final BlockPos chunkStart, chunkEnd;
         if (xOffset > 0) {
             if (zOffset > 0) {
                 // Corner is at northwest
-                chunkStart = corner.getBlockAt(0, Short.MIN_VALUE, 0);
-                chunkEnd = new ChunkPos(corner.x + xOffset - 1, corner.z + zOffset - 1).getBlockAt(15, Short.MAX_VALUE, 15);
+                chunkStart = corner.getBlockAt(0, level.getMinBuildHeight(), 0);
+                chunkEnd = new ChunkPos(corner.x + xOffset - 1, corner.z + zOffset - 1).getBlockAt(15, level.getMaxBuildHeight(), 15);
             } else if (zOffset == 0) {
                 // Corner is at northwest
-                chunkStart = corner.getBlockAt(0, Short.MIN_VALUE, 0);
-                chunkEnd = new ChunkPos(corner.x + xOffset - 1, corner.z).getBlockAt(15, Short.MAX_VALUE, 15);
+                chunkStart = corner.getBlockAt(0, level.getMinBuildHeight(), 0);
+                chunkEnd = new ChunkPos(corner.x + xOffset - 1, corner.z).getBlockAt(15, level.getMaxBuildHeight(), 15);
             } else {
                 // Corner is at southwest
-                chunkStart = corner.getBlockAt(0, Short.MIN_VALUE, 15);
-                chunkEnd = new ChunkPos(corner.x + xOffset - 1, corner.z + zOffset + 1).getBlockAt(15, Short.MAX_VALUE, 0);
+                chunkStart = corner.getBlockAt(0, level.getMinBuildHeight(), 15);
+                chunkEnd = new ChunkPos(corner.x + xOffset - 1, corner.z + zOffset + 1).getBlockAt(15, level.getMaxBuildHeight(), 0);
             }
         } else if (xOffset == 0) {
             if (zOffset > 0) {
                 // Corner is at northwest
-                chunkStart = corner.getBlockAt(0, Short.MIN_VALUE, 0);
-                chunkEnd = new ChunkPos(corner.x, corner.z + zOffset - 1).getBlockAt(15, Short.MAX_VALUE, 15);
+                chunkStart = corner.getBlockAt(0, level.getMinBuildHeight(), 0);
+                chunkEnd = new ChunkPos(corner.x, corner.z + zOffset - 1).getBlockAt(15, level.getMaxBuildHeight(), 15);
             } else if (zOffset == 0) {
                 // Corner is at northwest, just one chunk
-                chunkStart = corner.getBlockAt(0, Short.MIN_VALUE, 0);
-                chunkEnd = corner.getBlockAt(15, Short.MAX_VALUE, 15);
+                chunkStart = corner.getBlockAt(0, level.getMinBuildHeight(), 0);
+                chunkEnd = corner.getBlockAt(15, level.getMaxBuildHeight(), 15);
             } else {
                 // Corner is at southwest
-                chunkStart = corner.getBlockAt(0, Short.MIN_VALUE, 15);
-                chunkEnd = new ChunkPos(corner.x, corner.z + zOffset + 1).getBlockAt(15, Short.MAX_VALUE, 0);
+                chunkStart = corner.getBlockAt(0, level.getMinBuildHeight(), 15);
+                chunkEnd = new ChunkPos(corner.x, corner.z + zOffset + 1).getBlockAt(15, level.getMaxBuildHeight(), 0);
             }
         } else {
             if (zOffset > 0) {
                 // Corner is at northeast
-                chunkStart = corner.getBlockAt(15, Short.MIN_VALUE, 0);
-                chunkEnd = new ChunkPos(corner.x + xOffset + 1, corner.z + zOffset - 1).getBlockAt(0, Short.MAX_VALUE, 15);
+                chunkStart = corner.getBlockAt(15, level.getMinBuildHeight(), 0);
+                chunkEnd = new ChunkPos(corner.x + xOffset + 1, corner.z + zOffset - 1).getBlockAt(0, level.getMaxBuildHeight(), 15);
             } else if (zOffset == 0) {
                 // Corner is at northeast
-                chunkStart = corner.getBlockAt(15, Short.MIN_VALUE, 0);
-                chunkEnd = new ChunkPos(corner.x + xOffset + 1, corner.z).getBlockAt(0, Short.MAX_VALUE, 15);
+                chunkStart = corner.getBlockAt(15, level.getMinBuildHeight(), 0);
+                chunkEnd = new ChunkPos(corner.x + xOffset + 1, corner.z).getBlockAt(0, level.getMaxBuildHeight(), 15);
             } else {
                 // Corner is southeast
-                chunkStart = corner.getBlockAt(15, Short.MIN_VALUE, 15);
-                chunkEnd = new ChunkPos(corner.x + xOffset + 1, corner.z + zOffset + 1).getBlockAt(0, Short.MAX_VALUE, 0);
+                chunkStart = corner.getBlockAt(15, level.getMinBuildHeight(), 15);
+                chunkEnd = new ChunkPos(corner.x + xOffset + 1, corner.z + zOffset + 1).getBlockAt(0, level.getMaxBuildHeight(), 0);
             }
         }
         final var range = new AABB(Vec3.atCenterOf(chunkStart), Vec3.atCenterOf(chunkEnd));

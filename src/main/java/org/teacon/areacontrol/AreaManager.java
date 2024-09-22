@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.impl.AreaMath;
+import org.teacon.areacontrol.impl.ChunkPosRange;
 import org.teacon.areacontrol.impl.persistence.AreaRepository;
 
 import java.math.BigInteger;
@@ -165,51 +166,61 @@ public final class AreaManager {
      * @return true if and only if the area is successfully recorded by this AreaManager; false otherwise.
      */
     public boolean add(Area area, ResourceKey<Level> worldIndex) {
+        List<Area> conflict = new ArrayList<>();
+        List<Area> children = new ArrayList<>();
+        List<Area> parent = new ArrayList<>();
+        var readLock = this.lock.readLock();
+        try {
+            readLock.lock();
+            var areasByChunkPos = this.perWorldAreaCache.getOrDefault(worldIndex, Map.of());
+            for (ChunkPos chunkPos : ChunkPosRange.of(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))) {
+                for (UUID areaId : areasByChunkPos.getOrDefault(chunkPos, Set.of())) {
+                    Area checking = this.areasById.get(areaId);
+                    switch (AreaMath.relationBetween(area, checking)) {
+                        case INTERSECT, SAME -> conflict.add(checking);
+                        case SUBSET -> parent.add(checking);
+                        case SUPERSET -> children.add(checking);
+                    }
+                }
+            }
+        } finally {
+            readLock.unlock();
+        }
+        // If there are overlaps, the area cannot be created
+        if (!conflict.isEmpty()) {
+            return false;
+        }
+        // An area can only have one parent.
+        // Not sure how did you manage to have multiple parent, but this is not allowed.
+        if (parent.size() > 1) {
+            return false;
+        }
+        // FIXME[3TUSK]: Check owners of child areas, making sure only owners can adding large area on top of small area.
+        // No conflict, single parent - this is a success. Building cache for this new area.
         var writeLock = this.lock.writeLock();
         try {
             writeLock.lock();
-            // First we check if at least one vertex of the defining cuboid falls in an existing area
-            var maybeOverlaps = Util.verticesOf(area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ)
-                    .map(cornerPos -> findBy(worldIndex, cornerPos))
-                    .collect(Collectors.toCollection(() -> Collections.newSetFromMap(new IdentityHashMap<>())));
-            // We need to make sure that all 8 vertices fall into the same area.
-            if (maybeOverlaps.size() != 1) {
-                return false;
+            this.buildCacheFor(area, worldIndex);
+            // If we have a parent, set the hierarchy properly and copy settings over
+            if (!parent.isEmpty()) {
+                var theEnclosingArea = parent.getFirst();
+                // Copy settings from parent over
+                area.properties.putAll(theEnclosingArea.properties);
+                area.setBelongingArea(theEnclosingArea.uid);
+                theEnclosingArea.subAreas.add(area.uid);
             }
-            // There are two possibilities:
-            // 1. theEnclosingArea is the wildness
-            // 2. theEnclosingArea is an existing area claimed by someone
-            var theEnclosingArea = maybeOverlaps.iterator().next();
-            {
-                // Then, we check if the defining cuboid is enclosing another area.
-                boolean noEnclosing = true;
-                for (var uuid : this.areasByWorld.getOrDefault(worldIndex, Collections.emptySet())) {
-                    Area a = this.areasById.get(uuid);
-                    if (a == null) continue;
-                    if (area.minX <= a.minX && a.maxX <= area.maxX) {
-                        if (area.minY <= a.minY && a.maxY <= area.maxY) {
-                            if (area.minZ <= a.minZ && a.maxZ <= area.maxZ) {
-                                noEnclosing = false;
-                                break;
-                            }
-                        }
-                    }
+            // If we have child(ren), rebuild the hierarchy
+            for (var child : children) {
+                var oldParent = child.resolveParent();
+                if (oldParent != null) {
+                    oldParent.subAreas.remove(child.uid);
                 }
-                // If not, we consider this to be a success.
-                if (noEnclosing) {
-                    this.buildCacheFor(area, worldIndex);
-                    if (theEnclosingArea != null) {
-                        area.properties.putAll(theEnclosingArea.properties);
-                        // Copy default settings over
-                        area.setBelongingArea(theEnclosingArea.uid);
-                        theEnclosingArea.subAreas.add(area.uid);
-                    }
-                    var dimId = worldIndex.location();
-                    area.dimension = dimId.getNamespace() + ":" + dimId.getPath();
-                    return true;
-                }
-                return false;
+                child.setBelongingArea(area.uid);
+                area.subAreas.add(child.uid);
             }
+            var dimId = worldIndex.location();
+            area.dimension = dimId.getNamespace() + ":" + dimId.getPath();
+            return true;
         } finally {
             writeLock.unlock();
         }
@@ -529,5 +540,15 @@ public final class AreaManager {
                 .stream()
                 .map(this::findBy)
                 .collect(Collectors.toList());
+    }
+
+    @ApiStatus.Internal
+    public Collection<Area> findAllIn(ResourceKey<Level> dim, ChunkPos from, ChunkPos to) {
+        var areaByChunkPos = this.perWorldAreaCache.getOrDefault(dim, Map.of());
+        return ChunkPos.rangeClosed(from, to)
+                .map(chunkPos -> areaByChunkPos.getOrDefault(chunkPos, Set.of()))
+                .flatMap(Set::stream)
+                .map(this::findBy)
+                .toList();
     }
 }
