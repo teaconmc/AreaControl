@@ -38,7 +38,7 @@
   
   "area_control.claim.welcome": "Welcome to %s",
   "area_control.claim.default_name": "%s's Area",
-  "area_control.claim.detail": "  - Area '%s', in dimension %s, %s %s %s",
+  "area_control.claim.detail": "  - Area '%s'\n    %s\n    Dimension: %s\n    Coordinate: %s\n    %s",
 
   "area_control.claim.owner.multiple": "%s, et al.",
   "area_control.claim.current.line.name": "You are in '%1$s'",

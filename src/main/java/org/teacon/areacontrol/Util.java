@@ -46,17 +46,17 @@ public final class Util {
         return Component.translatable("area_control.claim.detail",
                 Component.literal(area.name).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_name")))
                         .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.name))),
+                Component.translatable("area_control.claim.current.line.uuid", area.uid.toString())
+                        .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.uid.toString()))
+                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_uuid")))
+                            .withColor(ChatFormatting.DARK_AQUA)),
                 Component.literal(area.dimension),
                 Util.toGreenText(area),
                 Component.translatable("area_control.claim.nearby.detail.go_there").setStyle(
                         Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("chat.coordinates.tooltip")))
                                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/execute in " + area.dimension + " run tp @s " + midX + " " + midY + " " + midZ))
                                 .withColor(ChatFormatting.DARK_AQUA)
-                ),
-                Component.translatable("area_control.claim.current.uuid")
-                        .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.uid.toString()))
-                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_uuid")))
-                                .withColor(ChatFormatting.DARK_AQUA)));
+                ));
     }
 
     public static Stream<BlockPos> verticesOf(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {

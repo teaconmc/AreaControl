@@ -38,7 +38,7 @@
 
   "area_control.claim.welcome": "欢迎来到%s",
   "area_control.claim.default_name": "%s 的领地",
-  "area_control.claim.detail": "  - 领地 '%s'，位于维度 %s 中，%s %s %s",
+  "area_control.claim.detail": "  - 领地 '%s'\n    %s\n    所处维度：%s\n    坐标：%s\n    %s",
 
   "area_control.claim.owner.multiple": "%s 以及其他人",
   "area_control.claim.current.line.name": "你现在身在 %1$s",
