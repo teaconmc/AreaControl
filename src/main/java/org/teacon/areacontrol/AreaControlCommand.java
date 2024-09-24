@@ -231,7 +231,7 @@ public final class AreaControlCommand {
         if (claimerUUID != null) {
             area.owners.add(claimerUUID);
         }
-        if (AreaManager.INSTANCE.add(area, worldIndex)) {
+        if (AreaManager.INSTANCE.add(area, worldIndex, claimer)) {
             src.sendSuccess(() -> Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -302,7 +302,7 @@ public final class AreaControlCommand {
         if (claimerUUID != null) {
             area.owners.add(claimerUUID);
         }
-        if (AreaManager.INSTANCE.add(area, worldIndex)) {
+        if (AreaManager.INSTANCE.add(area, worldIndex, claimer)) {
             src.sendSuccess(() -> Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
             return Command.SINGLE_SUCCESS;
         } else {
@@ -328,7 +328,8 @@ public final class AreaControlCommand {
                 area.owners.add(claimerUUID);
             }
             final var worldIndex = src.getLevel().dimension();
-            if (AreaManager.INSTANCE.add(area, worldIndex)) {
+
+            if (AreaManager.INSTANCE.add(area, worldIndex, claimer)) {
                 src.sendSuccess(() -> Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
                 return Command.SINGLE_SUCCESS;
             } else {

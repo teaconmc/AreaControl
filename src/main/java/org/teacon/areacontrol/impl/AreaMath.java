@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 import org.teacon.areacontrol.api.Area;
 
 import java.math.BigInteger;
+import java.util.EnumSet;
 
 public class AreaMath {
 
@@ -70,6 +71,22 @@ public class AreaMath {
         return a.minX == b.minX && a.minY == b.minY && a.minZ == b.minZ && a.maxX == b.maxX && a.maxY == b.maxY && a.maxZ == b.maxZ;
     }
 
+    public static SetRelation relationBetween(int aMin, int aMax, int bMin, int bMax) {
+        if (aMax < bMin || bMax < aMin) {
+            return SetRelation.INDEPENDENT;
+        }
+        if (aMin == bMin && aMax == bMax) {
+            return SetRelation.SAME;
+        }
+        if (aMin >= bMin && aMax <= bMax) {
+            return SetRelation.SUBSET;
+        }
+        if (aMin <= bMin && aMax >= bMax) {
+            return SetRelation.SUPERSET;
+        }
+        return SetRelation.INTERSECT;
+    }
+
     public static SetRelation relationBetween(Area left, Area right) {
         return relationBetween(left.minX, left.minY, left.minZ, left.maxX, left.maxY, left.maxZ,
                 right.minX, right.minY, right.minZ, right.maxX, right.maxY, right.maxZ);
@@ -106,25 +123,24 @@ public class AreaMath {
             int aMinX, int aMinY, int aMinZ, int aMaxX, int aMaxY, int aMaxZ,
             int bMinX, int bMinY, int bMinZ, int bMaxX, int bMaxY, int bMaxZ
     ) {
-        boolean xOverlap = (aMinX <= bMinX && bMinX <= aMaxX) || (aMinX <= bMaxX && bMaxX <= aMaxX);
-        boolean yOverlap = (aMinY <= bMinY && bMinY <= aMaxY) || (aMinY <= bMaxY && bMaxY <= aMaxY);
-        boolean zOverlap = (aMinZ <= bMinZ && bMinZ <= aMaxZ) || (aMinZ <= bMaxZ && bMaxZ <= aMaxZ);
-        if (xOverlap && yOverlap && zOverlap) {
-            if (aMinX == bMinX && aMinY == bMinY & aMinZ == bMinZ && aMaxX == bMaxX && aMaxY == bMaxY && aMaxZ == bMaxZ) {
-                return SetRelation.SAME;
-            } else if (aMinX < bMinX && bMaxX < aMaxX
-                    && aMinY < bMinY && bMaxY < aMaxY
-                    && aMinZ < bMinZ && bMaxZ < aMaxZ) {
-                return SetRelation.SUPERSET;
-            } else {
-                return SetRelation.INTERSECT;
-            }
-        } else if (bMinX < aMinX && aMaxX < bMaxX
-                && bMinY < aMinY && aMaxY < bMaxY
-                && bMinZ < aMinZ && aMaxZ < bMaxZ) {
-            return SetRelation.SUBSET;
+        EnumSet<SetRelation> axisRelations = EnumSet.of(
+                relationBetween(aMinX, aMaxX, bMinX, bMaxX),
+                relationBetween(aMinY, aMaxY, bMinY, bMaxY),
+                relationBetween(aMinZ, aMaxZ, bMinZ, bMaxZ)
+        );
+        if (axisRelations.size() == 1) {
+            return axisRelations.iterator().next();
         } else {
-            return SetRelation.INDEPENDENT;
+            if (axisRelations.contains(SetRelation.INDEPENDENT)) {
+                return SetRelation.INDEPENDENT;
+            }
+            return SetRelation.INTERSECT;
         }
+        /*
+        String builder = "Impossible arrangement found! " +
+                "Box A: [" + aMinX + ", " + aMinY + ", " + aMinZ + "] -> [" + aMaxX + ", " + aMaxY + ", " + aMaxZ + "]; " +
+                "Box B: [" + bMinX + ", " + bMinY + ", " + bMinZ + "] -> [" + bMaxX + ", " + bMaxY + ", " + bMaxZ + "]; " +
+                "axis relations: " + axisRelations;
+        throw new IllegalArgumentException(builder);*/
     }
 }

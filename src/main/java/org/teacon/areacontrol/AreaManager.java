@@ -7,6 +7,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
+import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.impl.AreaMath;
 import org.teacon.areacontrol.impl.ChunkPosRange;
 import org.teacon.areacontrol.impl.persistence.AreaRepository;
@@ -165,16 +167,21 @@ public final class AreaManager {
      * @param worldIndex The {@link ResourceKey<Level>} of the {@link Level} to which the area belongs
      * @return true if and only if the area is successfully recorded by this AreaManager; false otherwise.
      */
-    public boolean add(Area area, ResourceKey<Level> worldIndex) {
+    public boolean add(Area area, ResourceKey<Level> worldIndex, ServerPlayer actor) {
         List<Area> conflict = new ArrayList<>();
         List<Area> children = new ArrayList<>();
         List<Area> parent = new ArrayList<>();
+        Set<UUID> checked = new HashSet<>();
         var readLock = this.lock.readLock();
         try {
             readLock.lock();
             var areasByChunkPos = this.perWorldAreaCache.getOrDefault(worldIndex, Map.of());
             for (ChunkPos chunkPos : ChunkPosRange.of(new ChunkPos(area.minX >> 4, area.minZ >> 4), new ChunkPos(area.maxX >> 4, area.maxZ >> 4))) {
                 for (UUID areaId : areasByChunkPos.getOrDefault(chunkPos, Set.of())) {
+                    if (checked.contains(areaId)) {
+                        continue;
+                    }
+                    checked.add(areaId);
                     Area checking = this.areasById.get(areaId);
                     switch (AreaMath.relationBetween(area, checking)) {
                         case INTERSECT, SAME -> conflict.add(checking);
@@ -195,7 +202,11 @@ public final class AreaManager {
         if (parent.size() > 1) {
             return false;
         }
-        // FIXME[3TUSK]: Check owners of child areas, making sure only owners can adding large area on top of small area.
+        for (var child : children) {
+            if (!AreaChecks.isACtrlAreaOwner(actor, child)) {
+                return false;
+            }
+        }
         // No conflict, single parent - this is a success. Building cache for this new area.
         var writeLock = this.lock.writeLock();
         try {
