@@ -63,7 +63,6 @@ public final class EditPropertiesScreen extends Screen {
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        // TODO: this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         this.drawGuiContainerBackgroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
         for (Renderable renderable : this.renderables) {
@@ -166,7 +165,7 @@ public final class EditPropertiesScreen extends Screen {
                 ACShowPropEditScreen.Info info = this.infoCollection.get(i);
                 // draw property name
                 int y1 = y0 + 8;
-                drawScrollingString(guiGraphics, font, Component.literal(info.prop()), x0 + 4, y1, x0 + 92, y1 + 10, TEXT_COLOR);
+                drawScrollingString(guiGraphics, font, Component.translatable("area_control.property." + info.prop()), x0 + 4, y1, x0 + 92, y1 + 10, TEXT_COLOR);
                 Boolean state = this.states.get(info.prop());
                 if (state == null) {
                     // Unset is selected
