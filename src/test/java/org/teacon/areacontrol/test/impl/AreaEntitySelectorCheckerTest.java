@@ -70,6 +70,20 @@ public class AreaEntitySelectorCheckerTest {
         initAreaManager();
     }
 
+    /*
+     * Area overview:
+     *
+     * - Area A
+     *   - Child area B
+     *   - Child area C
+     *     - Child area D
+     *   - Child area E
+     *     - Child area F
+     *       - Child area G
+     *       - Child area H
+     * - Area I
+     *   - Child area J
+     */
     public static void initAreaManager() {
         Area a, b, c, d, e, f, g, h, i, j;
         var allAreas = new ArrayList<Area>();
@@ -103,6 +117,9 @@ public class AreaEntitySelectorCheckerTest {
         c.properties.put(AreaProperties.ALLOW_CB_USE_SELECTOR_FROM_PARENT, true);
         d.properties.put(AreaProperties.ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT, true);
         d.properties.put(AreaProperties.ALLOW_CB_USE_SELECTOR_FROM_PARENT, true);
+
+        i.properties.put(AreaProperties.ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT, false);
+        j.properties.put(AreaProperties.ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT, true);
 
         var areaRepo = new InMemoryAreaRepository(allAreas);
         try {
@@ -195,6 +212,29 @@ public class AreaEntitySelectorCheckerTest {
         this.mockEntity.xo = -2.5;
         this.mockEntity.yo = -2.5;
         this.mockEntity.zo = -2.5;
+        Mockito.when(this.mockEntity.level()).thenReturn(this.mockLevel);
+        // Verify that the command source can use entity selector to select the mock entity
+        Assertions.assertTrue(AreaEntitySelectorChecker.check(commandSrc, this.mockEntity));
+    }
+
+    /**
+     * Test that a player, who is standing in an area A, can use entity selector to select entities inside area B, where
+     * <ul>
+     *     <li>Area B is a child area of area A</li>
+     *     <li>Area A sets {@link AreaProperties#ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT}</li> to <code>false</code></li>
+     *     <li>Area B sets {@link AreaProperties#ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT}</li> to <code>true</code></li>
+     * </ul>
+     * This test case is named after KunoSayo, who firstly reported that such setup was not working as expected.
+     */
+    @Test
+    public void testKunoSayoAreaSetup() {
+        // Create a CommandSourceStack with true source being a mock command block, location is [41.1, 41.1, 41.1] (in area I).
+        var commandSrc = new CommandSourceStack(this.mockCmdBlock, new Vec3(41.1, 41.1, 41.1), Vec2.ZERO, this.mockLevel, 4, "yinyangshi", Component.literal("KunoSayo"), mockServer, null);
+        // Position mock entity to [ 42.5, 42.5, 42.5 ] of overworld (in area J)
+        Mockito.when(this.mockLevel.dimension()).thenReturn(Level.OVERWORLD);
+        this.mockEntity.xo = 42.5;
+        this.mockEntity.yo = 42.5;
+        this.mockEntity.zo = 42.5;
         Mockito.when(this.mockEntity.level()).thenReturn(this.mockLevel);
         // Verify that the command source can use entity selector to select the mock entity
         Assertions.assertTrue(AreaEntitySelectorChecker.check(commandSrc, this.mockEntity));

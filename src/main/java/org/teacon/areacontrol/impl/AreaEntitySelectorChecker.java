@@ -57,17 +57,17 @@ public class AreaEntitySelectorChecker {
                                   String selectFromChild, String selectFromParent,
                                   Supplier<@NotNull Boolean> selectFromChildFallBack,
                                   Supplier<@NotNull Boolean> selectFromParentFallBack) {
-        var area = AreaManager.INSTANCE.findBy(sourceStack.getLevel(), sourceStack.getPosition());
+        var startArea = AreaManager.INSTANCE.findBy(sourceStack.getLevel(), sourceStack.getPosition());
         // Get the area in which the target entity locates.
         // Do note that, EntitySelector can select entities from a different dimension,
         // so we must use the level from the target entity.
         final var targetArea = AreaManager.INSTANCE.findBy(e.level(), new Vec3(e.xo, e.yo, e.zo));
         // If the entity is in the same area as the selector initiator, then it may be selected
-        if (area == targetArea) {
+        if (startArea == targetArea) {
             return true;
         }
         // Otherwise, we follow this procedure to determine.
-        var currentlyChecking = area;
+        var currentlyChecking = startArea;
         // 1. Walk up from the area hierarchy tree, checking if all the parent areas
         //    allow "selecting entities from child area".
         //    The walking stops at the area that is common ancestor to both the
@@ -77,16 +77,18 @@ public class AreaEntitySelectorChecker {
         //    Otherwise, we'd have NPE. This is specifically the case for vanilla
         //    /tp command.
         if (currentlyChecking != null) {
-            do {
+            while (!AreaMath.isEnclosing(currentlyChecking, targetArea)) {
                 currentlyChecking = currentlyChecking.resolveParent();
                 var result = AreaProperties.getBoolOptional(currentlyChecking, selectFromChild);
                 if (!result.orElseGet(selectFromChildFallBack)) {
                     return false;
                 }
-            } while (!AreaMath.isEnclosing(currentlyChecking, targetArea));
+            }
         }
         // 2. If we are at the target area, then we are done, we can select this entity.
         //    Else, we have to walk down along the hierarchy tree, to the target area.
+        //    For performance reason, we walk down the hierarchy by "walking up" from the
+        //    target area (which is the smallest) to the common ancestor we found above.
         if (currentlyChecking != targetArea) {
             var reverseChecking = targetArea;
             // 3. For each area that we encounter, we check if it allows "selecting entities
