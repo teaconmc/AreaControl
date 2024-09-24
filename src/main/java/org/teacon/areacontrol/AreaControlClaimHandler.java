@@ -1,12 +1,15 @@
 package org.teacon.areacontrol;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.LogicalSide;
@@ -32,7 +35,7 @@ public final class AreaControlClaimHandler {
                 var currentArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
                 if (AreaChecks.isACtrlAreaBuilder(player, currentArea) || PermissionAPI.getPermission(player, AreaControlPermissions.AC_CLAIMER)) {
                     final BlockPos clicked = event.getPos();
-                    pushRecord(player, clicked.immutable());
+                    pushRecord(player, event.getLevel().dimension(), clicked.immutable());
                     player.displayClientMessage(Component.translatable("area_control.claim.marked", Util.toGreenText(clicked)), true);
                 }
             }
@@ -43,11 +46,10 @@ public final class AreaControlClaimHandler {
         return records.containsKey(player) && records.get(player).start != null ? records.remove(player) : null;
     }
 
-    static void pushRecord(@Nonnull ServerPlayer player, @Nonnull BlockPos clicked) {
-        var selection = records.compute(player, (p, old) -> new RectangleRegion(old == null ? null : old.end, clicked));
+    static void pushRecord(@Nonnull ServerPlayer player, ResourceKey<Level> dimension, @Nonnull BlockPos clicked) {
+        var selection = records.compute(player, (p, old) -> new RectangleRegion(old == null ? null : old.end, GlobalPos.of(dimension, clicked)));
         AreaControlPlayerTracker.INSTANCE.sendCurrentSelectionToClient(player, selection);
     }
 
-    record RectangleRegion(BlockPos start, BlockPos end) {
-    }
+    public record RectangleRegion(GlobalPos start, GlobalPos end) {}
 }

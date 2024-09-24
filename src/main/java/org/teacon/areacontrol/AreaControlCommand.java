@@ -317,18 +317,18 @@ public final class AreaControlCommand {
         final var recordPos = AreaControlClaimHandler.popRecord(claimer);
         AreaControlPlayerTracker.INSTANCE.clearSelectionForClient(claimer);
         if (recordPos != null) {
-            final var range = new AABB(Vec3.atCenterOf(recordPos.start()), Vec3.atCenterOf(recordPos.end()));
-            if (!range.inflate(0.5, 0.5, 0.5).contains(claimer.position())) {
-                src.sendFailure(Component.translatable("area_control.error.outside_selection"));
+            final var start = recordPos.start();
+            final var end = recordPos.end();
+            if (start.dimension() != end.dimension()) {
+                src.sendFailure(Component.literal("AreaControl: cannot claim area across dimension."));
                 return -1;
             }
-            final Area area = Util.createArea(recordPos.start(), recordPos.end(), claimer);
+            final Area area = Util.createArea(start.pos(), end.pos(), claimer);
             final UUID claimerUUID = claimer.getGameProfile().getId();
             if (claimerUUID != null) {
                 area.owners.add(claimerUUID);
             }
-            final var worldIndex = src.getLevel().dimension();
-
+            final var worldIndex = start.dimension();
             if (AreaManager.INSTANCE.add(area, worldIndex, claimer)) {
                 src.sendSuccess(() -> Component.translatable("area_control.claim.created", area.name, Util.toGreenText(area)), true);
                 return Command.SINGLE_SUCCESS;
@@ -389,7 +389,8 @@ public final class AreaControlCommand {
     private static int mark(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         var rawPos = Vec3Argument.getVec3(context, "pos");
         BlockPos marked = new BlockPos((int) rawPos.x, (int) rawPos.y, (int) rawPos.z);
-        AreaControlClaimHandler.pushRecord(context.getSource().getPlayerOrException(), marked);
+        var dimension = context.getSource().getLevel().dimension();
+        AreaControlClaimHandler.pushRecord(context.getSource().getPlayerOrException(), dimension, marked);
         context.getSource().sendSuccess(() -> Component.translatable("area_control.claim.marked", Util.toGreenText(marked)), true);
         return Command.SINGLE_SUCCESS;
     }

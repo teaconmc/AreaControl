@@ -11,8 +11,10 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.ModContainer;
@@ -67,6 +69,7 @@ public final class AreaControlClientSupport {
 
     public static volatile List<Area.Summary> knownAreas = Collections.emptyList();
     public static volatile long knownAreasExpiresAt = 0L;
+    public static volatile ResourceKey<Level> selectionDimension;
     public static volatile BlockPos selectionMin, selectionMax;
 
     static void renderAreaBorder(RenderLevelStageEvent event) {
@@ -104,7 +107,8 @@ public final class AreaControlClientSupport {
                 }
             }
         }
-        if (selectionMin != null && selectionMax != null) {
+        var level = mc.level;
+        if (level != null && level.dimension() == selectionDimension && selectionMin != null && selectionMax != null) {
             box(transform, builder, 0xFFFFD700, selectionMin.getX(), selectionMin.getY(), selectionMin.getZ(), selectionMax.getX() + 1, selectionMax.getY() + 1, selectionMax.getZ() + 1);
         }
 

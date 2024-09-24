@@ -1,7 +1,7 @@
 package org.teacon.areacontrol;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
+
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -241,7 +241,7 @@ public enum AreaControlPlayerTracker {
 
     public void clearSelectionForClient(ServerPlayer receiver) {
         if (this.playersWithExt.contains(receiver.getGameProfile().getId())) {
-            ACNetworking.send(receiver, ACSendCurrentSelection.of(true, BlockPos.ZERO, BlockPos.ZERO));
+            ACNetworking.send(receiver, ACSendCurrentSelection.of(true, null, null));
         }
     }
 
