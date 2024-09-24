@@ -199,6 +199,24 @@ public final class AreaManager {
         }
         // An area can only have one parent.
         // Not sure how did you manage to have multiple parent, but this is not allowed.
+        // It is also possible that we have an area with its parent area that also has its own parent area,
+        // i.e. grandparent area. We need to remove all possible grant parent areas before checking.
+        List<Area> indirectParents = new ArrayList<>();
+        do {
+            parent.removeAll(indirectParents);
+            indirectParents.clear();
+            for (Area p1 : parent) {
+                for (Area p2 : parent) {
+                    if (p1 == p2) {
+                        continue;
+                    }
+                    if (AreaMath.isEnclosing(p1, p2)) {
+                        indirectParents.add(p1);
+                        break;
+                    }
+                }
+            }
+        } while (!indirectParents.isEmpty());
         if (parent.size() > 1) {
             return false;
         }
