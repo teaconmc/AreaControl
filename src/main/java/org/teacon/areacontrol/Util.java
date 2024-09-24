@@ -46,10 +46,9 @@ public final class Util {
         return Component.translatable("area_control.claim.detail",
                 Component.literal(area.name).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_name")))
                         .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.name))),
-                Component.translatable("area_control.claim.current.line.uuid", area.uid.toString())
+                Component.translatable("area_control.claim.current.line.uuid", Component.literal(area.uid.toString()).withStyle(ChatFormatting.DARK_AQUA))
                         .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.uid.toString()))
-                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_uuid")))
-                            .withColor(ChatFormatting.DARK_AQUA)),
+                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_uuid")))),
                 Component.literal(area.dimension),
                 Util.toGreenText(area),
                 Component.translatable("area_control.claim.nearby.detail.go_there").setStyle(

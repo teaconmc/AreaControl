@@ -50,7 +50,7 @@
   "area_control.claim.current.copy_uuid": "点此复制领地 UUID",
   "area_control.claim.current.wildness": "你现在身在野外。",
   "area_control.claim.mine": "你有 %d 块领地，分别是：",
-  "area_control.claim.nearby": "在你的视野范围内有 %d 块领地，这些领地的范围现在有临时的碧绿色或青蓝色高亮。",
+  "area_control.claim.nearby": "你附近有 %d 块领地。\n这些领地的范围现在有临时的碧绿色或青蓝色力场高亮。\n领地详细信息：",
   "area_control.claim.nearby.detail.go_there": "[传送]",
   "area_control.claim.nearby.visual": "你的客户端看上去没有 AreaControl，所以无法使用领地可视化增强。你仍然可以点击上面的“传送”快速传送到目标领地。",
 
