@@ -27,6 +27,9 @@ public class AreaMath {
      */
     public static final BigInteger VERY_BIG_NUMBER = BigInteger.valueOf(Long.MAX_VALUE).pow(3);
 
+    private static final EnumSet<SetRelation> SUBSET_CASE_1 = EnumSet.of(SetRelation.SAME, SetRelation.SUBSET);
+    private static final EnumSet<SetRelation> SUPERSET_CASE_1 = EnumSet.of(SetRelation.SAME, SetRelation.SUPERSET);
+
     public static boolean isPointIn(@Nullable Area area, double x, double y, double z) {
         return area == null || (area.minX <= x && area.maxX >= x && area.minY <= y && area.maxY >= y && area.minZ <= z && area.maxZ >= z);
     }
@@ -134,6 +137,12 @@ public class AreaMath {
             if (axisRelations.contains(SetRelation.INDEPENDENT)) {
                 return SetRelation.INDEPENDENT;
             }
+            if (SUBSET_CASE_1.equals(axisRelations)) {
+                return SetRelation.SUBSET;
+            }
+            if (SUPERSET_CASE_1.equals(axisRelations)) {
+                return SetRelation.SUPERSET;
+            }
             return SetRelation.INTERSECT;
         }
         /*
@@ -142,5 +151,15 @@ public class AreaMath {
                 "Box B: [" + bMinX + ", " + bMinY + ", " + bMinZ + "] -> [" + bMaxX + ", " + bMaxY + ", " + bMaxZ + "]; " +
                 "axis relations: " + axisRelations;
         throw new IllegalArgumentException(builder);*/
+    }
+
+    public static boolean intersects(
+            int aMinX, int aMinY, int aMinZ, int aMaxX, int aMaxY, int aMaxZ,
+            int bMinX, int bMinY, int bMinZ, int bMaxX, int bMaxY, int bMaxZ
+    ) {
+        boolean xOverlap = (aMinX <= bMinX && bMinX <= aMaxX) || (aMinX <= bMaxX && bMaxX <= aMaxX);
+        boolean yOverlap = (aMinY <= bMinY && bMinY <= aMaxY) || (aMinY <= bMaxY && bMaxY <= aMaxY);
+        boolean zOverlap = (aMinZ <= bMinZ && bMinZ <= aMaxZ) || (aMinZ <= bMaxZ && bMaxZ <= aMaxZ);
+        return xOverlap && yOverlap && zOverlap;
     }
 }
