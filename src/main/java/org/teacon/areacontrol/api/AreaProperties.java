@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -13,7 +14,7 @@ public final class AreaProperties {
      * Set of area properties that are known by the AreaControl mod.
      * Adding a property to this Set is optional; it only enables command auto-completion.
      */
-    public static final Set<String> KNOWN_PROPERTIES = new HashSet<>();
+    public static final Set<String> KNOWN_PROPERTIES = new LinkedHashSet<>();
     /**
      * Set of area properties that should be synced to client whenever the area information
      * is about to be sent to client.
@@ -25,18 +26,18 @@ public final class AreaProperties {
     public static final String ALLOW_PVP = register("pvp");
     public static final String ALLOW_PVE = register("attack");
     public static final String ALLOW_INTERACT_ENTITY = register("interact_entity");
+    public static final String ALLOW_RIDE = register("ride");
+    public static final String ALLOW_POSSESS = register("possess");
+    public static final String ALLOW_USE_ITEM = register("use_item");
     public static final String ALLOW_BREAK = register("break_block");
     public static final String ALLOW_CLICK = register("click_block");
     public static final String ALLOW_ACTIVATE = register("activate_block");
-    public static final String ALLOW_USE_ITEM = register("use_item");
     public static final String ALLOW_PLACE_BLOCK = register("place_block");
     public static final String ALLOW_TRAMPLE_FARMLAND = register("trample_farmland");
     public static final String ALLOW_EXPLOSION = register("explosion");
     public static final String ALLOW_EXPLOSION_AFFECT_BLOCKS = register("explosion_affect_blocks");
     public static final String ALLOW_EXPLOSION_AFFECT_ENTITIES = register("explosion_affect_entities");
     public static final String ALLOW_FIRE_SPREAD = register("fire_spread");
-    public static final String ALLOW_POSSESS = register("possess");
-    public static final String ALLOW_RIDE = register("ride");
 
     public static final String ALLOW_ENTITY_USE_SELECTOR_FROM_CHILD = register("select_from_child_area_by_entity");
     public static final String ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT = register("select_from_parent_area_by_entity");
