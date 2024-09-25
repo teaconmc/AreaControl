@@ -7,9 +7,11 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
 import org.teacon.areacontrol.impl.command.arguments.DirectionArgument;
 import org.teacon.areacontrol.impl.command.arguments.GroupArgument;
@@ -25,6 +27,11 @@ public class AreaControlPreSetup {
     static final DeferredHolder<ArgumentTypeInfo<?, ?>, SingletonArgumentInfo<DirectionArgument>> DIRECTION_ARG_TYPE = ARG_TYPES.register("direction", () -> SingletonArgumentInfo.contextFree(DirectionArgument::direction));
 
     static final DeferredHolder<ArgumentTypeInfo<?, ?>, SingletonArgumentInfo<GroupArgument>> GROUP_ARG_TYPE = ARG_TYPES.register("group", () -> SingletonArgumentInfo.contextFree(GroupArgument::group));
+
+    static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, "area_control");
+
+    static final DeferredHolder<AttachmentType<?>, AttachmentType<AreaControlStatusData>> PLAYER_STATUS =
+            ATTACHMENT_TYPES.register("player_status_data", () -> AttachmentType.builder(AreaControlStatusData::new).build());
 
     @SubscribeEvent
     public static void setup(FMLCommonSetupEvent event) {

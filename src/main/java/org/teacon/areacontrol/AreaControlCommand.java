@@ -405,7 +405,7 @@ public final class AreaControlCommand {
             src.sendFailure(Component.translatable("area_control.error.must_be_player"));
             return 0;
         }
-        if (AreaControlPlayerTracker.INSTANCE.thisPlayerHasClientExt(player)) {
+        if (AreaControlPlayerTracker.thisPlayerHasClientExt(player)) {
             if (area == null) {
                 src.sendSuccess(ERROR_WILD, true);
                 return 0;

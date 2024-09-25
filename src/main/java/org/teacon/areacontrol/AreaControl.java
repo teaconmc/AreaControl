@@ -47,6 +47,7 @@ public final class AreaControl {
             case DEDICATED_SERVER -> new ServerSinglePlayerServerChecker();
         };
         AreaControlPreSetup.ARG_TYPES.register(modBus);
+        AreaControlPreSetup.ATTACHMENT_TYPES.register(modBus);
     }
 
     @SubscribeEvent

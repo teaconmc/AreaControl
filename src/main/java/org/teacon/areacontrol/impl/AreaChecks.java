@@ -76,7 +76,7 @@ public class AreaChecks {
 
     public static void checkInv(List<ItemStack> inv, @Nullable Area currentArea, Player player) {
         // If bypass mode is on, then this check can be skipped.
-        if (AreaControlPlayerTracker.INSTANCE.hasBypassModeOnForArea(player, currentArea)) {
+        if (AreaControlPlayerTracker.hasBypassModeOnForArea(player, currentArea)) {
             return;
         }
         ConfiscationInv seizedInv = player.getData(AreaControlBorderControl.CONFISCATION_INV);
@@ -93,7 +93,7 @@ public class AreaChecks {
 
     public static void checkInv(IItemHandler inv, Area currentArea, Player player) {
         // If bypass mode is on, then this check can be skipped.
-        if (AreaControlPlayerTracker.INSTANCE.hasBypassModeOnForArea(player, currentArea)) {
+        if (AreaControlPlayerTracker.hasBypassModeOnForArea(player, currentArea)) {
             return;
         }
         ConfiscationInv seizedInv = player.getData(AreaControlBorderControl.CONFISCATION_INV);
@@ -143,7 +143,7 @@ public class AreaChecks {
                 return true;
             }
             // If bypass mode is activated, then skip all checks.
-            if (AreaControlPlayerTracker.INSTANCE.hasBypassModeOnForArea(actor, area)) {
+            if (AreaControlPlayerTracker.hasBypassModeOnForArea(actor, area)) {
                 return true;
             }
         }

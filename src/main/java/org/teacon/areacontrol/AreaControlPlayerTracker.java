@@ -31,8 +31,11 @@ import org.teacon.areacontrol.network.ACNetworking;
 import org.teacon.areacontrol.network.ACSendCurrentSelection;
 import org.teacon.areacontrol.network.ACSendNearbyArea;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.UUID;
 
 @EventBusSubscriber(modid = "area_control")
 public enum AreaControlPlayerTracker {
@@ -57,49 +60,34 @@ public enum AreaControlPlayerTracker {
                             .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("/ac current bypass none")))
                             .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ac current bypass none"))));
 
-    private final Map<UUID, UUID> playerLocation = new ConcurrentHashMap<>();
-    private final Set<UUID> playersWithExt = ConcurrentHashMap.newKeySet();
-    /**
-     * Set of players with global exemption enabled.
-     */
-    private final Set<UUID> playersWithGlobalExempt = ConcurrentHashMap.newKeySet();
-    /**
-     * Player UUID to Area UUID map that denotes exemption status.
-     */
-    private final Map<UUID, Set<UUID>> playerExemptionStatus = new ConcurrentHashMap<>();
-    /**
-     * Set of players with exemption of wildness area (places without any claimed area).
-     */
-    private final Set<UUID> playersWithWildnessExemption = ConcurrentHashMap.newKeySet();
+    // For future reference - if you need to backport, or port forward, or port to a different framework,
+    // make sure you always get AreaControlStatusData from here, to minimize the workload.
+    //
+    // 给未来的维护者：如果你想移植到新版游戏、旧版游戏、其他的框架上，请确保所有需要 AreaControlStatusData 的地方都通过
+    // 这个方法调用获得，这样可以减少工作量。
+    public static AreaControlStatusData getFrom(Entity actor) {
+        return actor.getData(AreaControlPreSetup.PLAYER_STATUS);
+    }
 
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         var player = event.getEntity();
-        var currentArea = AreaManager.INSTANCE.findBy(player.level(), player.blockPosition());
-        if (currentArea == null) {
-            INSTANCE.playerLocation.remove(player.getGameProfile().getId());
-        } else {
-            INSTANCE.playerLocation.put(player.getGameProfile().getId(), currentArea.uid);
-        }
+        var status = getFrom(player);
+        status.currentArea = AreaManager.INSTANCE.findBy(player.level(), player.blockPosition());
     }
 
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Pre event) {
         var player = event.getEntity();
         if (player instanceof ServerPlayer) {
-            var playerId = player.getGameProfile().getId();
-            var prevAreaId = INSTANCE.playerLocation.get(playerId);
+            var status = getFrom(player);
+            var prevArea = status.currentArea;
 
-            var prevArea = AreaManager.INSTANCE.findBy(prevAreaId);
             var currentArea = AreaManager.INSTANCE.findBy(player.level(), player.blockPosition());
             if (prevArea != currentArea) {
-                if (currentArea == null) {
-                    INSTANCE.playerLocation.remove(playerId);
-                } else {
-                    INSTANCE.playerLocation.put(playerId, currentArea.uid);
-                    if (AreaProperties.getBoolOptional(currentArea, AreaProperties.SHOW_WELCOME).orElse(Boolean.FALSE)) {
+                status.currentArea = currentArea;
+                if (currentArea != null && AreaProperties.getBoolOptional(currentArea, AreaProperties.SHOW_WELCOME).orElse(Boolean.FALSE)) {
                         player.displayClientMessage(Component.translatable("area_control.claim.welcome", currentArea.name), true);
-                    }
                 }
             }
 
@@ -120,32 +108,16 @@ public enum AreaControlPlayerTracker {
             }
 
             // 检查玩家的 Bypass 状态并更新。
-            INSTANCE.updatePlayerExemptionStatus(player);
+            INSTANCE.updatePlayerExemptionStatus(player, status);
         }
     }
 
-    @SubscribeEvent
-    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        var player = event.getEntity();
-        var playerId = player.getGameProfile().getId();
-        INSTANCE.undoMarkPlayer(playerId);
-        INSTANCE.playerLocation.remove(playerId);
-        if (player instanceof ServerPlayer sp) {
-            INSTANCE.clearExemptFor(sp);
-        }
-    }
-
-    private void updatePlayerExemptionStatus(Player p) {
-        var playerId = p.getGameProfile().getId();
+    private void updatePlayerExemptionStatus(Player p, AreaControlStatusData status) {
         // 玩家 Reach Distance（默认 6 格，需要动态获取）的两倍范围，并且平方
         // Reach distance 选取 Block Reach 和 Entity Reach 中的较大值
         var doubleReachDistance = Math.max(p.blockInteractionRange(), p.entityInteractionRange()) * 2;
         var doubleReachDistanceSq = doubleReachDistance * doubleReachDistance;
-        Set<UUID> exemptedAreas = INSTANCE.playerExemptionStatus.get(playerId);
-        if (exemptedAreas == null) {
-            exemptedAreas = ConcurrentHashMap.newKeySet();
-            INSTANCE.playerExemptionStatus.put(playerId, exemptedAreas);
-        }
+        Set<UUID> exemptedAreas = status.areaIdsWithBypassModeOn;
         // 检查所有已针对当前玩家开启 bypass 模式的领地
         for (Iterator<UUID> iterator = exemptedAreas.iterator(); iterator.hasNext(); ) {
             var areaId = iterator.next();
@@ -165,14 +137,14 @@ public enum AreaControlPlayerTracker {
                 p.displayClientMessage(HOW_TO_TURN_ON, false);
             }
         }
-        var currArea = AreaManager.INSTANCE.findBy(this.playerLocation.get(playerId));
+        var currArea = status.currentArea;
         // 如果玩家是全局 Bypass：
-        if (this.playersWithGlobalExempt.contains(playerId)) {
+        if (status.globalBypassMode) {
             if (currArea != null) {
                 // 如果不在，检查是否已远离野外两倍 reach distance
                 if (AreaMath.distanceFromInteriorToBoundary(currArea, p.xo, p.yo, p.zo) >= doubleReachDistance) {
                     // 若已远离，则关闭野外的 Bypass
-                    if (this.playersWithWildnessExemption.remove(playerId)) {
+                    status.wildnessBypassMode = false; {
                         p.displayClientMessage(Component.translatable("area_control.bypass.wildness.passive_off"), false);
                         p.displayClientMessage(HOW_TO_TURN_ON, false);
                     }
@@ -189,7 +161,8 @@ public enum AreaControlPlayerTracker {
                 // // 玩家如果是切换后领地/野外的 Builder，或者拥有 area_control.command.admin 权限（注意野外）
                 if (AreaChecks.isACtrlAdmin((ServerPlayer) p)) {
                     // 则自动为该领地/野外开启 Bypass 模式（若还没有），并发送消息
-                    if (this.playersWithWildnessExemption.add(playerId)) {
+                    if (!status.wildnessBypassMode) {
+                        status.wildnessBypassMode = true;
                         p.displayClientMessage(Component.translatable("area_control.bypass.wildness.passive_on"), false);
                         p.displayClientMessage(HOW_TO_TURN_OFF, false);
                     }
@@ -200,12 +173,8 @@ public enum AreaControlPlayerTracker {
 
     public void markPlayerAsSupportExt(Player player) {
         if (player != null) {
-            this.playersWithExt.add(player.getGameProfile().getId());
+            getFrom(player).clientExtensionEnabled = true;
         }
-    }
-
-    public void undoMarkPlayer(UUID playerUid) {
-        this.playersWithExt.remove(playerUid);
     }
 
     public void sendNearbyAreasToClient(ResourceKey<Level> dim, ServerPlayer requester, double radius, boolean permanent) {
@@ -220,7 +189,7 @@ public enum AreaControlPlayerTracker {
             summaries.add(summary);
             requester.displayClientMessage(Util.describe(nearbyArea, requester.level()), false);
         }
-        if (this.playersWithExt.contains(requester.getGameProfile().getId())) {
+        if (thisPlayerHasClientExt(requester)) {
             var expire = permanent ? Long.MAX_VALUE : System.currentTimeMillis() + 60000;
             ACNetworking.send(requester, new ACSendNearbyArea(summaries, expire));
         } else {
@@ -234,58 +203,46 @@ public enum AreaControlPlayerTracker {
     }
 
     public void sendCurrentSelectionToClient(ServerPlayer receiver, AreaControlClaimHandler.RectangleRegion region) {
-        if (this.playersWithExt.contains(receiver.getGameProfile().getId())) {
+        if (thisPlayerHasClientExt(receiver)) {
             ACNetworking.send(receiver, ACSendCurrentSelection.of(false, region.start(), region.end()));
         }
     }
 
     public void clearSelectionForClient(ServerPlayer receiver) {
-        if (this.playersWithExt.contains(receiver.getGameProfile().getId())) {
+        if (thisPlayerHasClientExt(receiver)) {
             ACNetworking.send(receiver, ACSendCurrentSelection.of(true, null, null));
         }
     }
 
-    public @Nullable Area getCurrentAreaForPlayer(UUID playerUUID) {
-        var areaId = this.playerLocation.get(playerUUID);
-        return AreaManager.INSTANCE.findBy(areaId);
+    public static @Nullable Area getCurrentAreaForPlayer(ServerPlayer player) {
+        return getFrom(player).currentArea;
     }
 
-    public boolean thisPlayerHasClientExt(ServerPlayer p) {
-        return this.playersWithExt.contains(p.getGameProfile().getId());
+    public static boolean thisPlayerHasClientExt(ServerPlayer player) {
+        return getFrom(player).clientExtensionEnabled;
     }
 
-    public boolean hasBypassModeOnForArea(@NotNull Entity actor, @Nullable Area area) {
-        return this.hasBypassModeOnForArea(actor.getUUID(), area);
-    }
-
-    public boolean hasBypassModeOnForArea(@NotNull Player p, @Nullable Area area) {
-        return this.hasBypassModeOnForArea(p.getGameProfile().getId(), area);
-    }
-
-    public boolean hasBypassModeOnForArea(@NotNull UUID id, @Nullable Area area) {
+    public static boolean hasBypassModeOnForArea(@NotNull Entity actor, @Nullable Area area) {
+        var status = getFrom(actor);
         if (area == null) {
-            return this.playersWithWildnessExemption.contains(id);
+            return status.wildnessBypassMode;
         } else {
-            return this.playerExemptionStatus.getOrDefault(id, Set.of()).contains(area.uid);
+            return status.areaIdsWithBypassModeOn.contains(area.uid);
         }
     }
 
     public void setGlobalExempt(ServerPlayer p, boolean global) {
         var area = AreaManager.INSTANCE.findBy(p.level(), p.position());
-        var playerId = p.getGameProfile().getId();
-        var exemptedArea = this.playerExemptionStatus.get(playerId);
-        if (exemptedArea == null) {
-            exemptedArea = ConcurrentHashMap.newKeySet();
-            this.playerExemptionStatus.put(playerId, exemptedArea);
-        }
+        var status = getFrom(p);
+        var exemptedArea = status.areaIdsWithBypassModeOn;
         if (global) {
-            this.playersWithGlobalExempt.add(p.getGameProfile().getId());
+            status.globalBypassMode = true;
             if (!AreaChecks.isACtrlAreaBuilder(p, area, false)) {
                 p.displayClientMessage(Component.translatable("area_control.error.insufficient_permission_for_bypass"), false);
                 return;
             }
             if (area == null) {
-                this.playersWithWildnessExemption.add(playerId);
+                status.wildnessBypassMode = true;
                 p.displayClientMessage(Component.translatable("area_control.bypass.global.wildness.on"), false);
                 p.displayClientMessage(HOW_TO_TURN_OFF, false);
             } else {
@@ -299,7 +256,7 @@ public enum AreaControlPlayerTracker {
                 return;
             }
             if (area == null) {
-                this.playersWithWildnessExemption.add(playerId);
+                status.wildnessBypassMode = true;
                 p.displayClientMessage(Component.translatable("area_control.bypass.local.wildness.on"), false);
                 p.displayClientMessage(HOW_TO_TURN_OFF, false);
             } else {
@@ -312,9 +269,9 @@ public enum AreaControlPlayerTracker {
     }
 
     public void clearExemptFor(ServerPlayer p) {
-        var id = p.getGameProfile().getId();
-        if (this.playersWithGlobalExempt.remove(id)) {
-            var previouslyExempted = this.playerExemptionStatus.remove(id);
+        var status = getFrom(p);
+        if (status.globalBypassMode) {
+            var previouslyExempted = status.areaIdsWithBypassModeOn;
             // This can happen if player disconnected before its first tick.
             if (previouslyExempted != null) {
                 for (var areaId : previouslyExempted) {
@@ -322,13 +279,14 @@ public enum AreaControlPlayerTracker {
                     p.displayClientMessage(Component.translatable("area_control.bypass.global.area.off", area.name), false);
                     p.displayClientMessage(HOW_TO_TURN_ON, false);
                 }
+                status.areaIdsWithBypassModeOn.clear();
             }
-            if (this.playersWithWildnessExemption.remove(id)) {
+            status.globalBypassMode = false; {
                 p.displayClientMessage(Component.translatable("area_control.bypass.global.wildness.off"), false);
                 p.displayClientMessage(HOW_TO_TURN_ON, false);
             }
         } else {
-            var previouslyExempted = this.playerExemptionStatus.remove(id);
+            var previouslyExempted = status.areaIdsWithBypassModeOn;
             // This can happen if player disconnected before its first tick.
             if (previouslyExempted != null) {
                 for (var areaId : previouslyExempted) {
@@ -337,7 +295,7 @@ public enum AreaControlPlayerTracker {
                     p.displayClientMessage(HOW_TO_TURN_ON, false);
                 }
             }
-            if (this.playersWithWildnessExemption.remove(id)) {
+            status.globalBypassMode = false; {
                 p.displayClientMessage(Component.translatable("area_control.bypass.local.wildness.off"), false);
                 p.displayClientMessage(HOW_TO_TURN_ON, false);
             }

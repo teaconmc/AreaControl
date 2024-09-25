@@ -25,7 +25,7 @@ public enum AreaControlContextCalculator implements ContextCalculator<ServerPlay
     @Override
     public void calculate(@NonNull ServerPlayer target, @NonNull ContextConsumer consumer) {
         var uid = target.getGameProfile().getId();
-        final var area = AreaControlPlayerTracker.INSTANCE.getCurrentAreaForPlayer(uid);
+        final var area = AreaControlPlayerTracker.getCurrentAreaForPlayer(target);
         if (area == null) {
             consumer.accept(CONTEXT_IS_WILDNESS, "true");
             return;
