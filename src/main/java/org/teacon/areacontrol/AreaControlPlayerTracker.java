@@ -32,7 +32,6 @@ import org.teacon.areacontrol.network.ACSendCurrentSelection;
 import org.teacon.areacontrol.network.ACSendNearbyArea;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
@@ -74,6 +73,11 @@ public enum AreaControlPlayerTracker {
         var player = event.getEntity();
         var status = getFrom(player);
         status.currentArea = AreaManager.INSTANCE.findBy(player.level(), player.blockPosition());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerClone(PlayerEvent.Clone event) {
+        event.getEntity().setData(AreaControlPreSetup.PLAYER_STATUS, getFrom(event.getOriginal()));
     }
 
     @SubscribeEvent
@@ -144,10 +148,9 @@ public enum AreaControlPlayerTracker {
                 // 如果不在，检查是否已远离野外两倍 reach distance
                 if (AreaMath.distanceFromInteriorToBoundary(currArea, p.xo, p.yo, p.zo) >= doubleReachDistance) {
                     // 若已远离，则关闭野外的 Bypass
-                    status.wildnessBypassMode = false; {
-                        p.displayClientMessage(Component.translatable("area_control.bypass.wildness.passive_off"), false);
-                        p.displayClientMessage(HOW_TO_TURN_ON, false);
-                    }
+                    status.wildnessBypassMode = false;
+                    p.displayClientMessage(Component.translatable("area_control.bypass.wildness.passive_off"), false);
+                    p.displayClientMessage(HOW_TO_TURN_ON, false);
                 }
                 // 玩家如果是切换后领地/野外的 Builder，或者拥有 area_control.command.admin 权限（注意野外）
                 if (AreaChecks.isACtrlAreaBuilder((ServerPlayer) p, currArea)) {
@@ -171,12 +174,6 @@ public enum AreaControlPlayerTracker {
         }
     }
 
-    public void markPlayerAsSupportExt(Player player) {
-        if (player != null) {
-            getFrom(player).clientExtensionEnabled = true;
-        }
-    }
-
     public void sendNearbyAreasToClient(ResourceKey<Level> dim, ServerPlayer requester, double radius, boolean permanent) {
         LOGGER.debug(MARKER, "Player {} has requested nearby area. Center: {}, radius: {}", requester.getGameProfile().getName(), requester.blockPosition(), radius);
         var nearbyAreas = AreaManager.INSTANCE.getAreaSummariesSurround(dim, requester.blockPosition(), radius);
@@ -196,10 +193,6 @@ public enum AreaControlPlayerTracker {
             requester.displayClientMessage(Component.translatable("area_control.claim.nearby.visual"), false);
         }
         LOGGER.debug(MARKER, "End of the request");
-    }
-
-    public void clearNearbyAreasForClient(ServerPlayer requester) {
-        ACNetworking.send(requester, new ACSendNearbyArea(Collections.emptyList(), 0L));
     }
 
     public void sendCurrentSelectionToClient(ServerPlayer receiver, AreaControlClaimHandler.RectangleRegion region) {
@@ -270,8 +263,8 @@ public enum AreaControlPlayerTracker {
 
     public void clearExemptFor(ServerPlayer p) {
         var status = getFrom(p);
+        var previouslyExempted = status.areaIdsWithBypassModeOn;
         if (status.globalBypassMode) {
-            var previouslyExempted = status.areaIdsWithBypassModeOn;
             // This can happen if player disconnected before its first tick.
             if (previouslyExempted != null) {
                 for (var areaId : previouslyExempted) {
@@ -281,12 +274,11 @@ public enum AreaControlPlayerTracker {
                 }
                 status.areaIdsWithBypassModeOn.clear();
             }
-            status.globalBypassMode = false; {
-                p.displayClientMessage(Component.translatable("area_control.bypass.global.wildness.off"), false);
-                p.displayClientMessage(HOW_TO_TURN_ON, false);
-            }
+            status.globalBypassMode = false;
+            status.wildnessBypassMode = false;
+            p.displayClientMessage(Component.translatable("area_control.bypass.global.wildness.off"), false);
+            p.displayClientMessage(HOW_TO_TURN_ON, false);
         } else {
-            var previouslyExempted = status.areaIdsWithBypassModeOn;
             // This can happen if player disconnected before its first tick.
             if (previouslyExempted != null) {
                 for (var areaId : previouslyExempted) {
@@ -294,11 +286,12 @@ public enum AreaControlPlayerTracker {
                     p.displayClientMessage(Component.translatable("area_control.bypass.local.area.off", areaName), false);
                     p.displayClientMessage(HOW_TO_TURN_ON, false);
                 }
+                status.areaIdsWithBypassModeOn.clear();
             }
-            status.globalBypassMode = false; {
-                p.displayClientMessage(Component.translatable("area_control.bypass.local.wildness.off"), false);
-                p.displayClientMessage(HOW_TO_TURN_ON, false);
-            }
+            status.globalBypassMode = false;
+            status.wildnessBypassMode = false;
+            p.displayClientMessage(Component.translatable("area_control.bypass.local.wildness.off"), false);
+            p.displayClientMessage(HOW_TO_TURN_ON, false);
         }
 
     }

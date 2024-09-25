@@ -36,8 +36,10 @@ import org.teacon.areacontrol.impl.command.arguments.GroupArgument;
 import org.teacon.areacontrol.impl.seizer.ConfiscationInvMenuProvider;
 import org.teacon.areacontrol.mixin.CommandSourceStackAccessor;
 import org.teacon.areacontrol.network.ACNetworking;
+import org.teacon.areacontrol.network.ACSendNearbyArea;
 import org.teacon.areacontrol.network.ACShowPropEditScreen;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -208,7 +210,7 @@ public final class AreaControlCommand {
     private static int nearbyClear(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final var sender = src.getPlayerOrException();
-        AreaControlPlayerTracker.INSTANCE.clearNearbyAreasForClient(sender);
+        ACNetworking.send(sender, new ACSendNearbyArea(Collections.emptyList(), 0L));
         return Command.SINGLE_SUCCESS;
     }
 

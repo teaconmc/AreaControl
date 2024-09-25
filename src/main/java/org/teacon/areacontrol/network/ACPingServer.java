@@ -24,7 +24,8 @@ public record ACPingServer() implements CustomPacketPayload {
     };
 
     public void handle(IPayloadContext context) {
-        AreaControlPlayerTracker.INSTANCE.markPlayerAsSupportExt(context.player());
+        var player = context.player();
+        AreaControlPlayerTracker.getFrom(player).clientExtensionEnabled = true;
     }
 
     @Override
