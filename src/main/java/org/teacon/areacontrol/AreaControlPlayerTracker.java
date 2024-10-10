@@ -112,11 +112,11 @@ public enum AreaControlPlayerTracker {
             }
 
             // 检查玩家的 Bypass 状态并更新。
-            INSTANCE.updatePlayerExemptionStatus(player, status);
+            INSTANCE.updatePlayerExemptionStatus(player, status, prevArea);
         }
     }
 
-    private void updatePlayerExemptionStatus(Player p, AreaControlStatusData status) {
+    private void updatePlayerExemptionStatus(Player p, AreaControlStatusData status, Area prevArea) {
         // 玩家 Reach Distance（默认 6 格，需要动态获取）的两倍范围，并且平方
         // Reach distance 选取 Block Reach 和 Entity Reach 中的较大值
         var doubleReachDistance = Math.max(p.blockInteractionRange(), p.entityInteractionRange()) * 2;
@@ -146,7 +146,7 @@ public enum AreaControlPlayerTracker {
         if (status.globalBypassMode) {
             if (currArea != null) {
                 // 如果不在，检查是否已远离野外两倍 reach distance
-                if (AreaMath.distanceFromInteriorToBoundary(currArea, p.xo, p.yo, p.zo) >= doubleReachDistance) {
+                if (currArea != prevArea && AreaMath.distanceFromInteriorToBoundary(currArea, p.xo, p.yo, p.zo) >= doubleReachDistance) {
                     // 若已远离，则关闭野外的 Bypass
                     status.wildnessBypassMode = false;
                     p.displayClientMessage(Component.translatable("area_control.bypass.wildness.passive_off"), false);
