@@ -55,9 +55,14 @@ public final class AreaControlEventHandlers {
             boolean allow;
             Component deniedFeedback;
             var damageSrc = src.getEntity();
-            if (attackTarget instanceof Player && damageSrc instanceof Player) {
-                allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_PVP, null, AreaControlConfig.allowPvP);
-                deniedFeedback = Component.translatable("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY);
+            if (attackTarget instanceof Player) {
+                if (damageSrc instanceof Player) {
+                    allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_PVP, null, AreaControlConfig.allowPvP);
+                    deniedFeedback = Component.translatable("area_control.notice.pvp_disabled", ObjectArrays.EMPTY_ARRAY);
+                } else {
+                    allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_EVP, null, AreaControlConfig.allowEvP);
+                    deniedFeedback = Component.translatable("area_control.notice.evp_disabled", ObjectArrays.EMPTY_ARRAY);
+                }
             } else {
                 var entityTypeRegName = BuiltInRegistries.ENTITY_TYPE.getKey(attackTarget.getType());
                 allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_PVE, entityTypeRegName, AreaControlConfig.allowPvE);

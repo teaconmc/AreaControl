@@ -24,6 +24,7 @@ public final class AreaProperties {
     public static final String SHOW_WELCOME = register("display_welcome_message");
     public static final String ALLOW_SPAWN = register("spawn");
     public static final String ALLOW_PVP = register("pvp");
+    public static final String ALLOW_EVP = register("evp"); // Environment-versus-player - player undertaking damage from non-player source
     public static final String ALLOW_PVE = register("attack");
     public static final String ALLOW_INTERACT_ENTITY = register("interact_entity");
     public static final String ALLOW_RIDE = register("ride");

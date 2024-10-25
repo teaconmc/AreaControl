@@ -15,7 +15,7 @@ public class AreaControlConfig {
 
     public static ModConfigSpec.BooleanValue allowBreakBlock, allowPlaceBlock, allowClickBlock, allowActivateBlock;
     public static ModConfigSpec.BooleanValue allowPossessItem, allowUseItem;
-    public static ModConfigSpec.BooleanValue allowSpawnEntity, allowRideEntity, allowInteractEntity, allowPvP, allowPvE;
+    public static ModConfigSpec.BooleanValue allowSpawnEntity, allowRideEntity, allowInteractEntity, allowPvP, allowEvP, allowPvE;
     public static ModConfigSpec.BooleanValue allowEntitySelectingFromParent;
     public static ModConfigSpec.BooleanValue allowEntitySelectingFromChild;
     public static ModConfigSpec.BooleanValue allowCBSelectingFromParent;
@@ -75,6 +75,9 @@ public class AreaControlConfig {
         allowPvP = configSpec
                 .translation("area_control.config.global_default_properties.pvp")
                 .define("allowPvP", false);
+        allowEvP = configSpec
+                .translation("area_control.config.global_default_properties.evp")
+                .define("allowEvP", false);
         allowPvE = configSpec
                 .translation("area_control.config.global_default_properties.attack")
                 .define("allowPvE", false);
