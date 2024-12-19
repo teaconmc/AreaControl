@@ -82,7 +82,14 @@ public final class AreaProperties {
     }
 
     public static Optional<Boolean> getBoolOptional(@Nullable Area area, String key, boolean recursive) {
-        if (area == null) return Optional.empty();
+        if (area == null) {
+            Area virtualWild = AreaControlAPI.areaLookup.getVirtualWild();
+            if (virtualWild == null) {
+                return Optional.empty();
+            }
+            area = virtualWild;
+            recursive = false;
+        }
         Object o = area.properties.get(key);
         if (o == null || "null".equals(o)) {
             if (recursive) {

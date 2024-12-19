@@ -5,6 +5,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaLookup;
@@ -39,4 +40,10 @@ public enum AreaLookupImpl implements AreaLookup {
         var dimResKey = this.getOrCreate(dimKey);
         return AreaManager.INSTANCE.findBy(dimResKey, new BlockPos(x, y, z));
     }
+
+    @Override
+    public @Nullable Area getVirtualWild() {
+        return AreaManager.INSTANCE.getVirtualWild();
+    }
+
 }
