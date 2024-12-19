@@ -24,8 +24,8 @@ public enum AreaRepositoryManager {
         }
     }
 
-    public AreaRepository create(String type, Path dataRootDir) {
-        return this.repoFactories.get(type).createFrom(dataRootDir);
+    public AreaRepository create(String type, Path dataRootDir, Path globalConfigDir) {
+        return this.repoFactories.get(type).createFrom(dataRootDir, globalConfigDir);
     }
 
     public static void init() {
