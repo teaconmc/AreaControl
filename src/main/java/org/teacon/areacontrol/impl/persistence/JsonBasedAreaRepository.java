@@ -18,7 +18,7 @@ public class JsonBasedAreaRepository implements AreaRepository {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private final Path dataDirRoot;
 
-    public JsonBasedAreaRepository(Path dataDirRoot, Path globalConfigDir) {
+    public JsonBasedAreaRepository(Path dataDirRoot) {
         this.dataDirRoot = dataDirRoot;
     }
 
@@ -58,11 +58,6 @@ public class JsonBasedAreaRepository implements AreaRepository {
     }
 
     @Override
-    public Area loadWildness() throws Exception {
-        throw new UnsupportedOperationException("Unimplemented");
-    }
-
-    @Override
     public void remove(Area areaToRemove) throws Exception {
         Files.deleteIfExists(this.dataDirRoot.resolve("claim-%s.json".formatted(areaToRemove.uid)));
     }
@@ -85,8 +80,4 @@ public class JsonBasedAreaRepository implements AreaRepository {
         }
     }
 
-    @Override
-    public void saveWildness(Area rea) throws Exception {
-        throw new UnsupportedOperationException("Unimplemented");
-    }
 }

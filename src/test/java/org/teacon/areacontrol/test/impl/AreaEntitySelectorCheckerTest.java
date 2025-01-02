@@ -121,7 +121,7 @@ public class AreaEntitySelectorCheckerTest {
         i.properties.put(AreaProperties.ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT, false);
         j.properties.put(AreaProperties.ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT, true);
 
-        var areaRepo = new InMemoryAreaRepository(allAreas, new Area());
+        var areaRepo = new InMemoryAreaRepository(allAreas);
         try {
             AreaManager.INSTANCE.init(areaRepo);
             AreaManager.INSTANCE.load();

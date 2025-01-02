@@ -14,7 +14,4 @@ public interface AreaLookup {
 
     @Nullable
     Area findBy(String dimKey, int x, int y, int z);
-
-    @Nullable
-    Area getVirtualWild();
 }

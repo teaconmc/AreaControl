@@ -25,11 +25,6 @@ public class AreaControlAPI {
         public Area findBy(String dimKey, int x, int y, int z) {
             throw new IllegalStateException("Not initialized yet!");
         }
-
-        @Override
-        public @Nullable Area getVirtualWild() {
-            throw new IllegalStateException("Not initialized yet!");
-        }
     };
 
     public static GroupProvider groupProvider = new GroupProvider() {

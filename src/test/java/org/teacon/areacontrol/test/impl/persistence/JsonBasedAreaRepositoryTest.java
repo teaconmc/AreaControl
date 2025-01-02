@@ -35,10 +35,8 @@ public class JsonBasedAreaRepositoryTest {
     @BeforeEach
     public void setup() {
         Path claimStoreRoot = this.fsRoot.getPath("/area-control");
-        Path globalConfigRoot = this.fsRoot.getPath("/config");
         try {
             Files.createDirectories(claimStoreRoot);
-            Files.createDirectories(globalConfigRoot);
         } catch (IOException e) {
             Assertions.fail(e);
         }
@@ -47,7 +45,6 @@ public class JsonBasedAreaRepositoryTest {
     @Test
     public void testLoad() {
         Path claimStoreRoot = this.fsRoot.getPath("/area-control");
-        Path globalConfigRoot = this.fsRoot.getPath("/config");
         String claimData = """
                 {
                     "uid": "f6b2a791-d2cd-4992-b4d6-4b0ecd242f92",
@@ -76,7 +73,7 @@ public class JsonBasedAreaRepositoryTest {
             Assertions.fail(e);
         }
 
-        JsonBasedAreaRepository repo = new JsonBasedAreaRepository(claimStoreRoot, globalConfigRoot);
+        JsonBasedAreaRepository repo = new JsonBasedAreaRepository(claimStoreRoot);
         Collection<Area> areas = null;
         try {
             areas = repo.load();
@@ -114,8 +111,7 @@ public class JsonBasedAreaRepositoryTest {
         Mockito.when(this.mockPlayer.getGameProfile()).thenReturn(dummyProfile);
 
         Path claimStoreRoot = this.fsRoot.getPath("/area-control");
-        Path globalConfigRoot = this.fsRoot.getPath("/config");
-        JsonBasedAreaRepository repo = new JsonBasedAreaRepository(claimStoreRoot, globalConfigRoot);
+        JsonBasedAreaRepository repo = new JsonBasedAreaRepository(claimStoreRoot);
 
         Area area = Util.createArea(new BlockPos(-1, -1, -1), new BlockPos(1, 1,1 ), this.mockPlayer);
         area.uid = UUID.fromString("5d9e9b0d-f438-4e5a-826e-7d42ab76385a");

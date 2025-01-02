@@ -10,7 +10,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
@@ -67,8 +66,7 @@ public final class AreaControl {
         AreaControlAPI.groupProvider = VanillaScoreboardTeamGroupProvider.INSTANCE;
         final MinecraftServer server = event.getServer();
         final Path dataDir = server.getWorldPath(SERVER_CONFIG).resolve("area_control");
-        final Path globalConfigDir = FMLPaths.CONFIGDIR.get();
-        final var repo = AreaRepositoryManager.INSTANCE.create(AreaControlConfig.persistenceMode.get(), dataDir, globalConfigDir);
+        final var repo = AreaRepositoryManager.INSTANCE.create(AreaControlConfig.persistenceMode.get(), dataDir);
         AreaManager.INSTANCE.init(repo);
         if (Files.isDirectory(dataDir)) {
             try {

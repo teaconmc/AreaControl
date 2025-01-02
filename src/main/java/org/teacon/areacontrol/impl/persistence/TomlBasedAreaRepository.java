@@ -18,8 +18,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.MoreFiles;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 import net.minecraft.core.BlockPos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
 
 import javax.annotation.Nullable;
@@ -30,18 +28,13 @@ import java.util.*;
 
 public class TomlBasedAreaRepository implements AreaRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TomlBasedAreaRepository.class);
-
     private final Path dataDirRoot;
-    private final Path globalConfigDirRoot;
 
     private final ObjectSerializer writer;
     private final ObjectDeserializer reader;
 
-    public TomlBasedAreaRepository(Path dataDirRoot, Path globalConfigDir) {
+    public TomlBasedAreaRepository(Path dataDirRoot) {
         this.dataDirRoot = dataDirRoot;
-        this.globalConfigDirRoot = globalConfigDir;
-
         var desBuilder = ObjectDeserializer.builder();
         desBuilder.withDefaultDeserializerProvider(BlockPosSerDeProvider.INSTANCE);
         this.reader = desBuilder.build();
@@ -79,25 +72,6 @@ public class TomlBasedAreaRepository implements AreaRepository {
     }
 
     @Override
-    public Area loadWildness() throws Exception {
-        LOGGER.info("Loading wildness permission data...");
-        Path wildDef = this.globalConfigDirRoot.resolve("area_control-wildness.toml");
-        if (Files.notExists(wildDef)) {
-            LOGGER.info("No wildness found, will use default one");
-            return null;
-        }
-        try (FileConfig areasData = FileConfig.of(wildDef, TomlFormat.instance())) {
-            areasData.load();
-            var model = reader.deserializeFields(areasData, AreaModel::new);
-            LOGGER.info("Wildness permission data loaded");
-            return model.toRealArea();
-        } catch (Exception e) {
-            LOGGER.error("Error occurred while loading permission data for the wildness", e);
-            throw e;
-        }
-    }
-
-    @Override
     public void remove(Area areaToRemove) throws Exception {
         Files.deleteIfExists(this.dataDirRoot.resolve("claim-%s.toml".formatted(areaToRemove.uid)));
     }
@@ -120,16 +94,6 @@ public class TomlBasedAreaRepository implements AreaRepository {
         }
         if (exception != null) {
             throw exception;
-        }
-    }
-
-    @Override
-    public void saveWildness(Area wild) throws Exception {
-        Path wildDef = this.globalConfigDirRoot.resolve("area_control-wildness.toml");
-        try (FileConfig areasData = FileConfig.builder(wildDef).sync().build()) {
-            var saved = this.writer.serializeFields(new AreaModel(wild), TomlFormat::newConfig);
-            areasData.addAll(saved);
-            areasData.save();
         }
     }
 

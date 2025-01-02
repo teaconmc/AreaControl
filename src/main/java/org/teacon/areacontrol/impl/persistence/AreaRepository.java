@@ -9,15 +9,11 @@ public interface AreaRepository {
 
     Collection<Area> load() throws Exception;
 
-    Area loadWildness() throws Exception;
-
     void remove(Area areaToRemove) throws Exception;
 
     void save(Collection<Area> areas) throws Exception;
 
-    void saveWildness(Area area) throws Exception;
-
     interface Factory {
-        AreaRepository createFrom(Path dataRootDir, Path globalConfigDir);
+        AreaRepository createFrom(Path dataRootDir);
     }
 }

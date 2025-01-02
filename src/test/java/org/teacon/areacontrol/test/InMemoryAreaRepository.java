@@ -10,21 +10,13 @@ public class InMemoryAreaRepository implements AreaRepository {
 
     public final List<Area> areas;
 
-    public final Area virtualWild;
-
-    public InMemoryAreaRepository(List<Area> areas, Area virtualWild) {
+    public InMemoryAreaRepository(List<Area> areas) {
         this.areas = areas;
-        this.virtualWild = virtualWild;
     }
 
     @Override
     public Collection<Area> load() {
         return List.copyOf(this.areas);
-    }
-
-    @Override
-    public Area loadWildness() throws Exception {
-        return this.virtualWild;
     }
 
     @Override
@@ -35,10 +27,5 @@ public class InMemoryAreaRepository implements AreaRepository {
     @Override
     public void save(Collection<Area> areas) {
         // No-op, this is in-memory
-    }
-
-    @Override
-    public void saveWildness(Area rea) throws Exception {
-
     }
 }

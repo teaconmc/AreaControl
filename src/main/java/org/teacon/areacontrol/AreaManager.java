@@ -13,7 +13,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
@@ -27,7 +26,6 @@ import org.teacon.areacontrol.impl.ChunkPosRange;
 import org.teacon.areacontrol.impl.persistence.AreaRepository;
 
 import java.math.BigInteger;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -61,9 +59,6 @@ public final class AreaManager {
     // Apparently create a ResourceKey involves String.intern(), so here we go...
     private final Map<String, ResourceKey<Level>> levelKeyCache = new HashMap<>();
 
-    /** A special area instance that allows more fine-grained permission control over wild area */
-    private Area virtualWild;
-
     private ResourceKey<Level> getOrCreate(String dimKey) {
         return this.levelKeyCache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(k)));
     }
@@ -96,11 +91,6 @@ public final class AreaManager {
     }
 
     public void load() throws Exception {
-        try {
-            this.virtualWild = this.repository.loadWildness();
-        } catch (Exception e) {
-            LOGGER.error("Error occurred while loading virtual wild definition. Proceeding without virtual wild", e);
-        }
         var writeLock = this.lock.writeLock();
         try {
             writeLock.lock();
@@ -230,9 +220,12 @@ public final class AreaManager {
         if (parent.size() > 1) {
             return false;
         }
-        for (var child : children) {
-            if (!AreaChecks.isACtrlAreaOwner(actor, child)) {
-                return false;
+        if (!AreaChecks.isACtrlAdmin(actor)) {
+            // AC admin should be able to do this.
+            for (var child : children) {
+                if (!AreaChecks.isACtrlAreaOwner(actor, child)) {
+                    return false;
+                }
             }
         }
         // No conflict, single parent - this is a success. Building cache for this new area.
@@ -589,10 +582,5 @@ public final class AreaManager {
                 .flatMap(Set::stream)
                 .map(this::findBy)
                 .toList();
-    }
-
-    @ApiStatus.Internal
-    public Area getVirtualWild() {
-        return this.virtualWild;
     }
 }
