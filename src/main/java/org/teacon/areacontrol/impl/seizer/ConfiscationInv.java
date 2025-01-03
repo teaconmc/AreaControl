@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.Optional;
 
 public class ConfiscationInv implements INBTSerializable<CompoundTag> {
@@ -59,6 +60,10 @@ public class ConfiscationInv implements INBTSerializable<CompoundTag> {
                 seized.setCount(seized.getCount() - delta);
             }
         }
+    }
+
+    public void clear() {
+        Collections.fill(this.seizedItems, ItemStack.EMPTY);
     }
 
     final class ContainerWrapper implements Container {

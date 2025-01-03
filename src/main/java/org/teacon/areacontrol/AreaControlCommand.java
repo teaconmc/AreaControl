@@ -33,6 +33,7 @@ import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
 import org.teacon.areacontrol.impl.command.arguments.DirectionArgument;
 import org.teacon.areacontrol.impl.command.arguments.GroupArgument;
+import org.teacon.areacontrol.impl.seizer.AreaControlBorderControl;
 import org.teacon.areacontrol.impl.seizer.ConfiscationInvMenuProvider;
 import org.teacon.areacontrol.mixin.CommandSourceStackAccessor;
 import org.teacon.areacontrol.network.ACNetworking;
@@ -162,10 +163,19 @@ public final class AreaControlCommand {
                                 .then(Commands.literal("mark").requires(OWNER_OR_ADMIN).then(
                                         Commands.argument("pos", Vec3Argument.vec3()).executes(AreaControlCommand::mark)))
                                 .then(Commands.literal("unclaim").requires(OWNER_OR_ADMIN).executes(AreaControlCommand::unclaim))
-                                .then(Commands.literal("safe").executes(AreaControlCommand::openConfiscatedItemInv))
+                                .then(Commands.literal("safe")
+                                        .then(Commands.literal("clear").executes(AreaControlCommand::clearConfiscatedItemInv)
+                                        )
+                                        .executes(AreaControlCommand::openConfiscatedItemInv))
                         )
                 )
         );
+    }
+
+    private static int clearConfiscatedItemInv(CommandContext<CommandSourceStack> context) throws CommandSyntaxException{
+        var player = context.getSource().getPlayerOrException();
+        player.getData(AreaControlBorderControl.CONFISCATION_INV.get()).clear();
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int openConfiscatedItemInv(CommandContext<CommandSourceStack> context) throws CommandSyntaxException{
