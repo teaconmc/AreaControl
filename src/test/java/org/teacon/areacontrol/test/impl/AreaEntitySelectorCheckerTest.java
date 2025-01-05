@@ -125,6 +125,7 @@ public class AreaEntitySelectorCheckerTest {
         try {
             AreaManager.INSTANCE.init(areaRepo);
             AreaManager.INSTANCE.load();
+            AreaManager.INSTANCE.initWildness();
             AreaControlAPI.areaLookup = AreaLookupImpl.INSTANCE;
         } catch (Exception ex) {
             Assertions.fail("Failed to initialize AreaManager, which should not happen!");

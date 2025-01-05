@@ -85,17 +85,7 @@ public final class AreaControl {
             }
         }
 
-        if (AreaManager.INSTANCE.findBy(AreaControlAPI.WILDNESS) == null) {
-            // if no wildness exist, it do will be null.
-
-            Area area = new Area();
-            area.uid = AreaControlAPI.WILDNESS;
-            area.minX = area.minZ = -1;
-            area.maxX = area.maxZ = 1;
-            area.minY = Integer.MAX_VALUE >> 8;
-            area.maxY = area.minY + 1;
-            AreaManager.INSTANCE.add(area, Level.OVERWORLD, null);
-        }
+        AreaManager.INSTANCE.initWildness();
     }
 
     @SubscribeEvent
