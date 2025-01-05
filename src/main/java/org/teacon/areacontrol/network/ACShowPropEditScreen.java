@@ -16,8 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record ACShowPropEditScreen(String areaName, List<Info> props) implements CustomPacketPayload {
-    public ACShowPropEditScreen(Area area) {
-        this(area.name, new ArrayList<>());
+    public ACShowPropEditScreen(Area area, boolean isWildness) {
+        this(isWildness ? null : area.name, new ArrayList<>());
 
         for (var prop : AreaProperties.KNOWN_PROPERTIES) {
             var maybeBool = AreaProperties.getBoolOptional(area, prop, false);
@@ -31,7 +31,7 @@ public record ACShowPropEditScreen(String areaName, List<Info> props) implements
     public static final CustomPacketPayload.Type<ACShowPropEditScreen> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("area_control", "show_prop_edit_screen"));
 
     public static final StreamCodec<FriendlyByteBuf, ACShowPropEditScreen> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.STRING_UTF8,
+            ACNetworking.asNullableCodecValue(ByteBufCodecs.STRING_UTF8),
             ACShowPropEditScreen::areaName,
             StreamCodec.composite(
                     ByteBufCodecs.STRING_UTF8,
@@ -45,7 +45,7 @@ public record ACShowPropEditScreen(String areaName, List<Info> props) implements
     );
 
     public void handle(IPayloadContext context) {
-        context.enqueueWork(() -> HandlerImpl.openScreen0(this.areaName, this.props));
+        context.enqueueWork(() -> HandlerImpl.openScreen(this.areaName, this.props));
     }
 
     @Override
@@ -55,7 +55,7 @@ public record ACShowPropEditScreen(String areaName, List<Info> props) implements
     }
 
     private static final class HandlerImpl {
-        static void openScreen0(String areaName, List<ACShowPropEditScreen.Info> props) {
+        static void openScreen(String areaName, List<ACShowPropEditScreen.Info> props) {
             Minecraft.getInstance().setScreen(new EditPropertiesScreen(areaName, props));
         }
     }

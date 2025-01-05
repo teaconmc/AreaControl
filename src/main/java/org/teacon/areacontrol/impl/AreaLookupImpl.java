@@ -5,8 +5,10 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.api.Area;
+import org.teacon.areacontrol.api.AreaControlAPI;
 import org.teacon.areacontrol.api.AreaLookup;
 
 import java.util.HashMap;
@@ -30,13 +32,16 @@ public enum AreaLookupImpl implements AreaLookup {
 
     @Override
     public Area findBy(String dimKey, double x, double y, double z) {
-        var dimResKey = this.getOrCreate(dimKey);
-        return AreaManager.INSTANCE.findBy(dimResKey, new BlockPos((int) x, (int) y, (int) z));
+        return AreaManager.INSTANCE.findBy(this.getOrCreate(dimKey), new BlockPos((int) x, (int) y, (int) z));
     }
 
     @Override
     public Area findBy(String dimKey, int x, int y, int z) {
-        var dimResKey = this.getOrCreate(dimKey);
-        return AreaManager.INSTANCE.findBy(dimResKey, new BlockPos(x, y, z));
+        return AreaManager.INSTANCE.findBy(this.getOrCreate(dimKey), new BlockPos(x, y, z));
+    }
+
+    @Override
+    public @NotNull Area findWildness() {
+        return findBy(AreaControlAPI.WILDNESS);
     }
 }

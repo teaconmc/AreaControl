@@ -29,6 +29,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.permission.PermissionAPI;
 import org.teacon.areacontrol.api.Area;
+import org.teacon.areacontrol.api.AreaControlAPI;
 import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
 import org.teacon.areacontrol.impl.command.arguments.DirectionArgument;
@@ -49,6 +50,14 @@ import java.util.function.Supplier;
 public final class AreaControlCommand {
 
     private static final Supplier<Component> ERROR_WILD = () -> Component.translatable("area_control.claim.current.wildness");
+
+    private static final Predicate<CommandSourceStack> ADMIN = source -> {
+        // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
+        if (((CommandSourceStackAccessor) source).getSource() instanceof ServerPlayer sp) {
+            return PermissionAPI.getPermission(sp, AreaControlPermissions.AC_ADMIN);
+        }
+        return false;
+    };
 
     private static final Predicate<CommandSourceStack> OWNER_OR_ADMIN = source -> {
         // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
@@ -73,7 +82,9 @@ public final class AreaControlCommand {
                 .redirect(dispatcher.register(Commands.literal("areacontrol")
                                 .then(Commands.literal("about").executes(AreaControlCommand::about))
                                 .then(Commands.literal("help").executes(AreaControlCommand::help))
-                                .then(Commands.literal("admin").executes(AreaControlCommand::admin))
+                                .then(Commands.literal("admin").requires(ADMIN)
+                                        .then(Commands.literal("rebuild").executes(AreaControlCommand::rebuildAreaModel))
+                                )
                                 .then(Commands.literal("nearby")
                                         .then(Commands.literal("on").executes(context -> AreaControlCommand.nearby(context, true)))
                                         .then(Commands.literal("off").executes(AreaControlCommand::nearbyClear))
@@ -172,20 +183,35 @@ public final class AreaControlCommand {
         );
     }
 
-    private static int clearConfiscatedItemInv(CommandContext<CommandSourceStack> context) throws CommandSyntaxException{
+    private static int rebuildAreaModel(CommandContext<CommandSourceStack> context) {
+        AreaManager.RebuildProblem result = AreaManager.INSTANCE.fix();
+        if (result == null) {
+            context.getSource().sendSuccess(() -> Component.translatable("area_control.admin.rebuild.success"), true);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            context.getSource().sendSuccess(() -> Component.translatable(switch (result.relation()) {
+                case SAME -> "area_control.admin.rebuild.fail.same";
+                case INTERSECT -> "area_control.admin.rebuild.fail.intersect";
+                case null, default -> throw new AssertionError();
+            }, result.left().toString(), result.right().toString()), true);
+            return -1;
+        }
+    }
+
+    private static int clearConfiscatedItemInv(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         var player = context.getSource().getPlayerOrException();
         player.getData(AreaControlBorderControl.CONFISCATION_INV.get()).clear();
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int openConfiscatedItemInv(CommandContext<CommandSourceStack> context) throws CommandSyntaxException{
+    private static int openConfiscatedItemInv(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         var player = context.getSource().getPlayerOrException();
         player.openMenu(new ConfiscationInvMenuProvider());
         return Command.SINGLE_SUCCESS;
     }
 
     private static int about(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendSuccess(() -> Component.literal("AreaControl 0.1.4"), false);
+        context.getSource().sendSuccess(() -> Component.literal("AreaControl 0.8.16"), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -200,11 +226,6 @@ public final class AreaControlCommand {
                                 .append(Component.translatable("area_control.claim.how_to.give_item").withStyle(ChatFormatting.GRAY))))
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/give @s " + AreaControlConfig.areaClaimTool.get())));
         context.getSource().sendSuccess(() -> Component.translatable("area_control.claim.how_to", displayName), false);
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int admin(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendSuccess(() -> Component.literal("WIP"), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -389,7 +410,7 @@ public final class AreaControlCommand {
                 src.sendSuccess(() -> Component.translatable("area_control.claim.current.line.owner_group", ownerName), true);
             }
             Area enclosingArea = area.resolveParent();
-            if (enclosingArea!= null) {
+            if (enclosingArea != null) {
                 src.sendSuccess(() -> Component.translatable("area_control.claim.current.line.enclosed", enclosingArea.name), true);
             }
         } else {
@@ -419,10 +440,15 @@ public final class AreaControlCommand {
         }
         if (AreaControlPlayerTracker.thisPlayerHasClientExt(player)) {
             if (area == null) {
-                src.sendSuccess(ERROR_WILD, true);
-                return 0;
+                if (AreaChecks.isACtrlAdmin(player)) {
+                    ACNetworking.send(player, new ACShowPropEditScreen(AreaControlAPI.areaLookup.findWildness(), true));
+                    return Command.SINGLE_SUCCESS;
+                } else {
+                    src.sendFailure(Component.translatable("area_control.error.cannot_set_property.wildess"));
+                    return 0;
+                }
             } else if (AreaChecks.isACtrlAreaBuilder(player, area)) {
-                ACNetworking.send(player, new ACShowPropEditScreen(area));
+                ACNetworking.send(player, new ACShowPropEditScreen(area, false));
                 return Command.SINGLE_SUCCESS;
             } else {
                 src.sendFailure(Component.translatable("area_control.error.cannot_set_property", area.name));
@@ -457,6 +483,10 @@ public final class AreaControlCommand {
         final var level = src.getLevel();
         final var pos = src.getPosition();
         final var area = AreaManager.INSTANCE.findBy(level, pos);
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        }
         src.sendSuccess(() -> Component.literal(area.name), false);
         return Command.SINGLE_SUCCESS;
     }
@@ -467,7 +497,10 @@ public final class AreaControlCommand {
         final var level = src.getLevel();
         final var pos = src.getPosition();
         final var area = AreaManager.INSTANCE.findBy(level, pos);
-        if (AreaChecks.isACtrlAreaBuilder(requester, area)) {
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (AreaChecks.isACtrlAreaBuilder(requester, area)) {
             final var newName = context.getArgument("name", String.class);
             final var oldName = area.name;
             area.name = newName;
@@ -485,7 +518,10 @@ public final class AreaControlCommand {
         final var level = src.getLevel();
         final var pos = src.getPosition();
         final var area = AreaManager.INSTANCE.findBy(level, pos);
-        if (AreaChecks.isACtrlAreaOwner(requester, area)) {
+        if (area == null) {
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
+        } else if (AreaChecks.isACtrlAreaOwner(requester, area)) {
             final var direction = context.getArgument("direction", Direction.class);
             final var amount = context.getArgument("amount", Integer.class);
             if (AreaManager.INSTANCE.changeRangeForArea(level.dimension(), area, direction, amount)) {
@@ -709,15 +745,20 @@ public final class AreaControlCommand {
         final var src = context.getSource();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         if (area == null) {
-            src.sendSuccess(ERROR_WILD, true);
-            return 0;
+            final var properties = AreaControlAPI.areaLookup.findWildness().properties;
+            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.header", Component.translatable("area_control.wildness")), false);
+            for (var prop : properties.entrySet()) {
+                src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.entry", prop.getKey(), prop.getValue().toString()), false);
+            }
+            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.footer", properties.size()), false);
+        } else {
+            final var properties = area.properties;
+            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.header", area.name), false);
+            for (var prop : properties.entrySet()) {
+                src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.entry", prop.getKey(), prop.getValue().toString()), false);
+            }
+            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.footer", properties.size()), false);
         }
-        final var properties = area.properties;
-        src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.header", area.name), false);
-        for (var prop : properties.entrySet()) {
-            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.entry", prop.getKey(), prop.getValue().toString()), false);
-        }
-        src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.footer", properties.size()), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -726,8 +767,21 @@ public final class AreaControlCommand {
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
         if (area == null) {
-            src.sendSuccess(ERROR_WILD, true);
-            return 0;
+            if (!AreaChecks.isACtrlAdmin(player)) {
+                src.sendFailure(Component.translatable("area_control.error.cannot_set_property.wildness"));
+                return -1;
+            }
+
+            final String prop = context.getArgument("property", String.class);
+            final Object value = AreaControlAPI.areaLookup.findWildness().properties.get(prop);
+            Component msg;
+            if (value == null) {
+                msg = Component.translatable("area_control.claim.property.single.unset.wildness", prop);
+            } else {
+                msg = Component.translatable("area_control.claim.property.single.unset.wildness", prop, value);
+            }
+            src.sendSuccess(() -> msg, false);
+            return Command.SINGLE_SUCCESS;
         } else if (AreaChecks.isACtrlAreaBuilder(player, area)) {
             final String prop = context.getArgument("property", String.class);
             final Object value = area.properties.get(prop);
@@ -750,8 +804,17 @@ public final class AreaControlCommand {
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
         if (area == null) {
-            src.sendSuccess(ERROR_WILD, true);
-            return 0;
+            if (!AreaChecks.isACtrlAdmin(player)) {
+                src.sendFailure(Component.translatable("area_control.error.cannot_set_property.wildness"));
+                return -1;
+            }
+
+            final String prop = context.getArgument("property", String.class);
+            final String value = context.getArgument("value", String.class);
+            final Object oldValue = AreaControlAPI.areaLookup.findWildness().properties.put(prop, value);
+            src.sendSuccess(() -> Component.translatable("area_control.claim.property.update.wildness",
+                    prop, value, Objects.toString(oldValue)), false);
+            return Command.SINGLE_SUCCESS;
         } else if (AreaChecks.isACtrlAreaBuilder(player, area)) {
             final String prop = context.getArgument("property", String.class);
             final String value = context.getArgument("value", String.class);
@@ -770,8 +833,16 @@ public final class AreaControlCommand {
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
         if (area == null) {
-            src.sendSuccess(ERROR_WILD, true);
-            return 0;
+            if (!AreaChecks.isACtrlAdmin(player)) {
+                src.sendFailure(Component.translatable("area_control.error.cannot_set_property.wildness"));
+                return -1;
+            }
+
+            final String prop = context.getArgument("property", String.class);
+            final Object oldValue = AreaControlAPI.areaLookup.findWildness().properties.remove(prop);
+            src.sendSuccess(() -> Component.translatable("area_control.claim.property.unset.wildness",
+                    prop, Objects.toString(oldValue)), false);
+            return Command.SINGLE_SUCCESS;
         } else if (AreaChecks.isACtrlAreaBuilder(player, area)) {
             final String prop = context.getArgument("property", String.class);
             final Object oldValue = area.properties.remove(prop);
@@ -812,8 +883,8 @@ public final class AreaControlCommand {
                 return -1;
             }
         } else {
-            context.getSource().sendFailure(Component.translatable("area_control.error.unclaim_wildness"));
-            return -1;
+            src.sendSuccess(ERROR_WILD, true);
+            return 0;
         }
     }
 }

@@ -39,7 +39,7 @@ public final class EditPropertiesScreen extends Screen {
     private static final int TEXTURE_HEIGHT = 304;
 
     private static final float ARTIFACT_SCALE_FACTOR = 1.5F;
-    private final String areaName;
+    private final Component areaName;
 
     private final Map<String, Boolean> states;
     private final List<ACShowPropEditScreen.Info> infoCollection;
@@ -48,7 +48,7 @@ public final class EditPropertiesScreen extends Screen {
 
     public EditPropertiesScreen(String areaName, List<ACShowPropEditScreen.Info> infos) {
         super(GameNarrator.NO_TITLE);
-        this.areaName = areaName;
+        this.areaName = areaName != null ? Component.literal(areaName) : Component.translatable("area_control.wildness");
         this.states = new LinkedHashMap<>(infos.size());
         for (var entry : this.infoCollection = List.copyOf(infos)) {
             this.states.put(entry.prop(), entry.triStateValue());
@@ -200,7 +200,7 @@ public final class EditPropertiesScreen extends Screen {
         float scale = ARTIFACT_SCALE_FACTOR;
         guiGraphics.pose().scale(scale, scale, scale);
         int x3 = this.width / 2 + 1, y3 = this.height / 2 - 82, dx = font.width(this.areaName) / 2;
-        guiGraphics.drawString(font, Component.literal(this.areaName), (int) (x3 / scale - dx), (int) (y3 / scale), TEXT_COLOR, false);
+        guiGraphics.drawString(font, this.areaName, (int) (x3 / scale - dx), (int) (y3 / scale), TEXT_COLOR, false);
         guiGraphics.pose().popPose();
     }
 

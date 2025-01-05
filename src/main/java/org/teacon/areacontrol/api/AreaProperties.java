@@ -3,10 +3,7 @@ package org.teacon.areacontrol.api;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public final class AreaProperties {
 
@@ -60,11 +57,15 @@ public final class AreaProperties {
     }
 
     public static boolean getBool(@Nullable Area area, String key, boolean recursive) {
-        if (area == null) return false;
+        if (area == null) {
+            area = AreaControlAPI.areaLookup.findWildness();
+            recursive = false;
+        }
+
         Object o = area.properties.get(key);
         if (o == null || "null".equals(o)) {
-            if (recursive) {
-                var parent = area.resolveParent();
+            if (recursive && !AreaControlAPI.WILDNESS.equals(area.uid)) {
+                var parent = Objects.requireNonNullElse(area.resolveParent(), AreaControlAPI.areaLookup.findWildness());
                 return getBool(parent, key, true);
             } else {
                 return false;
@@ -82,11 +83,15 @@ public final class AreaProperties {
     }
 
     public static Optional<Boolean> getBoolOptional(@Nullable Area area, String key, boolean recursive) {
-        if (area == null) return Optional.empty();
+        if (area == null) {
+            area = AreaControlAPI.areaLookup.findWildness();
+            recursive = false;
+        }
+
         Object o = area.properties.get(key);
         if (o == null || "null".equals(o)) {
-            if (recursive) {
-                var parent = area.resolveParent();
+            if (recursive && !AreaControlAPI.WILDNESS.equals(area.uid)) {
+                var parent = Objects.requireNonNullElse(area.resolveParent(), AreaControlAPI.areaLookup.findWildness());
                 return getBoolOptional(parent, key, true);
             } else {
                 return Optional.empty();

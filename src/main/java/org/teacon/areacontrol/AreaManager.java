@@ -1,5 +1,9 @@
 package org.teacon.areacontrol;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
@@ -20,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
+import org.teacon.areacontrol.api.AreaControlAPI;
 import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.impl.AreaMath;
 import org.teacon.areacontrol.impl.ChunkPosRange;
@@ -162,6 +167,117 @@ public final class AreaManager {
         }
     }
 
+    public record RebuildProblem(UUID left, UUID right, AreaMath.SetRelation relation) {
+    }
+
+    /**
+     * Re-compute relationship of all existed areas.
+     */
+    public RebuildProblem fix() {
+        var writeLock = this.lock.writeLock();
+        try {
+            writeLock.lock();
+
+            for (Map.Entry<ResourceKey<Level>, Set<UUID>> world : areasByWorld.entrySet()) {
+                // don't trust any cache.
+                Set<Area> areas = new HashSet<>();
+                for (UUID uuid : world.getValue()) {
+                    Area a = areasById.get(uuid);
+                    if (a == null) {
+                        LOGGER.warn("Area {} doesn't exist.", uuid);
+                        continue;
+                    }
+                    areas.add(a);
+                }
+
+                Object2IntOpenHashMap<Area> degree = new Object2IntOpenHashMap<>() {
+                    @Override
+                    public int defaultReturnValue() {
+                        return 0;
+                    }
+                };
+                Multimap<Area, Area> graph = Multimaps.newSetMultimap(new HashMap<>(), HashSet::new);
+                for (Area a1 : areas) {
+                    for (Area a2 : areas) {
+                        if (a1 == a2) {
+                            continue;
+                        }
+                        switch (AreaMath.relationBetween(a1, a2)) {
+                            case SAME -> {
+                                LOGGER.warn("Cannot rebuild relationship. Area {}, {} are the same.", a1.uid, a2.uid);
+                                return new RebuildProblem(a1.uid, a2.uid, AreaMath.SetRelation.SAME);
+                            }
+                            case INTERSECT -> {
+                                LOGGER.warn("Cannot rebuild relationship. Area {}, {} are intersected.", a1.uid, a2.uid);
+                                return new RebuildProblem(a1.uid, a2.uid, AreaMath.SetRelation.INTERSECT);
+                            }
+                            case SUPERSET -> {
+                                graph.put(a1, a2);
+                                degree.put(a2, degree.getInt(a2) + 1);
+                            }
+                            case SUBSET -> {
+                                graph.put(a2, a1);
+                                degree.put(a1, degree.getInt(a1) + 1);
+                            }
+                        }
+                    }
+                }
+
+                List<Area> ordered = new ArrayList<>();
+                {
+                    Deque<Area> queue = new ArrayDeque<>();
+                    for (Object2IntMap.Entry<Area> entry : degree.object2IntEntrySet()) {
+                        if (entry.getIntValue() == 0) {
+                            queue.add(entry.getKey());
+                        }
+                    }
+
+                    while (!queue.isEmpty()) {
+                        Area area = queue.pollFirst();
+                        ordered.add(area);
+                        for (Area sub : graph.get(area)) {
+                            int in = degree.getInt(sub) - 1;
+                            degree.put(sub, in);
+                            if (in == 0) {
+                                queue.addLast(sub);
+                            }
+                        }
+                    }
+                }
+
+                for (Area area : ordered) {
+                    area.subAreas.clear();
+                    area.setBelongingArea(null);
+                }
+
+                Set<Area> checked = new HashSet<>();
+                for (Area area : ordered) {
+                    for (Area sub : graph.get(area)) {
+                        if (!checked.contains(sub)) {
+                            checked.add(sub);
+
+                            area.subAreas.add(sub.uid);
+                            sub.setBelongingArea(area.uid);
+                        }
+                    }
+                }
+            }
+
+            ArrayList<Area> areas = new ArrayList<>(areasById.values());
+            this.areasById.clear();
+            this.areasByWorld.clear();
+            this.perWorldAreaCache.clear();
+            for (Area area : areas) {
+                buildCacheFor(area, getOrCreate(area.dimension));
+            }
+
+        } finally {
+            writeLock.unlock();
+        }
+
+        return null;
+    }
+
     /**
      * @param area       The Area instance to be recorded
      * @param worldIndex The {@link ResourceKey<Level>} of the {@link Level} to which the area belongs
@@ -201,26 +317,49 @@ public final class AreaManager {
         // Not sure how did you manage to have multiple parent, but this is not allowed.
         // It is also possible that we have an area with its parent area that also has its own parent area,
         // i.e. grandparent area. We need to remove all possible grant parent areas before checking.
-        List<Area> indirectParents = new ArrayList<>();
-        do {
-            parent.removeAll(indirectParents);
-            indirectParents.clear();
-            for (Area p1 : parent) {
-                for (Area p2 : parent) {
-                    if (p1 == p2) {
-                        continue;
-                    }
-                    if (AreaMath.isEnclosing(p1, p2)) {
-                        indirectParents.add(p1);
-                        break;
+        {
+            List<Area> indirectParents = new ArrayList<>();
+            do {
+                parent.removeAll(indirectParents);
+                indirectParents.clear();
+                for (Area p1 : parent) {
+                    for (Area p2 : parent) {
+                        if (p1 == p2) {
+                            continue;
+                        }
+                        if (AreaMath.isEnclosing(p1, p2)) {
+                            indirectParents.add(p1);
+                            break;
+                        }
                     }
                 }
+            } while (!indirectParents.isEmpty());
+            if (parent.size() > 1) {
+                return false;
             }
-        } while (!indirectParents.isEmpty());
-        if (parent.size() > 1) {
-            return false;
         }
-        if (!AreaChecks.isACtrlAdmin(actor)) {
+
+        // Children should be direct. Remove all children that are contained in other children.
+        {
+            List<Area> indirectChildren = new ArrayList<>();
+            do {
+                children.removeAll(indirectChildren);
+                indirectChildren.clear();
+                for (Area p1 : children) {
+                    for (Area p2 : children) {
+                        if (p1 == p2) {
+                            continue;
+                        }
+                        if (AreaMath.isEnclosing(p1, p2)) {
+                            indirectChildren.add(p2);
+                            break;
+                        }
+                    }
+                }
+            } while (!indirectChildren.isEmpty());
+        }
+
+        if (actor != null && !AreaChecks.isACtrlAdmin(actor)) {
             // AC admin should be able to do this.
             for (var child : children) {
                 if (!AreaChecks.isACtrlAreaOwner(actor, child)) {
@@ -463,6 +602,19 @@ public final class AreaManager {
 
     @Nullable
     public Area findWithExclusion(ResourceKey<Level> world, BlockPos pos, Area excluded) {
+        Area area = findImpl(world, pos, excluded);
+        if (area != null && area.uid.equals(AreaControlAPI.WILDNESS)) {
+            // A player never stands 'in' the wildness directly.
+            area = area.resolveParent();
+            if (area == null) {
+                return findBy(AreaControlAPI.WILDNESS);
+            }
+        }
+        return area;
+    }
+
+    @Nullable
+    private Area findImpl(ResourceKey<Level> world, BlockPos pos, Area excluded) {
         var readLock = this.lock.readLock();
         try {
             readLock.lock();
@@ -552,6 +704,9 @@ public final class AreaManager {
             readLock.lock();
             var ret = new ArrayList<Area>();
             for (var uuid : this.areasByWorld.getOrDefault(dim, Collections.emptySet())) {
+                if (AreaControlAPI.WILDNESS.equals(uuid)) {
+                    continue;
+                }
                 Area area = this.areasById.get(uuid);
                 if (area == null) continue;
                 int xDiff = area.minX + (area.maxX - area.minX) / 2 - center.getX(), zDiff = area.minZ + (area.maxZ - area.minZ) / 2 - center.getZ();

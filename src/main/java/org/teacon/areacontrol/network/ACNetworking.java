@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 public class ACNetworking {
     public static void init(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar("area_control")
-                .versioned("0.8.0")
+                .versioned("0.8.16")
                 .optional();
 
         registrar.playToServer(ACPingServer.TYPE, ACPingServer.STREAM_CODEC, ACPingServer::handle);

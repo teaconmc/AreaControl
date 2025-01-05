@@ -1,5 +1,6 @@
 package org.teacon.areacontrol.api;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -14,4 +15,6 @@ public interface AreaLookup {
 
     @Nullable
     Area findBy(String dimKey, int x, int y, int z);
+
+    @NotNull Area findWildness();
 }

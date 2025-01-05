@@ -2,6 +2,7 @@ package org.teacon.areacontrol;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -18,6 +19,7 @@ import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaControlAPI;
 import org.teacon.areacontrol.impl.AreaLookupImpl;
 import org.teacon.areacontrol.impl.ClientSinglePlayerServerChecker;
@@ -81,6 +83,18 @@ public final class AreaControl {
             } catch (Exception e) {
                 LOGGER.warn("Failed to create data directory.", e);
             }
+        }
+
+        if (AreaManager.INSTANCE.findBy(AreaControlAPI.WILDNESS) == null) {
+            // if no wildness exist, it do will be null.
+
+            Area area = new Area();
+            area.uid = AreaControlAPI.WILDNESS;
+            area.minX = area.minZ = -1;
+            area.maxX = area.maxZ = 1;
+            area.minY = Integer.MAX_VALUE >> 8;
+            area.maxY = area.minY + 1;
+            AreaManager.INSTANCE.add(area, Level.OVERWORLD, null);
         }
     }
 

@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceKey;
@@ -199,24 +198,16 @@ public final class AreaControlClientSupport {
     }
 
     private static final class Holder extends RenderStateShard {
-
-        static ShaderInstance areaControlShader;
-
         private Holder(String name, Runnable setupCallback, Runnable cleanupCallback) {
             super(name, setupCallback, cleanupCallback);
         }
-
-        //static final ShaderStateShard AREA_CONTROL_SHADER = new ShaderStateShard(() -> areaControlShader);
-
-        // This is the vanilla world border texture; we are merely referring it, but using a custom texture state.
-        static final EmptyTextureStateShard REPEATED_FORCE_FIELD = new TextureStateShard(ResourceLocation.withDefaultNamespace("textures/misc/forcefield.png"), false, false);
 
         static final RenderType BORDER = RenderType.create("area_control_border",
                 DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, 256, false, false,
                 RenderType.CompositeState.builder()
                         .setShaderState(new ShaderStateShard(GameRenderer::getPositionTexColorShader)) // Must be here
                         .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                        .setTextureState(REPEATED_FORCE_FIELD)
+                        .setTextureState(new TextureStateShard(ResourceLocation.withDefaultNamespace("textures/misc/forcefield.png"), false, false))
                         // 海螺 told me that vanilla avoids z-fighting during world border rendering
                         // by RenderSystem.enablePolygonOffset(), so here it is...
                         .setLayeringState(POLYGON_OFFSET_LAYERING)

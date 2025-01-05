@@ -9,6 +9,8 @@ import java.util.UUID;
 
 public class AreaControlAPI {
 
+    public static final UUID WILDNESS = UUID.fromString("00000000-0000-0000-0000-000000000000");
+
     public static AreaLookup areaLookup = new AreaLookup() {
 
         @Override
@@ -23,6 +25,11 @@ public class AreaControlAPI {
 
         @Override
         public Area findBy(String dimKey, int x, int y, int z) {
+            throw new IllegalStateException("Not initialized yet!");
+        }
+
+        @Override
+        public @NotNull Area findWildness() {
             throw new IllegalStateException("Not initialized yet!");
         }
     };
