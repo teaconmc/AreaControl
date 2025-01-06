@@ -24,8 +24,10 @@ public record ACPingServer() implements CustomPacketPayload {
     };
 
     public void handle(IPayloadContext context) {
-        var player = context.player();
-        AreaControlPlayerTracker.getFrom(player).clientExtensionEnabled = true;
+        context.enqueueWork(() -> {
+            var player = context.player();
+            AreaControlPlayerTracker.getFrom(player).clientExtensionEnabled = true;
+        });
     }
 
     @Override

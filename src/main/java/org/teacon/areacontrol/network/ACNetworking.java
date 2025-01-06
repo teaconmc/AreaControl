@@ -6,14 +6,14 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.HandlerThread;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.jetbrains.annotations.Nullable;
+import org.teacon.areacontrol.AreaControl;
 
 public class ACNetworking {
     public static void init(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("area_control")
-                .versioned("0.8.16")
-                .optional();
+        PayloadRegistrar registrar = event.registrar(AreaControl.VERSION).executesOn(HandlerThread.NETWORK).optional();
 
         registrar.playToServer(ACPingServer.TYPE, ACPingServer.STREAM_CODEC, ACPingServer::handle);
         registrar.playToClient(ACSendNearbyArea.TYPE, ACSendNearbyArea.STREAM_CODEC, ACSendNearbyArea::handle);

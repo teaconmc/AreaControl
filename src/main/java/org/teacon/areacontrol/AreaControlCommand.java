@@ -14,15 +14,12 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -81,7 +78,6 @@ public final class AreaControlCommand {
         dispatcher.register(Commands.literal("ac")
                 .redirect(dispatcher.register(Commands.literal("areacontrol")
                                 .then(Commands.literal("about").executes(AreaControlCommand::about))
-                                .then(Commands.literal("help").executes(AreaControlCommand::help))
                                 .then(Commands.literal("admin").requires(ADMIN)
                                         .then(Commands.literal("rebuild").executes(AreaControlCommand::rebuildAreaModel))
                                 )
@@ -211,21 +207,7 @@ public final class AreaControlCommand {
     }
 
     private static int about(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendSuccess(() -> Component.literal("AreaControl 0.8.16"), false);
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int help(CommandContext<CommandSourceStack> context) {
-        var markerTool = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(AreaControlConfig.areaClaimTool.get())));
-        var markerToolName = markerTool.getDisplayName();
-        var displayName = markerToolName.copy()
-                .withStyle(Style.EMPTY
-                        .withColor(ChatFormatting.BLUE)
-                        .withUnderlined(Boolean.TRUE)
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, markerTool.getHoverName().copy()
-                                .append(Component.translatable("area_control.claim.how_to.give_item").withStyle(ChatFormatting.GRAY))))
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/give @s " + AreaControlConfig.areaClaimTool.get())));
-        context.getSource().sendSuccess(() -> Component.translatable("area_control.claim.how_to", displayName), false);
+        context.getSource().sendSuccess(() -> Component.literal("AreaControl " + AreaControl.VERSION), false);
         return Command.SINGLE_SUCCESS;
     }
 

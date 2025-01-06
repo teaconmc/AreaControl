@@ -34,6 +34,7 @@ import java.util.function.Predicate;
 @Mod("area_control")
 @EventBusSubscriber(modid = "area_control")
 public final class AreaControl {
+    public static String VERSION = "<not_initialized>";
 
     private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
 
@@ -42,6 +43,8 @@ public final class AreaControl {
     public static Predicate<MinecraftServer> singlePlayerServerChecker;
 
     public AreaControl(ModContainer container, IEventBus modBus) {
+        VERSION = container.getModInfo().getVersion().toString();
+
         AreaRepositoryManager.init();
         container.registerConfig(ModConfig.Type.SERVER, AreaControlConfig.setup(new ModConfigSpec.Builder()));
         singlePlayerServerChecker = switch (FMLEnvironment.dist) {
