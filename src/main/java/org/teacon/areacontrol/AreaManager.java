@@ -325,6 +325,11 @@ public final class AreaManager {
         }
         // If there are overlaps, the area cannot be created
         if (!conflict.isEmpty()) {
+            LOGGER.info(
+                    "Cannot add area {} from {} {} {} to {} {} {}: Conflict with {}.",
+                    area.uid, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ,
+                    conflict.stream().map(a -> a.uid == null ? "NULL" : a.uid.toString()).collect(Collectors.joining(","))
+            );
             return false;
         }
         // An area can only have one parent.
@@ -349,6 +354,11 @@ public final class AreaManager {
                 }
             } while (!indirectParents.isEmpty());
             if (parent.size() > 1) {
+                LOGGER.info(
+                        "Cannot add area {} from {} {} {} to {} {} {}: Multiple parent {}.",
+                        area.uid, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ,
+                        parent.stream().map(a -> a.uid == null ? "NULL" : a.uid.toString()).collect(Collectors.joining(","))
+                );
                 return false;
             }
         }
@@ -377,6 +387,11 @@ public final class AreaManager {
             // AC admin should be able to do this.
             for (var child : children) {
                 if (!AreaChecks.isACtrlAreaOwner(actor, child)) {
+                    LOGGER.info(
+                            "Cannot add area {} from {} {} {} to {} {} {}: Child permission denied {}.",
+                            area.uid, area.minX, area.minY, area.minZ, area.maxX, area.maxY, area.maxZ,
+                           child.uid == null ? "NULL" : child.uid.toString()
+                    );
                     return false;
                 }
             }
