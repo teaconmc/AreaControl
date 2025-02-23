@@ -4,6 +4,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -141,15 +142,35 @@ public class AreaChecks {
     public static boolean checkPropFor(final @Nullable Area area, final @Nullable Entity actor,
                                        final @NotNull String prop, final @Nullable ResourceLocation targetId,
                                        final @Nullable Supplier<@NotNull Boolean> defaultValue) {
+        return checkPropFor(area, actor, null, prop, targetId, defaultValue);
+    }
+
+    /**
+     * Recursively checks if an action is allowed in given area
+     *
+     * @param area          Area to check
+     * @param actor         The entity that carries out the action
+     * @param currentServer The current server instance we are in
+     * @param prop          The action, represented by a string property
+     * @param targetId      The object on which the action is being carried out.
+     * @return true if such action is allowed; false otherwise.
+     */
+    public static boolean checkPropFor(final @Nullable Area area, final @Nullable Entity actor,
+                                       @Nullable MinecraftServer currentServer,
+                                       final @NotNull String prop, final @Nullable ResourceLocation targetId,
+                                       final @Nullable Supplier<@NotNull Boolean> defaultValue) {
         if (actor != null) {
-            // If actor is in single-player (without being published to LAN), then skip all checks.
-            if (AreaControl.singlePlayerServerChecker.test(actor.getServer())) {
-                return true;
+            if (currentServer == null) {
+                currentServer = actor.getServer();
             }
             // If bypass mode is activated, then skip all checks.
             if (AreaControlPlayerTracker.hasBypassModeOnForArea(actor, area)) {
                 return true;
             }
+        }
+        // If we are in single-player (without being published to LAN), then skip all checks.
+        if (AreaControl.singlePlayerServerChecker.test(currentServer)) {
+            return true;
         }
         if (targetId != null) {
             var objSpecific = AreaProperties.getBoolOptional(area, prop + "." + targetId);

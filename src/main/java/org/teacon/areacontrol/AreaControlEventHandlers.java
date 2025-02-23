@@ -66,7 +66,7 @@ public final class AreaControlEventHandlers {
                 }
             } else {
                 var entityTypeRegName = BuiltInRegistries.ENTITY_TYPE.getKey(attackTarget.getType());
-                allow = AreaChecks.checkPropFor(area, damageSrc, AreaProperties.ALLOW_PVE, entityTypeRegName, AreaControlConfig.allowPvE);
+                allow = AreaChecks.checkPropFor(area, damageSrc, level.getServer(), AreaProperties.ALLOW_PVE, entityTypeRegName, AreaControlConfig.allowPvE);
                 deniedFeedback = Component.translatable("area_control.notice.pve_disabled", ObjectArrays.EMPTY_ARRAY);
             }
             if (!allow) {

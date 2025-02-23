@@ -17,6 +17,7 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.api.Area;
@@ -40,7 +41,7 @@ public final class AreaControl {
 
     private static final LevelResource SERVER_CONFIG = new LevelResource("serverconfig");
 
-    public static Predicate<MinecraftServer> singlePlayerServerChecker;
+    public static Predicate<@Nullable MinecraftServer> singlePlayerServerChecker;
 
     public AreaControl(ModContainer container, IEventBus modBus) {
         VERSION = container.getModInfo().getVersion().toString();
