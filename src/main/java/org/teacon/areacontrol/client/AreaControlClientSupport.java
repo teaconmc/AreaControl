@@ -4,8 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -90,16 +88,16 @@ public final class AreaControlClientSupport {
         } else {
             playerPos = BlockPos.ZERO;
         }
-//        if (System.currentTimeMillis() < knownAreasExpiresAt) {
+        if (System.currentTimeMillis() < knownAreasExpiresAt) {
             for (var area : knownAreas) {
-                //xkball: 只计算xz平面上的距离, 不然视距小的时候会有错误效果
+                //xkball: 只计算xz平面上的距离, 不然视距小而y差值大的时候会错误取消渲染
                 if (new Vector2f(playerPos.getX(), playerPos.getZ()).distance(new Vector2f(area.midX, area.midZ)) < renderDistance) {
                     int minY = Math.max(-128, area.minY);
                     int maxY = Math.min(320, area.maxY);
                     box(transform, builder, area.enclosed ? 0x8826619C : 0x887FFFD4, area.minX, minY, area.minZ, area.maxX + 1, maxY + 1, area.maxZ + 1);
                 }
             }
-//        }
+        }
         var level = mc.level;
         if (level != null && level.dimension() == selectionDimension && selectionMin != null && selectionMax != null) {
             box(transform, builder, 0xFFFFD700, selectionMin.getX(), selectionMin.getY(), selectionMin.getZ(), selectionMax.getX() + 1, selectionMax.getY() + 1, selectionMax.getZ() + 1);
