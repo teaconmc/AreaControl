@@ -1,5 +1,8 @@
 package org.teacon.areacontrol;
 
+import net.minecraft.server.permissions.LevelBasedPermissionSet;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.players.NameAndId;
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
 
@@ -12,17 +15,17 @@ public class AreaControlPermissions {
         if (p == null) {
             return true;
         }
-        var server = p.getServer();
+        var server = p.level().getServer();
         // Cannot grant permission if there is no server.
         if (server == null) {
             return false;
         }
         // Grant permission if it is the sole player in single-player.
         // Skip this check if in debug mode.
-        if (!DEBUG && server.isSingleplayerOwner(p.getGameProfile())) {
+        if (!DEBUG && server.isSingleplayerOwner(new NameAndId(p.getGameProfile()))) {
             return true; // Bypass single-player
         }
-        return p.hasPermissions(3);
+        return p.permissions().hasPermission(Permissions.COMMANDS_ADMIN);
     };
 
     static final PermissionNode.PermissionResolver<Boolean> ANYONE = (p, uuid, contexts) -> true;

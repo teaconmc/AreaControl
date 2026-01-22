@@ -1,48 +1,24 @@
 package org.teacon.areacontrol.impl.seizer;
 
-import net.minecraft.core.HolderLookup;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.util.INBTSerializable;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.common.util.ValueIOSerializable;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import java.util.Collections;
-import java.util.Optional;
 
-public class ConfiscationInv implements INBTSerializable<CompoundTag> {
+public class ConfiscationInv implements ValueIOSerializable {
+
+    private static final Codec<NonNullList<ItemStack>> INV_LIST_CODEC = NonNullList.codecOf(ItemStack.OPTIONAL_CODEC);
 
     private NonNullList<ItemStack> seizedItems = NonNullList.withSize(54, ItemStack.EMPTY);
 
     transient final Container containerView = new ContainerWrapper();
-
-    @Override
-    public @NotNull CompoundTag serializeNBT(HolderLookup.Provider provider) {
-        CompoundTag data = new CompoundTag();
-        ListTag seizedItemData = new ListTag();
-        for (ItemStack item : this.seizedItems) {
-            if (!item.isEmpty()) {
-                seizedItemData.add(item.save(provider));
-            }
-        }
-        data.put("seized_items", seizedItemData);
-        return data;
-    }
-
-    @Override
-    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag compoundTag) {
-        ListTag seizedItemData = compoundTag.getList("seized_items", ListTag.TAG_COMPOUND);
-        for (Tag data : seizedItemData) {
-            Optional<ItemStack> maybeItem = ItemStack.parse(provider, data);
-            if (maybeItem.isPresent()) {
-                this.add(maybeItem.get());
-            }
-        }
-    }
 
     public void add(ItemStack seized) {
         for (int i = 0; i < this.seizedItems.size(); i++) {
@@ -62,8 +38,37 @@ public class ConfiscationInv implements INBTSerializable<CompoundTag> {
         }
     }
 
+    /** Overloaded version of {@link #add(ItemStack)} that supports {@link ItemResource}. */
+    public void add(ItemResource item, int seizedAmount) {
+        for (int i = 0; i < this.seizedItems.size(); i++) {
+            if (seizedAmount <= 0) {
+                break;
+            }
+            ItemStack target = this.seizedItems.get(i);
+            if (target.isEmpty()) {
+                this.seizedItems.set(i, item.toStack(seizedAmount));
+                break;
+            }
+            if (target.isStackable() && item.matches(target)) {
+                int delta = Math.min(seizedAmount, target.getMaxStackSize() - target.getCount());
+                target.setCount(target.getCount() + delta);
+                seizedAmount -= delta;
+            }
+        }
+    }
+
     public void clear() {
         Collections.fill(this.seizedItems, ItemStack.EMPTY);
+    }
+
+    @Override
+    public void serialize(ValueOutput output) {
+        output.store("seized_items", INV_LIST_CODEC, this.seizedItems);
+    }
+
+    @Override
+    public void deserialize(ValueInput input) {
+        input.read("seized_items", INV_LIST_CODEC).ifPresent(items -> this.seizedItems = items);
     }
 
     final class ContainerWrapper implements Container {

@@ -3,15 +3,17 @@ package org.teacon.areacontrol.impl;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.server.permission.PermissionAPI;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.teacon.areacontrol.AreaControl;
@@ -36,7 +38,7 @@ public class AreaChecks {
 
     public static boolean isACtrlAreaOwner(@NotNull ServerPlayer p, @Nullable Area area) {
         if (area != null) {
-            var uid = p.getGameProfile().getId();
+            var uid = p.getGameProfile().id();
             var group = AreaControlAPI.groupProvider.getGroupFor(uid);
             // 1. Check if player is one of owners
             if (area.owners.contains(uid) || area.ownerGroups.contains(group)) {
@@ -58,7 +60,7 @@ public class AreaChecks {
 
     public static boolean isACtrlAreaBuilder(@NotNull ServerPlayer p, @Nullable Area area, boolean includeParent) {
         if (area != null) {
-            var uid = p.getGameProfile().getId();
+            var uid = p.getGameProfile().id();
             var group = AreaControlAPI.groupProvider.getGroupFor(uid);
             // 1. Check if player is one of builders
             if (area.owners.contains(uid) || area.builders.contains(uid) || area.ownerGroups.contains(group) || area.builderGroups.contains(group)) {
@@ -93,18 +95,20 @@ public class AreaChecks {
         }
     }
 
-    public static void checkInv(IItemHandler inv, Area currentArea, Player player) {
+    public static void checkInv(ResourceHandler<@NotNull ItemResource> inv, Area currentArea, Player player) {
         // If bypass mode is on, then this check can be skipped.
         if (AreaControlPlayerTracker.hasBypassModeOnForArea(player, currentArea)) {
             return;
         }
         ConfiscationInv seizedInv = player.getData(AreaControlBorderControl.CONFISCATION_INV);
-        var invSize = inv.getSlots();
+        var invSize = inv.size();
         for (int i = 0; i < invSize; i++) {
-            var item = inv.getStackInSlot(i);
+            var item = inv.getResource(i);
             if (!item.isEmpty() && !checkPossess(currentArea, item.getItem())) {
-                ItemStack seized = inv.extractItem(i, Integer.MAX_VALUE, false);
-                seizedInv.add(seized);
+                try (Transaction xact = Transaction.openRoot()) {
+                    int seizedAmount = inv.extract(i, item, Integer.MAX_VALUE, xact);
+                    seizedInv.add(item, seizedAmount);
+                }
                 player.displayClientMessage(Component.translatable("area_control.notice.possess_disabled_item", item.getHoverName()), true);
             }
         }
@@ -140,7 +144,7 @@ public class AreaChecks {
      * @return true if such action is allowed; false otherwise.
      */
     public static boolean checkPropFor(final @Nullable Area area, final @Nullable Entity actor,
-                                       final @NotNull String prop, final @Nullable ResourceLocation targetId,
+                                       final @NotNull String prop, final @Nullable Identifier targetId,
                                        final @Nullable Supplier<@NotNull Boolean> defaultValue) {
         return checkPropFor(area, actor, null, prop, targetId, defaultValue);
     }
@@ -157,11 +161,11 @@ public class AreaChecks {
      */
     public static boolean checkPropFor(final @Nullable Area area, final @Nullable Entity actor,
                                        @Nullable MinecraftServer currentServer,
-                                       final @NotNull String prop, final @Nullable ResourceLocation targetId,
+                                       final @NotNull String prop, final @Nullable Identifier targetId,
                                        final @Nullable Supplier<@NotNull Boolean> defaultValue) {
         if (actor != null) {
             if (currentServer == null) {
-                currentServer = actor.getServer();
+                currentServer = actor.level().getServer();
             }
             // If bypass mode is activated, then skip all checks.
             if (AreaControlPlayerTracker.hasBypassModeOnForArea(actor, area)) {

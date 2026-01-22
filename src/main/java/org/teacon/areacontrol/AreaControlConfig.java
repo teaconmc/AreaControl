@@ -1,6 +1,6 @@
 package org.teacon.areacontrol;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class AreaControlConfig {
@@ -32,7 +32,7 @@ public class AreaControlConfig {
                 .translation("area_control.config.area_claim_tool")
                 .define("areaClaimTool", "minecraft:stick", input -> {
                     try {
-                        ResourceLocation.parse(input.toString());
+                        Identifier.parse(input.toString());
                         return true;
                     } catch (Exception e) {
                         return false;

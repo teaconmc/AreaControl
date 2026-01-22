@@ -3,7 +3,7 @@ package org.teacon.areacontrol.compat.luckperm;
 import net.luckperms.api.context.ContextCalculator;
 import net.luckperms.api.context.ContextConsumer;
 import net.minecraft.server.level.ServerPlayer;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teacon.areacontrol.AreaControlPlayerTracker;
@@ -24,7 +24,7 @@ public enum AreaControlContextCalculator implements ContextCalculator<ServerPlay
 
     @Override
     public void calculate(@NonNull ServerPlayer target, @NonNull ContextConsumer consumer) {
-        var uid = target.getGameProfile().getId();
+        var uid = target.getGameProfile().id();
         final var area = AreaControlPlayerTracker.getCurrentAreaForPlayer(target);
         if (area == null) {
             consumer.accept(CONTEXT_IS_WILDNESS, "true");

@@ -3,7 +3,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '1.0.14'
+    id 'net.neoforged.moddev' version '2.0.139'
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -36,8 +36,16 @@ version = mod_version
 group = 'org.teacon'
 
 repositories {
-    mavenLocal()
-    mavenCentral()
+    // mavenLocal()
+    // mavenCentral()
+    maven {
+        name = "Maven for PR #2879" // https://github.com/neoforged/NeoForge/pull/2879
+        url = uri("https://prmaven.neoforged.net/NeoForge/pr2879")
+        content {
+            includeModule("net.neoforged", "neoforge")
+            includeModule("net.neoforged", "testframework")
+        }
+    }
     maven {
         name = 'BlueMap'
         url = 'https://repo.bluecolored.de/releases'
@@ -45,20 +53,15 @@ repositories {
 }
 
 base {
-    archivesName = 'AreaControl-NeoForge-1.21'
+    archivesName = 'AreaControl-NeoForge-26.1'
 }
 
-// Mojang ships Java 21 to end users starting in 1.20.5, so mods should target Java 21.
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+// Mojang ships Java 25 to end users starting in 26.1, so mods should target Java 25.
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
     // Specify the version of NeoForge to use.
     version = project.neo_version
-
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
-    }
 
     runs {
         client {
@@ -138,21 +141,21 @@ publishing {
     publications {
         release(MavenPublication) {
             groupId = "org.teacon"
-            artifactId = "AreaControl-NeoForge-1.21"
+            artifactId = "AreaControl-NeoForge-26.1"
 
             artifact jar
             pom {
-                name = 'AreaControl for Minecraft 1.21'
+                name = 'AreaControl for Minecraft 26.1'
                 description = 'Comprehensive (eventually) plot management mod'
-                url = 'https://github.com/teaconmc/XKDeco'
+                url = 'https://github.com/teaconmc/AreaControl'
                 issueManagement {
                     system = 'GitHub Issues'
-                    url = 'https://github.com/teaconmc/XKDeco/issues'
+                    url = 'https://github.com/teaconmc/AreaControl/issues'
                 }
                 scm {
-                    url = 'https://github.com/teaconmc/XKDeco'
-                    connection = 'scm:git:git://github.com/teaconmc/XKDeco.git'
-                    developerConnection = 'scm:git:git@github.com:teaconmc/XKDeco.git'
+                    url = 'https://github.com/teaconmc/AreaControl'
+                    connection = 'scm:git:git://github.com/teaconmc/AreaControl.git'
+                    developerConnection = 'scm:git:git@github.com:teaconmc/AreaControl.git'
                 }
             }
         }

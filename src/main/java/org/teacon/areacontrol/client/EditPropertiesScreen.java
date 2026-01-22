@@ -15,10 +15,11 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeColor;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class EditPropertiesScreen extends Screen {
-    private static final ResourceLocation TEXTURE = ResourceLocation.parse("area_control:textures/gui/edit_properties.png");
+    private static final Identifier TEXTURE = Identifier.parse("area_control:textures/gui/edit_properties.png");
 
     private static final int BUTTON_TEXT_COLOR = 0xFFFFFFFF;
     private static final int TEXT_COLOR = 0xFF000000 | DyeColor.BLACK.getTextColor();
@@ -129,13 +130,13 @@ public final class EditPropertiesScreen extends Screen {
             int current = (this.slideTop + dy + 55) / 24;
             if (current >= 0 && current < this.infoCollection.size()) {
                 if (dx >= -103 && dx < -6) {
-                    this.setTooltipForNextRenderPass(Component.translatable("area_control.property." + this.infoCollection.get(current).prop() + ".tooltip"));
+                    guiGraphics.setTooltipForNextFrame(Component.translatable("area_control.property." + this.infoCollection.get(current).prop() + ".tooltip"), mouseX, mouseY);
                 } else if (dx >= -2 && dx < 27) {
-                    this.setTooltipForNextRenderPass(Component.literal("禁止"));
+                    guiGraphics.setTooltipForNextFrame(Component.literal("禁止"), mouseX, mouseY);
                 } else if (dx >= 27 && dx < 56) {
-                    this.setTooltipForNextRenderPass(Component.literal("继承默认值"));
+                    guiGraphics.setTooltipForNextFrame(Component.literal("继承默认值"), mouseX, mouseY);
                 } else if (dx >= 56 && dx < 85) {
-                    this.setTooltipForNextRenderPass(Component.literal("允许"));
+                    guiGraphics.setTooltipForNextFrame(Component.literal("允许"), mouseX, mouseY);
                 }
             }
         }
@@ -183,25 +184,25 @@ public final class EditPropertiesScreen extends Screen {
             int x1 = this.width / 2 - 7, dx1 = this.font.width(next) / 2, y1 = this.height / 2 + 15;
             guiGraphics.drawString(this.font, next, x1 - dx1, y1, HINT_COLOR, false);
 
-            guiGraphics.pose().pushPose();
+            guiGraphics.pose().pushMatrix();
             float scale = ARTIFACT_SCALE_FACTOR;
-            guiGraphics.pose().scale(scale, scale, scale);
+            guiGraphics.pose().scale(scale);
 
             MutableComponent prev = Component.translatable("area_control.screen.no_properties");
             int x2 = this.width / 2 - 7, dx2 = this.font.width(prev) / 2, y2 = this.height / 2 - 9;
             guiGraphics.drawString(this.font, prev, (int) (x2 / scale - dx2), (int) (y2 / scale), HINT_COLOR, false);
 
-            guiGraphics.pose().popPose();
+            guiGraphics.pose().popMatrix();
         }
     }
 
     private void drawArtifactName(GuiGraphics guiGraphics, Font font) {
-        guiGraphics.pose().pushPose();
+        guiGraphics.pose().pushMatrix();
         float scale = ARTIFACT_SCALE_FACTOR;
-        guiGraphics.pose().scale(scale, scale, scale);
+        guiGraphics.pose().scale(scale);
         int x3 = this.width / 2 + 1, y3 = this.height / 2 - 82, dx = font.width(this.areaName) / 2;
         guiGraphics.drawString(font, this.areaName, (int) (x3 / scale - dx), (int) (y3 / scale), TEXT_COLOR, false);
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
     }
 
     // Copied from AbstractWidget::drawScrollingString, modified to not dropping shadow
@@ -233,7 +234,7 @@ public final class EditPropertiesScreen extends Screen {
         }
 
         @Override
-        public void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        public void renderContents(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
             // render button texture
             int u0 = (this.isRed ? 7 : 60) + (this.isHovered ? 106 : 0), v0 = 234;
             guiGraphics.blit(TEXTURE, this.getX(), this.getY(), u0, v0, this.width, this.height, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
@@ -294,7 +295,8 @@ public final class EditPropertiesScreen extends Screen {
         }
 
         @Override
-        public void onClick(double mouseX, double mouseY) {
+        public void onClick(MouseButtonEvent event, boolean doubleClick) {
+            double mouseX = event.x(), mouseY = event.y();
             double dx = mouseX - this.getX(), dy = mouseY - this.getY();
             if (dx >= 192 && dy >= this.slideCenter + this.halfSliderHeight) {
                 this.changeSlideCenter(this.slideCenter + 1);
@@ -308,7 +310,8 @@ public final class EditPropertiesScreen extends Screen {
         }
 
         @Override
-        protected void onDrag(double mouseX, double mouseY, double dragX, double dragY) {
+        protected void onDrag(MouseButtonEvent event, double dragX, double dragY) {
+            double mouseX = event.x(), mouseY = event.y();
             double dx = mouseX - this.getX(), dy = mouseY - this.getY() - this.slideCenter;
             if (dx >= 192 && dy < this.halfSliderHeight && dy >= -this.halfSliderHeight) {
                 this.changeSlideCenter(this.slideCenter + dragY);
@@ -316,7 +319,7 @@ public final class EditPropertiesScreen extends Screen {
         }
 
         @Override
-        public void onRelease(double mouseX, double mouseY) {
+        public void onRelease(MouseButtonEvent event) {
             super.playDownSound(Minecraft.getInstance().getSoundManager());
         }
 

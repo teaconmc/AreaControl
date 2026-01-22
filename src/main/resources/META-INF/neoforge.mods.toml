@@ -62,7 +62,7 @@ config="${mod_id}.mixins.json"
     modId="neoforge"
     type="required"
     reason="Configuration UI support"
-    versionRange="[21.0.110-beta,)"
+    versionRange="[26,)"
     ordering="NONE"
     side="BOTH"
 
@@ -70,7 +70,7 @@ config="${mod_id}.mixins.json"
 [[dependencies.${mod_id}]]
     modId="minecraft"
     type="required"
-    versionRange="[1.21, 1.22)"
+    versionRange="[26,)"
     ordering="NONE"
     side="BOTH"
 

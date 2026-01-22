@@ -1,17 +1,12 @@
 package org.teacon.areacontrol.client;
 
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
@@ -50,7 +45,7 @@ public final class AreaControlClientSupport {
                 AreaControlClientSupport::afterLogin);
         NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, EntityJoinLevelEvent.class,
                 AreaControlClientSupport::resetNearbyAreas);
-        NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, RenderLevelStageEvent.class,
+        NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, RenderLevelStageEvent.AfterTranslucentBlocks.class,
                 AreaControlClientSupport::renderAreaBorder);
     }
 
@@ -71,10 +66,7 @@ public final class AreaControlClientSupport {
     public static volatile ResourceKey<Level> selectionDimension;
     public static volatile BlockPos selectionMin, selectionMax;
 
-    static void renderAreaBorder(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
-            return;
-        }
+    static void renderAreaBorder(RenderLevelStageEvent.AfterTranslucentBlocks event) {
         final Minecraft mc = Minecraft.getInstance();
         final var transform = event.getPoseStack();
         final var camera = mc.getEntityRenderDispatcher().camera;
@@ -83,7 +75,7 @@ public final class AreaControlClientSupport {
             return;
         }
         transform.pushPose();
-        final var proj = camera.getPosition();
+        final var proj = camera.position();
         transform.translate(-proj.x, -proj.y, -proj.z);
 
         var buffers = mc.renderBuffers().bufferSource();
@@ -207,7 +199,7 @@ public final class AreaControlClientSupport {
                 RenderType.CompositeState.builder()
                         .setShaderState(new ShaderStateShard(GameRenderer::getPositionTexColorShader)) // Must be here
                         .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                        .setTextureState(new TextureStateShard(ResourceLocation.withDefaultNamespace("textures/misc/forcefield.png"), false, false))
+                        .setTextureState(new TextureStateShard(Identifier.withDefaultNamespace("textures/misc/forcefield.png"), false, false))
                         // 海螺 told me that vanilla avoids z-fighting during world border rendering
                         // by RenderSystem.enablePolygonOffset(), so here it is...
                         .setLayeringState(POLYGON_OFFSET_LAYERING)

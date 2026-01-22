@@ -5,9 +5,9 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "CommandSourceStackAccessor",
+    "EntityMixin",
     "EntitySelectorMixin",
-    "FireMixin",
-    "LavaMixin"
+    "LevelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

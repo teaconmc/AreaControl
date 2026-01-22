@@ -3,7 +3,7 @@ package org.teacon.areacontrol.impl;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.teacon.areacontrol.AreaManager;
@@ -22,7 +22,7 @@ public enum AreaLookupImpl implements AreaLookup {
     private final Map<String, ResourceKey<Level>> cache = new HashMap<>();
 
     private ResourceKey<Level> getOrCreate(String dimKey) {
-        return this.cache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(k)));
+        return this.cache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registries.DIMENSION, Identifier.parse(k)));
     }
 
     @Override

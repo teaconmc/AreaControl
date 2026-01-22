@@ -18,7 +18,7 @@ import org.teacon.areacontrol.impl.command.arguments.GroupArgument;
 import org.teacon.areacontrol.impl.command.selector.AreaSelectorOption;
 import org.teacon.areacontrol.network.ACNetworking;
 
-@EventBusSubscriber(modid = "area_control", bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = "area_control")
 public class AreaControlPreSetup {
 
     static final DeferredRegister<ArgumentTypeInfo<?, ?>> ARG_TYPES = DeferredRegister.create(BuiltInRegistries.COMMAND_ARGUMENT_TYPE, "area_control");

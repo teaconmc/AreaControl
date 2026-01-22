@@ -7,19 +7,23 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityInvulnerabilityCheckEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityMountEvent;
+import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.impl.AreaChecks;
@@ -103,7 +107,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onInteractEntitySpecific(PlayerInteractEvent.EntityInteractSpecific event) {
-        if (event.getEntity().level().isClientSide) {
+        if (event.getEntity().level().isClientSide()) {
             return;
         }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
@@ -116,7 +120,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onInteractEntity(PlayerInteractEvent.EntityInteract event) {
-        if (event.getLevel().isClientSide) {
+        if (event.getLevel().isClientSide()) {
             return;
         }
         final Area targetArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
@@ -145,7 +149,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onClickBlock(PlayerInteractEvent.LeftClickBlock event) {
-        if (event.getLevel().isClientSide) {
+        if (event.getLevel().isClientSide()) {
             return;
         }
         final var p = event.getEntity();
@@ -161,7 +165,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onActivateBlock(PlayerInteractEvent.RightClickBlock event) {
-        if (event.getLevel().isClientSide) {
+        if (event.getLevel().isClientSide()) {
             return;
         }
         final var player = event.getEntity();
@@ -177,7 +181,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onUseItem(PlayerInteractEvent.RightClickItem event) {
-        if (event.getLevel().isClientSide) {
+        if (event.getLevel().isClientSide()) {
             return;
         }
         final var p = event.getEntity();
@@ -256,7 +260,7 @@ public final class AreaControlEventHandlers {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void tryRide(EntityMountEvent event) {
-        if (event.isMounting() && !event.getLevel().isClientSide) {
+        if (event.isMounting() && !event.getLevel().isClientSide()) {
             var vehicle = event.getEntityBeingMounted();
             var entityId = BuiltInRegistries.ENTITY_TYPE.getKey(vehicle.getType());
             var area = AreaManager.INSTANCE.findBy(event.getLevel(), vehicle.blockPosition());
@@ -269,4 +273,20 @@ public final class AreaControlEventHandlers {
             }
         }
     }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onTeleport(EntityTeleportEvent event) { // We need to subscribe all teleport events
+        var targetBlockPos = BlockPos.containing(event.getTargetX(), event.getTargetY(), event.getTargetZ());
+        var actor = event.getEntity();
+        var level = actor.level();
+        var targetArea = AreaManager.INSTANCE.findBy(level, targetBlockPos);
+        var entityTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(actor.getType());
+        if (!AreaChecks.checkPropFor(targetArea, actor, "move_in", entityTypeId, () -> true)) {
+            event.setCanceled(true);
+            if (actor instanceof ServerPlayer p) {
+                p.sendSystemMessage(Component.literal("目标地区禁止进入"));
+            }
+        }
+    }
+    
 }

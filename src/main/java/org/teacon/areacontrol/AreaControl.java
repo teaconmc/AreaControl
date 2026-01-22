@@ -48,7 +48,7 @@ public final class AreaControl {
 
         AreaRepositoryManager.init();
         container.registerConfig(ModConfig.Type.SERVER, AreaControlConfig.setup(new ModConfigSpec.Builder()));
-        singlePlayerServerChecker = switch (FMLEnvironment.dist) {
+        singlePlayerServerChecker = switch (FMLEnvironment.getDist()) {
             case CLIENT -> new ClientSinglePlayerServerChecker();
             case DEDICATED_SERVER -> new ServerSinglePlayerServerChecker();
         };

@@ -233,8 +233,8 @@ public final class AreaControlCommand {
         final var pos = src.getPosition();
         final var level = src.getLevel();
         final var chunkPos = new ChunkPos(SectionPos.blockToSectionCoord(pos.x), SectionPos.blockToSectionCoord(pos.z));
-        final var chunkStart = chunkPos.getBlockAt(0, level.getMinBuildHeight(), 0);
-        final var chunkEnd = chunkPos.getBlockAt(15, level.getMaxBuildHeight(), 15);
+        final var chunkStart = chunkPos.getBlockAt(0, level.getMinY(), 0);
+        final var chunkEnd = chunkPos.getBlockAt(15, level.getMaxY(), 15);
         final var range = new AABB(Vec3.atCenterOf(chunkStart), Vec3.atCenterOf(chunkEnd));
         if (!range.expandTowards(0.5, 0.5, 0.5).contains(claimer.position())) {
             src.sendFailure(Component.translatable("area_control.error.outside_selection"));
@@ -242,7 +242,7 @@ public final class AreaControlCommand {
         }
         final Area area = Util.createArea(chunkStart, chunkEnd, claimer);
         final var worldIndex = src.getLevel().dimension();
-        final UUID claimerUUID = claimer.getGameProfile().getId();
+        final UUID claimerUUID = claimer.getGameProfile().id();
         if (claimerUUID != null) {
             area.owners.add(claimerUUID);
         }
@@ -266,44 +266,44 @@ public final class AreaControlCommand {
         if (xOffset > 0) {
             if (zOffset > 0) {
                 // Corner is at northwest
-                chunkStart = corner.getBlockAt(0, level.getMinBuildHeight(), 0);
-                chunkEnd = new ChunkPos(corner.x + xOffset - 1, corner.z + zOffset - 1).getBlockAt(15, level.getMaxBuildHeight(), 15);
+                chunkStart = corner.getBlockAt(0, level.getMinY(), 0);
+                chunkEnd = new ChunkPos(corner.x() + xOffset - 1, corner.z() + zOffset - 1).getBlockAt(15, level.getMaxY(), 15);
             } else if (zOffset == 0) {
                 // Corner is at northwest
-                chunkStart = corner.getBlockAt(0, level.getMinBuildHeight(), 0);
-                chunkEnd = new ChunkPos(corner.x + xOffset - 1, corner.z).getBlockAt(15, level.getMaxBuildHeight(), 15);
+                chunkStart = corner.getBlockAt(0, level.getMinY(), 0);
+                chunkEnd = new ChunkPos(corner.x() + xOffset - 1, corner.z()).getBlockAt(15, level.getMaxY(), 15);
             } else {
                 // Corner is at southwest
-                chunkStart = corner.getBlockAt(0, level.getMinBuildHeight(), 15);
-                chunkEnd = new ChunkPos(corner.x + xOffset - 1, corner.z + zOffset + 1).getBlockAt(15, level.getMaxBuildHeight(), 0);
+                chunkStart = corner.getBlockAt(0, level.getMinY(), 15);
+                chunkEnd = new ChunkPos(corner.x() + xOffset - 1, corner.z() + zOffset + 1).getBlockAt(15, level.getMaxY(), 0);
             }
         } else if (xOffset == 0) {
             if (zOffset > 0) {
                 // Corner is at northwest
-                chunkStart = corner.getBlockAt(0, level.getMinBuildHeight(), 0);
-                chunkEnd = new ChunkPos(corner.x, corner.z + zOffset - 1).getBlockAt(15, level.getMaxBuildHeight(), 15);
+                chunkStart = corner.getBlockAt(0, level.getMinY(), 0);
+                chunkEnd = new ChunkPos(corner.x(), corner.z() + zOffset - 1).getBlockAt(15, level.getMaxY(), 15);
             } else if (zOffset == 0) {
                 // Corner is at northwest, just one chunk
-                chunkStart = corner.getBlockAt(0, level.getMinBuildHeight(), 0);
-                chunkEnd = corner.getBlockAt(15, level.getMaxBuildHeight(), 15);
+                chunkStart = corner.getBlockAt(0, level.getMinY(), 0);
+                chunkEnd = corner.getBlockAt(15, level.getMaxY(), 15);
             } else {
                 // Corner is at southwest
-                chunkStart = corner.getBlockAt(0, level.getMinBuildHeight(), 15);
-                chunkEnd = new ChunkPos(corner.x, corner.z + zOffset + 1).getBlockAt(15, level.getMaxBuildHeight(), 0);
+                chunkStart = corner.getBlockAt(0, level.getMinY(), 15);
+                chunkEnd = new ChunkPos(corner.x(), corner.z() + zOffset + 1).getBlockAt(15, level.getMaxY(), 0);
             }
         } else {
             if (zOffset > 0) {
                 // Corner is at northeast
-                chunkStart = corner.getBlockAt(15, level.getMinBuildHeight(), 0);
-                chunkEnd = new ChunkPos(corner.x + xOffset + 1, corner.z + zOffset - 1).getBlockAt(0, level.getMaxBuildHeight(), 15);
+                chunkStart = corner.getBlockAt(15, level.getMinY(), 0);
+                chunkEnd = new ChunkPos(corner.x() + xOffset + 1, corner.z() + zOffset - 1).getBlockAt(0, level.getMaxY(), 15);
             } else if (zOffset == 0) {
                 // Corner is at northeast
-                chunkStart = corner.getBlockAt(15, level.getMinBuildHeight(), 0);
-                chunkEnd = new ChunkPos(corner.x + xOffset + 1, corner.z).getBlockAt(0, level.getMaxBuildHeight(), 15);
+                chunkStart = corner.getBlockAt(15, level.getMinY(), 0);
+                chunkEnd = new ChunkPos(corner.x() + xOffset + 1, corner.z()).getBlockAt(0, level.getMaxY(), 15);
             } else {
                 // Corner is southeast
-                chunkStart = corner.getBlockAt(15, level.getMinBuildHeight(), 15);
-                chunkEnd = new ChunkPos(corner.x + xOffset + 1, corner.z + zOffset + 1).getBlockAt(0, level.getMaxBuildHeight(), 0);
+                chunkStart = corner.getBlockAt(15, level.getMinY(), 15);
+                chunkEnd = new ChunkPos(corner.x() + xOffset + 1, corner.z() + zOffset + 1).getBlockAt(0, level.getMaxY(), 0);
             }
         }
         final var range = new AABB(Vec3.atCenterOf(chunkStart), Vec3.atCenterOf(chunkEnd));
@@ -313,7 +313,7 @@ public final class AreaControlCommand {
         }
         final Area area = Util.createArea(chunkStart, chunkEnd, claimer);
         final var worldIndex = src.getLevel().dimension();
-        final UUID claimerUUID = claimer.getGameProfile().getId();
+        final UUID claimerUUID = claimer.getGameProfile().id();
         if (claimerUUID != null) {
             area.owners.add(claimerUUID);
         }
@@ -339,7 +339,7 @@ public final class AreaControlCommand {
                 return -1;
             }
             final Area area = Util.createArea(start.pos(), end.pos(), claimer);
-            final UUID claimerUUID = claimer.getGameProfile().getId();
+            final UUID claimerUUID = claimer.getGameProfile().id();
             if (claimerUUID != null) {
                 area.owners.add(claimerUUID);
             }
@@ -372,19 +372,19 @@ public final class AreaControlCommand {
         if (area != null) {
             final String name = area.name;
             final var areaName = Component.literal(name)
-                    .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, name))
-                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_name")))
+                    .setStyle(Style.EMPTY.withClickEvent(new ClickEvent.CopyToClipboard(name))
+                            .withHoverEvent(new HoverEvent.ShowText(Component.translatable("area_control.claim.current.copy_name")))
                             .withColor(ChatFormatting.DARK_AQUA));
             src.sendSuccess(() -> Component.translatable("area_control.claim.current.line.name", areaName), true);
 
             final var areaUUID = Component.literal(area.uid.toString())
-                    .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, area.uid.toString()))
-                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("area_control.claim.current.copy_uuid")))
+                    .setStyle(Style.EMPTY.withClickEvent(new ClickEvent.CopyToClipboard(area.uid.toString()))
+                            .withHoverEvent(new HoverEvent.ShowText(Component.translatable("area_control.claim.current.copy_uuid")))
                             .withColor(ChatFormatting.DARK_AQUA));
             src.sendSuccess(() -> Component.translatable("area_control.claim.current.line.uuid", areaUUID), true);
 
             if (!area.owners.isEmpty()) {
-                final var ownerName = Util.getOwnerName(area, server.getProfileCache(), server.getPlayerList());
+                final var ownerName = Util.getOwnerName(area, server.services().nameToIdCache(), server.getPlayerList());
                 src.sendSuccess(() -> Component.translatable("area_control.claim.current.line.owner", ownerName), true);
             }
             if (!area.ownerGroups.isEmpty()) {
@@ -524,7 +524,7 @@ public final class AreaControlCommand {
     private static int listClaimers(CommandContext<CommandSourceStack> context) {
         final var src = context.getSource();
         final var server = src.getServer();
-        final var profileCache = server.getProfileCache();
+        final var profileCache = server.services().nameToIdCache();
         final var playerList = server.getPlayerList();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         if (area == null) {
@@ -551,7 +551,7 @@ public final class AreaControlCommand {
             final var profiles = GameProfileArgument.getGameProfiles(context, "player");
             int count = 0;
             for (var profile : profiles) {
-                var uid = profile.getId();
+                var uid = profile.id();
                 String message = !area.owners.contains(uid) && area.owners.add(uid) ? "area_control.claim.owner.added" : "area_control.claim.owner.existed";
                 src.sendSuccess(() -> Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
             }
@@ -591,7 +591,7 @@ public final class AreaControlCommand {
             final var profiles = GameProfileArgument.getGameProfiles(context, "player");
             int count = 0;
             for (var profile : profiles) {
-                String message = area.owners.remove(profile.getId()) ? "area_control.claim.owner.removed" : "area_control.claim.owner.not_yet";
+                String message = area.owners.remove(profile.id()) ? "area_control.claim.owner.removed" : "area_control.claim.owner.not_yet";
                 src.sendSuccess(() -> Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
             }
             return count;
@@ -622,7 +622,7 @@ public final class AreaControlCommand {
     private static int listBuilders(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final var server = src.getServer();
-        final var profileCache = server.getProfileCache();
+        final var profileCache = server.services().nameToIdCache();
         final var playerList = server.getPlayerList();
         final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         if (area == null) {
@@ -649,7 +649,7 @@ public final class AreaControlCommand {
             final var profiles = GameProfileArgument.getGameProfiles(context, "player");
             int count = 0;
             for (var profile : profiles) {
-                var uid = profile.getId();
+                var uid = profile.id();
                 String message = !area.owners.contains(uid) && area.builders.add(uid) ? "area_control.claim.builder.added" : "area_control.claim.builder.existed";
                 src.sendSuccess(() -> Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
             }
@@ -690,7 +690,7 @@ public final class AreaControlCommand {
             int count = 0;
             for (var profile : profiles) {
                 String message;
-                if (area.builders.remove(profile.getId())) {
+                if (area.builders.remove(profile.id())) {
                     message = "area_control.claim.builder.removed";
                     count++;
                 } else {
@@ -840,7 +840,7 @@ public final class AreaControlCommand {
     private static int displayMine(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
         final var player = src.getPlayerOrException();
-        var areas = AreaManager.INSTANCE.findByOwner(player.getGameProfile().getId());
+        var areas = AreaManager.INSTANCE.findByOwner(player.getGameProfile().id());
         src.sendSuccess(() -> Component.translatable("area_control.claim.mine", areas.size()), false);
         for (Area area : areas) {
             src.sendSuccess(() -> Util.describe(area), false);

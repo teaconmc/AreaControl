@@ -47,17 +47,17 @@ public enum AreaControlPlayerTracker {
     private static final Component HOW_TO_TURN_ON = Component.translatable("area_control.bypass.how_to_turn_on",
             Component.literal("/ac current bypass global")
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.AQUA)
-                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("/ac current bypass global")))
-                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ac current bypass global"))),
+                            .withHoverEvent(new HoverEvent.ShowText(Component.literal("/ac current bypass global")))
+                            .withClickEvent(new ClickEvent.RunCommand("/ac current bypass global"))),
             Component.literal("/ac current bypass local")
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.AQUA)
-                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("/ac current bypass local")))
-                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ac current bypass local"))));
+                            .withHoverEvent(new HoverEvent.ShowText(Component.literal("/ac current bypass local")))
+                            .withClickEvent(new ClickEvent.RunCommand("/ac current bypass local"))));
     private static final Component HOW_TO_TURN_OFF = Component.translatable("area_control.bypass.how_to_turn_off",
             Component.literal("/ac current bypass none")
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.AQUA)
-                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("/ac current bypass none")))
-                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ac current bypass none"))));
+                            .withHoverEvent(new HoverEvent.ShowText(Component.literal("/ac current bypass none")))
+                            .withClickEvent(new ClickEvent.RunCommand("/ac current bypass none"))));
 
     // For future reference - if you need to backport, or port forward, or port to a different framework,
     // make sure you always get AreaControlStatusData from here, to minimize the workload.
@@ -97,12 +97,13 @@ public enum AreaControlPlayerTracker {
 
             // Seize items if disallowed
             var mainInv = player.getInventory();
-            AreaChecks.checkInv(mainInv.items, currentArea, player);
-            AreaChecks.checkInv(mainInv.armor, currentArea, player);
-            AreaChecks.checkInv(mainInv.offhand, currentArea, player);
+            AreaChecks.checkInv(mainInv.getNonEquipmentItems(), currentArea, player);
+            // FIXME[3TUSK]: EntityEquipment
+            // AreaChecks.checkInv(mainInv.armor, currentArea, player);
+            // FIXME[3TUSK]: Curios Inventory
             var extraInv = player.getCapability(CuriosCapability.CURIO_INV);
             if (extraInv != null) {
-                AreaChecks.checkInv(extraInv, currentArea, player);
+                // AreaChecks.checkInv(extraInv, currentArea, player);
             }
             // Seize vehicles if disallowed
             var riding = player.getVehicle();
@@ -146,7 +147,7 @@ public enum AreaControlPlayerTracker {
         if (status.globalBypassMode) {
             if (currArea != null) {
                 // 如果不在，检查是否已远离野外两倍 reach distance
-                if (currArea != prevArea && AreaMath.distanceFromInteriorToBoundary(currArea, p.xo, p.yo, p.zo) >= doubleReachDistance) {
+                if (prevArea == null && AreaMath.distanceFromInteriorToBoundary(currArea, p.xo, p.yo, p.zo) >= doubleReachDistance) {
                     // 若已远离，则关闭野外的 Bypass
                     status.wildnessBypassMode = false;
                     p.displayClientMessage(Component.translatable("area_control.bypass.wildness.passive_off"), false);
@@ -162,7 +163,7 @@ public enum AreaControlPlayerTracker {
                 }
             } else {
                 // // 玩家如果是切换后领地/野外的 Builder，或者拥有 area_control.command.admin 权限（注意野外）
-                if (AreaChecks.isACtrlAdmin((ServerPlayer) p)) {
+                if (prevArea != null && AreaChecks.isACtrlAdmin((ServerPlayer) p)) {
                     // 则自动为该领地/野外开启 Bypass 模式（若还没有），并发送消息
                     if (!status.wildnessBypassMode) {
                         status.wildnessBypassMode = true;
@@ -175,7 +176,7 @@ public enum AreaControlPlayerTracker {
     }
 
     public void sendNearbyAreasToClient(ResourceKey<Level> dim, ServerPlayer requester, double radius, boolean permanent) {
-        LOGGER.debug(MARKER, "Player {} has requested nearby area. Center: {}, radius: {}", requester.getGameProfile().getName(), requester.blockPosition(), radius);
+        LOGGER.debug(MARKER, "Player {} has requested nearby area. Center: {}, radius: {}", requester.getGameProfile().name(), requester.blockPosition(), radius);
         var nearbyAreas = AreaManager.INSTANCE.getAreaSummariesSurround(dim, requester.blockPosition(), radius);
         requester.displayClientMessage(Component.translatable("area_control.claim.nearby", nearbyAreas.size()), false);
         LOGGER.debug(MARKER, "Nearby area count: {}", nearbyAreas.size());

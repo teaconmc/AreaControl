@@ -4,7 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 import org.teacon.areacontrol.api.Area;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record ACSendNearbyArea(List<Area.Summary> areas, long expireAfter) implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<ACSendNearbyArea> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("area_control", "send_near_by_area"));
+    public static final CustomPacketPayload.Type<ACSendNearbyArea> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("area_control", "send_near_by_area"));
 
     public static final StreamCodec<FriendlyByteBuf, ACSendNearbyArea> STREAM_CODEC = StreamCodec.composite(
             new StreamCodec<FriendlyByteBuf, Area.Summary>() {

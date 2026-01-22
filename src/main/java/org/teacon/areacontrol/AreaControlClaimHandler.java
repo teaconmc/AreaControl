@@ -5,7 +5,7 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
@@ -30,8 +30,9 @@ public final class AreaControlClaimHandler {
     public static void onRightClick(PlayerInteractEvent.RightClickBlock event) {
         if (event.getSide() == LogicalSide.SERVER) {
             final var player = (ServerPlayer) event.getEntity();
-            final var areaClaimTool = BuiltInRegistries.ITEM.get(ResourceLocation.parse(AreaControlConfig.areaClaimTool.get()));
-            if (areaClaimTool != Items.AIR && event.getItemStack().getItem() == areaClaimTool) {
+            final var areaClaimTool = BuiltInRegistries.ITEM.get(Identifier.parse(AreaControlConfig.areaClaimTool.get()));
+            // TODO [3TUSK]: 这对吗？感觉不对劲啊？
+            if (areaClaimTool.isPresent() && event.getItemStack().getItem() == areaClaimTool.get().value()) {
                 var currentArea = AreaManager.INSTANCE.findBy(event.getLevel(), event.getPos());
                 if (AreaChecks.isACtrlAreaBuilder(player, currentArea) || PermissionAPI.getPermission(player, AreaControlPermissions.AC_CLAIMER)) {
                     final BlockPos clicked = event.getPos();

@@ -10,7 +10,7 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -65,7 +65,7 @@ public final class AreaManager {
     private final Map<String, ResourceKey<Level>> levelKeyCache = new HashMap<>();
 
     private ResourceKey<Level> getOrCreate(String dimKey) {
-        return this.levelKeyCache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(k)));
+        return this.levelKeyCache.computeIfAbsent(dimKey, k -> ResourceKey.create(Registries.DIMENSION, Identifier.parse(k)));
     }
 
     private void buildCacheFor(Area area, ResourceKey<Level> worldIndex) {
@@ -165,7 +165,7 @@ public final class AreaManager {
         try {
             writeLock.lock();
             this.repository.save(this.areasById.values().stream()
-                    .filter(a -> a.dimension.equals(key.location().toString())).toList());
+                    .filter(a -> a.dimension.equals(key.identifier().toString())).toList());
         } finally {
             writeLock.unlock();
         }
@@ -418,7 +418,7 @@ public final class AreaManager {
                 child.setBelongingArea(area.uid);
                 area.subAreas.add(child.uid);
             }
-            var dimId = worldIndex.location();
+            var dimId = worldIndex.identifier();
             area.dimension = dimId.getNamespace() + ":" + dimId.getPath();
             return true;
         } finally {
@@ -605,7 +605,7 @@ public final class AreaManager {
                 return null;
             }
             RegistryAccess registryAccess = server.registryAccess();
-            var maybeDimRegistry = registryAccess.registry(Registries.DIMENSION_TYPE);
+            var maybeDimRegistry = registryAccess.lookup(Registries.DIMENSION_TYPE);
             if (maybeDimRegistry.isPresent()) {
                 var dimKey = maybeDimRegistry.get().getKey(maybeLevel.dimensionType());
                 if (dimKey != null) {
@@ -650,7 +650,7 @@ public final class AreaManager {
             var results = new ArrayList<Area>();
             // Locate all areas that contain the specified position
             for (var uuid : this.perWorldAreaCache.getOrDefault(
-                    world, Collections.emptyMap()).getOrDefault(new ChunkPos(pos), Collections.emptySet())) {
+                    world, Collections.emptyMap()).getOrDefault(ChunkPos.containing(pos), Collections.emptySet())) {
                 Area area = this.areasById.get(uuid);
                 if (area == null || area == excluded) {
                     continue;
