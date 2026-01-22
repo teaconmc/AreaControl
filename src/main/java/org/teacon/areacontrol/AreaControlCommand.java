@@ -50,7 +50,7 @@ public final class AreaControlCommand {
 
     private static final Predicate<CommandSourceStack> ADMIN = source -> {
         // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
-        if (((CommandSourceStackAccessor) source).getSource() instanceof ServerPlayer sp) {
+        if (((CommandSourceStackAccessor) source).getEntity() instanceof ServerPlayer sp) {
             return PermissionAPI.getPermission(sp, AreaControlPermissions.AC_ADMIN);
         }
         return false;
@@ -58,7 +58,7 @@ public final class AreaControlCommand {
 
     private static final Predicate<CommandSourceStack> OWNER_OR_ADMIN = source -> {
         // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
-        if (((CommandSourceStackAccessor) source).getSource() instanceof ServerPlayer sp) {
+        if (((CommandSourceStackAccessor) source).getEntity() instanceof ServerPlayer sp) {
             return PermissionAPI.getPermission(sp, AreaControlPermissions.AC_CLAIMER)
                     || PermissionAPI.getPermission(sp, AreaControlPermissions.AC_ADMIN);
         }
@@ -67,7 +67,7 @@ public final class AreaControlCommand {
 
     private static final Predicate<CommandSourceStack> BUILDER_OR_ADMIN = source -> {
         // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
-        if (((CommandSourceStackAccessor) source).getSource() instanceof ServerPlayer sp) {
+        if (((CommandSourceStackAccessor) source).getEntity() instanceof ServerPlayer sp) {
             return PermissionAPI.getPermission(sp, AreaControlPermissions.AC_BUILDER)
                     || PermissionAPI.getPermission(sp, AreaControlPermissions.AC_ADMIN);
         }
