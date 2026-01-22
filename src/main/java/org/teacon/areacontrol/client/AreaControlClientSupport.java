@@ -19,6 +19,7 @@ import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import org.joml.Vector2f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -80,7 +81,7 @@ public final class AreaControlClientSupport {
 
         var buffers = mc.renderBuffers().bufferSource();
 
-        var builder = buffers.getBuffer(Holder.BORDER);
+        var builder = buffers.getBuffer(AreaControlRenderTypes.BORDER);
 
         var renderDistance = mc.options.getEffectiveRenderDistance() * 16;
         BlockPos playerPos;
@@ -89,15 +90,16 @@ public final class AreaControlClientSupport {
         } else {
             playerPos = BlockPos.ZERO;
         }
-        if (System.currentTimeMillis() < knownAreasExpiresAt) {
+//        if (System.currentTimeMillis() < knownAreasExpiresAt) {
             for (var area : knownAreas) {
-                if (playerPos.closerThan(new Vec3i(area.midX, area.midY, area.midZ), renderDistance)) {
+                //xkball: 只计算xz平面上的距离, 不然视距小的时候会有错误效果
+                if (new Vector2f(playerPos.getX(), playerPos.getZ()).distance(new Vector2f(area.midX, area.midZ)) < renderDistance) {
                     int minY = Math.max(-128, area.minY);
                     int maxY = Math.min(320, area.maxY);
                     box(transform, builder, area.enclosed ? 0x8826619C : 0x887FFFD4, area.minX, minY, area.minZ, area.maxX + 1, maxY + 1, area.maxZ + 1);
                 }
             }
-        }
+//        }
         var level = mc.level;
         if (level != null && level.dimension() == selectionDimension && selectionMin != null && selectionMax != null) {
             box(transform, builder, 0xFFFFD700, selectionMin.getX(), selectionMin.getY(), selectionMin.getZ(), selectionMax.getX() + 1, selectionMax.getY() + 1, selectionMax.getZ() + 1);
@@ -187,23 +189,5 @@ public final class AreaControlClientSupport {
         vertexConsumer.addVertex(x, maxX, maxY, minZ).setColor(argbColor).setUv(0, diffY);
         vertexConsumer.addVertex(x, maxX, maxY, maxZ).setColor(argbColor).setUv(diffZ, diffY);
         vertexConsumer.addVertex(x, maxX, minY, maxZ).setColor(argbColor).setUv(diffZ, 0);
-    }
-
-    private static final class Holder extends RenderStateShard {
-        private Holder(String name, Runnable setupCallback, Runnable cleanupCallback) {
-            super(name, setupCallback, cleanupCallback);
-        }
-
-        static final RenderType BORDER = RenderType.create("area_control_border",
-                DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, 256, false, false,
-                RenderType.CompositeState.builder()
-                        .setShaderState(new ShaderStateShard(GameRenderer::getPositionTexColorShader)) // Must be here
-                        .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                        .setTextureState(new TextureStateShard(Identifier.withDefaultNamespace("textures/misc/forcefield.png"), false, false))
-                        // 海螺 told me that vanilla avoids z-fighting during world border rendering
-                        // by RenderSystem.enablePolygonOffset(), so here it is...
-                        .setLayeringState(POLYGON_OFFSET_LAYERING)
-                        .createCompositeState(false));
-
     }
 }
