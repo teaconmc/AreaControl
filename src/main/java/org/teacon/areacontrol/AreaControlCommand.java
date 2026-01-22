@@ -19,7 +19,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -33,7 +32,6 @@ import org.teacon.areacontrol.impl.command.arguments.DirectionArgument;
 import org.teacon.areacontrol.impl.command.arguments.GroupArgument;
 import org.teacon.areacontrol.impl.seizer.AreaControlBorderControl;
 import org.teacon.areacontrol.impl.seizer.ConfiscationInvMenuProvider;
-import org.teacon.areacontrol.mixin.CommandSourceStackAccessor;
 import org.teacon.areacontrol.network.ACNetworking;
 import org.teacon.areacontrol.network.ACSendNearbyArea;
 import org.teacon.areacontrol.network.ACShowPropEditScreen;
@@ -50,26 +48,26 @@ public final class AreaControlCommand {
 
     private static final Predicate<CommandSourceStack> ADMIN = source -> {
         // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
-        if (((CommandSourceStackAccessor) source).getEntity() instanceof ServerPlayer sp) {
-            return PermissionAPI.getPermission(sp, AreaControlPermissions.AC_ADMIN);
+        if (source.getPlayer() != null) {
+            return PermissionAPI.getPermission(source.getPlayer(), AreaControlPermissions.AC_ADMIN);
         }
         return false;
     };
 
     private static final Predicate<CommandSourceStack> OWNER_OR_ADMIN = source -> {
         // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
-        if (((CommandSourceStackAccessor) source).getEntity() instanceof ServerPlayer sp) {
-            return PermissionAPI.getPermission(sp, AreaControlPermissions.AC_CLAIMER)
-                    || PermissionAPI.getPermission(sp, AreaControlPermissions.AC_ADMIN);
+        if (source.getPlayer() != null) {
+            return PermissionAPI.getPermission(source.getPlayer(), AreaControlPermissions.AC_CLAIMER)
+                    || PermissionAPI.getPermission(source.getPlayer(), AreaControlPermissions.AC_ADMIN);
         }
         return false;
     };
 
     private static final Predicate<CommandSourceStack> BUILDER_OR_ADMIN = source -> {
         // /execute as will change the "on-behalf-of" source, so we need to extract the true source.
-        if (((CommandSourceStackAccessor) source).getEntity() instanceof ServerPlayer sp) {
-            return PermissionAPI.getPermission(sp, AreaControlPermissions.AC_BUILDER)
-                    || PermissionAPI.getPermission(sp, AreaControlPermissions.AC_ADMIN);
+        if (source.getPlayer() != null) {
+            return PermissionAPI.getPermission(source.getPlayer(), AreaControlPermissions.AC_BUILDER)
+                    || PermissionAPI.getPermission(source.getPlayer(), AreaControlPermissions.AC_ADMIN);
         }
         return false;
     };

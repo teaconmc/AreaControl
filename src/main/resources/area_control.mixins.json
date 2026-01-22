@@ -4,7 +4,6 @@
   "package": "org.teacon.areacontrol.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "CommandSourceStackAccessor",
     "EntityMixin",
     "EntitySelectorMixin",
     "LevelMixin"
