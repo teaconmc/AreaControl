@@ -9,6 +9,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.common.util.ValueIOSerializable;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
@@ -84,23 +85,23 @@ public class ConfiscationInv implements ValueIOSerializable {
         }
 
         @Override
-        public ItemStack getItem(int index) {
+        public @NotNull ItemStack getItem(int index) {
             return index < this.getContainerSize() ? ConfiscationInv.this.seizedItems.get(index) : ItemStack.EMPTY;
         }
 
         @Override
-        public ItemStack removeItem(int index, int amount) {
+        public @NotNull ItemStack removeItem(int index, int amount) {
             ItemStack original = this.getItem(index);
             return original.split(amount);
         }
 
         @Override
-        public ItemStack removeItemNoUpdate(int index) {
+        public @NotNull ItemStack removeItemNoUpdate(int index) {
             return index < this.getContainerSize() ? ConfiscationInv.this.seizedItems.set(index, ItemStack.EMPTY) : ItemStack.EMPTY;
         }
 
         @Override
-        public void setItem(int index, ItemStack itemStack) {
+        public void setItem(int index, @NotNull ItemStack itemStack) {
             ConfiscationInv.this.seizedItems.set(index, itemStack);
         }
 
@@ -110,7 +111,7 @@ public class ConfiscationInv implements ValueIOSerializable {
         }
 
         @Override
-        public boolean stillValid(Player player) {
+        public boolean stillValid(@NotNull Player player) {
             return true;
         }
 

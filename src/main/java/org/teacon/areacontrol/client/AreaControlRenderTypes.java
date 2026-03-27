@@ -28,7 +28,7 @@ public class AreaControlRenderTypes {
                 .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
                 .withUniform("Projection", UniformType.UNIFORM_BUFFER)
                 .withSampler("Sampler0")
-                .withBlend(BlendFunction.TRANSLUCENT)
+                // .withBlend(BlendFunction.TRANSLUCENT) // FIXME Translucent
                 .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
                 .withCull(false)
                 .build();

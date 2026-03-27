@@ -1,12 +1,14 @@
 package org.teacon.areacontrol.test.impl;
 
 import net.minecraft.SharedConstants;
+import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BaseCommandBlock;
 import net.minecraft.world.level.Level;
@@ -29,6 +31,7 @@ import org.teacon.areacontrol.impl.AreaEntitySelectorChecker;
 import org.teacon.areacontrol.impl.AreaLookupImpl;
 import org.teacon.areacontrol.test.InMemoryAreaRepository;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -135,7 +138,7 @@ public class AreaEntitySelectorCheckerTest {
     @Test
     public void testSelectingWithinSameAreaByPlayer() {
         Mockito.when(this.mockLevel.dimension()).thenReturn(Level.OVERWORLD);
-        var commandSrc = new CommandSourceStack(this.mockPlayer, Vec3.ZERO, Vec2.ZERO, this.mockLevel, 4, "Mockito", Component.literal("Mockito"), this.mockServer, null);
+        var commandSrc = new CommandSourceStack(this.mockPlayer.commandSource(), Vec3.ZERO, Vec2.ZERO, this.mockLevel, PermissionSet.ALL_PERMISSIONS, "Mockito", Component.literal("Mockito"), this.mockServer, null);
         // Position mock entity to [0.5, 0.5, 0.5] of overworld (in area A)
         Mockito.when(this.mockEntity.level()).thenReturn(this.mockLevel);
         this.mockEntity.xo = 0.0;
@@ -148,7 +151,7 @@ public class AreaEntitySelectorCheckerTest {
     @Test
     public void testSelectingWithinSameAreaByCommandBlock() {
         Mockito.when(this.mockLevel.dimension()).thenReturn(Level.OVERWORLD);
-        var commandSrc = new CommandSourceStack(this.mockCmdBlock, Vec3.ZERO, Vec2.ZERO, this.mockLevel, 4, "Mockito", Component.literal("Mockito"), this.mockServer, null);
+        var commandSrc = new CommandSourceStack(createFromCommandBlock(this.mockCmdBlock, this.mockLevel), Vec3.ZERO, Vec2.ZERO, this.mockLevel, PermissionSet.ALL_PERMISSIONS, "Mockito", Component.literal("Mockito"), this.mockServer, null);
         // Position mock entity to [0.0, 5.0, 5.0] of overworld (in area A)
         Mockito.when(this.mockEntity.level()).thenReturn(this.mockLevel);
         this.mockEntity.xo = 5.0;
@@ -162,7 +165,7 @@ public class AreaEntitySelectorCheckerTest {
     public void testSelectingByNeitherPlayerNorCommandBlock() {
         // Create a CommandSourceStack with true source being a server.
         // In real world, this means the server console command-line interface.
-        var commandSrc = new CommandSourceStack(this.mockServer, Vec3.ZERO, Vec2.ZERO, this.mockLevel, 4, "Mockito", Component.literal("Mockito"), this.mockServer, null);
+        var commandSrc = new CommandSourceStack(this.mockServer, Vec3.ZERO, Vec2.ZERO, this.mockLevel, PermissionSet.ALL_PERMISSIONS, "Mockito", Component.literal("Mockito"), this.mockServer, null);
         // Position mock entity to [0.0, 5.0, 5.0] of overworld (in area A)
         //Mockito.when(this.mockEntity.level()).thenReturn(this.mockLevel);
         this.mockEntity.xo = 5.0;
@@ -181,7 +184,7 @@ public class AreaEntitySelectorCheckerTest {
     public void testSelectingByPlayerFromWildness() {
         Mockito.when(this.mockLevel.dimension()).thenReturn(Level.OVERWORLD);
         var playerPos = new Vec3(100, 100, 100);
-        var commandSrc = new CommandSourceStack(this.mockPlayer, playerPos, Vec2.ZERO, this.mockLevel, 4, "Mockito", Component.literal("Mockito"), this.mockServer, null);
+        var commandSrc = new CommandSourceStack(this.mockPlayer.commandSource(), playerPos, Vec2.ZERO, this.mockLevel, PermissionSet.ALL_PERMISSIONS, "Mockito", Component.literal("Mockito"), this.mockServer, null);
         // Position mock entity to [0.5, 0.5, 0.5] of overworld (in area A)
         Mockito.when(this.mockEntity.level()).thenReturn(this.mockLevel);
         this.mockEntity.xo = 0.0;
@@ -193,7 +196,7 @@ public class AreaEntitySelectorCheckerTest {
     @Test
     public void testSelectingByPlayerFromMultiLayerNestedAreas() {
         // Create a CommandSourceStack with true source being a mock Player, location is [3.5, 3.5, 3.5] (in area G).
-        var commandSrc = new CommandSourceStack(this.mockPlayer, new Vec3(3.5, 3.5, 3.5), Vec2.ZERO, this.mockLevel, 4, "Mockito", Component.literal("Mockito"), mockServer, null);
+        var commandSrc = new CommandSourceStack(this.mockPlayer.commandSource(), new Vec3(3.5, 3.5, 3.5), Vec2.ZERO, this.mockLevel, PermissionSet.ALL_PERMISSIONS, "Mockito", Component.literal("Mockito"), mockServer, null);
         // Position mock entity to [-2.5, -2.5, -2.5] of overworld (in area D)
         Mockito.when(this.mockLevel.dimension()).thenReturn(Level.OVERWORLD);
         this.mockEntity.xo = -2.5;
@@ -207,7 +210,7 @@ public class AreaEntitySelectorCheckerTest {
     @Test
     public void testSelectingByCommandBlockFromMultiLayerNestedAreas() {
         // Create a CommandSourceStack with true source being a mock command block, location is [3, 3, 3] (in area G).
-        var commandSrc = new CommandSourceStack(this.mockCmdBlock, new Vec3(3, 3, 3), Vec2.ZERO, this.mockLevel, 4, "Mockito", Component.literal("Mockito"), mockServer, null);
+        var commandSrc = new CommandSourceStack(createFromCommandBlock(this.mockCmdBlock, this.mockLevel), new Vec3(3, 3, 3), Vec2.ZERO, this.mockLevel, PermissionSet.ALL_PERMISSIONS, "Mockito", Component.literal("Mockito"), mockServer, null);
         // Position mock entity to [-2.5, -2.5, -2.5] of overworld (in area D)
         Mockito.when(this.mockLevel.dimension()).thenReturn(Level.OVERWORLD);
         this.mockEntity.xo = -2.5;
@@ -230,7 +233,7 @@ public class AreaEntitySelectorCheckerTest {
     @Test
     public void testKunoSayoAreaSetup() {
         // Create a CommandSourceStack with true source being a mock command block, location is [41.1, 41.1, 41.1] (in area I).
-        var commandSrc = new CommandSourceStack(this.mockCmdBlock, new Vec3(41.1, 41.1, 41.1), Vec2.ZERO, this.mockLevel, 4, "yinyangshi", Component.literal("KunoSayo"), mockServer, null);
+        var commandSrc = new CommandSourceStack(createFromCommandBlock(this.mockCmdBlock, this.mockLevel), new Vec3(41.1, 41.1, 41.1), Vec2.ZERO, this.mockLevel, PermissionSet.ALL_PERMISSIONS, "yinyangshi", Component.literal("KunoSayo"), mockServer, null);
         // Position mock entity to [ 42.5, 42.5, 42.5 ] of overworld (in area J)
         Mockito.when(this.mockLevel.dimension()).thenReturn(Level.OVERWORLD);
         this.mockEntity.xo = 42.5;
@@ -253,5 +256,16 @@ public class AreaEntitySelectorCheckerTest {
         area.maxY = maxY;
         area.maxZ = maxZ;
         return area;
+    }
+
+    private static CommandSource createFromCommandBlock(BaseCommandBlock commandBlock, ServerLevel level) {
+        try {
+            Method m = BaseCommandBlock.class.getDeclaredMethod("createSource", ServerLevel.class);
+            m.setAccessible(true);
+            return (CommandSource) m.invoke(commandBlock, level);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

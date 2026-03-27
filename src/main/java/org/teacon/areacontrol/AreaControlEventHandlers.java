@@ -75,7 +75,7 @@ public final class AreaControlEventHandlers {
             }
             if (!allow) {
                 if (src.getEntity() instanceof ServerPlayer srcPlayer) {
-                    srcPlayer.displayClientMessage(deniedFeedback, true);
+                    srcPlayer.sendSystemMessage(deniedFeedback, true);
                 }
                 event.setInvulnerable(true);
             }
@@ -142,7 +142,7 @@ public final class AreaControlEventHandlers {
         final var blockId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
         var allowed = AreaChecks.checkPropFor(targetArea, p, AreaProperties.ALLOW_BREAK, blockId, AreaControlConfig.allowBreakBlock);
         if (!allowed) {
-            p.displayClientMessage(Component.translatable("area_control.notice.break_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
+            p.sendOverlayMessage(Component.translatable("area_control.notice.break_block_disabled", ObjectArrays.EMPTY_ARRAY));
             event.setCanceled(true);
         }
     }
@@ -158,7 +158,7 @@ public final class AreaControlEventHandlers {
         final var blockId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
         var allowed = AreaChecks.checkPropFor(targetArea, p, AreaProperties.ALLOW_CLICK, blockId, AreaControlConfig.allowClickBlock);
         if (!allowed) {
-            p.displayClientMessage(Component.translatable("area_control.notice.click_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
+            p.sendOverlayMessage(Component.translatable("area_control.notice.click_block_disabled", ObjectArrays.EMPTY_ARRAY));
             event.setCanceled(true);
         }
     }
@@ -174,7 +174,7 @@ public final class AreaControlEventHandlers {
         final var blockId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
         var allowed = AreaChecks.checkPropFor(targetArea, player, AreaProperties.ALLOW_ACTIVATE, blockId, AreaControlConfig.allowActivateBlock);
         if (!allowed) {
-            player.displayClientMessage(Component.translatable("area_control.notice.activate_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
+            player.sendOverlayMessage(Component.translatable("area_control.notice.activate_block_disabled", ObjectArrays.EMPTY_ARRAY));
             event.setCanceled(true);
         }
     }
@@ -190,7 +190,7 @@ public final class AreaControlEventHandlers {
         final var itemId = BuiltInRegistries.ITEM.getKey(theItem);
         var allowed = AreaChecks.checkPropFor(targetArea, p, AreaProperties.ALLOW_USE_ITEM, itemId, AreaControlConfig.allowUseItem);
         if (!allowed) {
-            p.displayClientMessage(Component.translatable("area_control.notice.use_item_disabled", ObjectArrays.EMPTY_ARRAY), true);
+            p.sendOverlayMessage(Component.translatable("area_control.notice.use_item_disabled", ObjectArrays.EMPTY_ARRAY));
             event.setCanceled(true);
         }
     }
@@ -220,7 +220,7 @@ public final class AreaControlEventHandlers {
             // TODO Client will falsely report item being consumed; however it will return to normal if you click again in inventory GUI
             event.setCanceled(true);
             if (placer instanceof ServerPlayer p) {
-                p.displayClientMessage(Component.translatable("area_control.notice.place_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
+                p.sendSystemMessage(Component.translatable("area_control.notice.place_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
             }
         }
     }
@@ -267,7 +267,7 @@ public final class AreaControlEventHandlers {
             var rider = event.getEntityMounting();
             if (!AreaChecks.checkPropFor(area, rider, AreaProperties.ALLOW_RIDE, entityId, AreaControlConfig.allowRideEntity)) {
                 if (rider instanceof Player p) {
-                    p.displayClientMessage(Component.translatable("area_control.notice.ride_disabled", vehicle.getDisplayName()), true);
+                    p.sendOverlayMessage(Component.translatable("area_control.notice.ride_disabled", vehicle.getDisplayName()));
                 }
                 event.setCanceled(true);
             }

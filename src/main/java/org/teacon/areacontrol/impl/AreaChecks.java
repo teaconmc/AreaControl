@@ -90,7 +90,7 @@ public class AreaChecks {
             if (!item.isEmpty() && !checkPossess(currentArea, item.getItem())) {
                 ItemStack seized = inv.set(i, ItemStack.EMPTY);
                 seizedInv.add(seized);
-                player.displayClientMessage(Component.translatable("area_control.notice.possess_disabled_item", item.getHoverName()), true);
+                player.sendOverlayMessage(Component.translatable("area_control.notice.possess_disabled_item", item.getHoverName()));
             }
         }
     }
@@ -109,7 +109,7 @@ public class AreaChecks {
                     int seizedAmount = inv.extract(i, item, Integer.MAX_VALUE, xact);
                     seizedInv.add(item, seizedAmount);
                 }
-                player.displayClientMessage(Component.translatable("area_control.notice.possess_disabled_item", item.getHoverName()), true);
+                player.sendOverlayMessage(Component.translatable("area_control.notice.possess_disabled_item", item.getHoverName()));
             }
         }
     }
@@ -201,7 +201,7 @@ public class AreaChecks {
                 // TODO
             }
         }
-        player.displayClientMessage(Component.translatable(translationKey, args), true);
+        player.sendOverlayMessage(Component.translatable(translationKey, args));
     }
 
 }

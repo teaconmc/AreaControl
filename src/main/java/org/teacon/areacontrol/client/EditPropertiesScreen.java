@@ -8,7 +8,7 @@ package org.teacon.areacontrol.client;
 import net.minecraft.client.GameNarrator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Renderable;
@@ -63,11 +63,11 @@ public final class EditPropertiesScreen extends Screen {
     }
 
     @Override
-    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+    public void extractBackground(@NotNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
         this.drawGuiContainerBackgroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
         for (Renderable renderable : this.renderables) {
-            renderable.render(guiGraphics, mouseX, mouseY, partialTicks);
+            renderable.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         }
         this.drawGuiContainerForegroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
         this.drawTooltips(guiGraphics, partialTicks, mouseX, mouseY);
@@ -124,7 +124,7 @@ public final class EditPropertiesScreen extends Screen {
         this.slideBottom = bottom;
     }
 
-    private void drawTooltips(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+    private void drawTooltips(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY) {
         int dx = mouseX - this.width / 2, dy = mouseY - this.height / 2;
         if (dy >= -55 && dy < 77) {
             int current = (this.slideTop + dy + 55) / 24;
@@ -142,18 +142,18 @@ public final class EditPropertiesScreen extends Screen {
         }
     }
 
-    private void drawGuiContainerBackgroundLayer(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+    private void drawGuiContainerBackgroundLayer(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY) {
         guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 - 55, 0, 42, 234, 132, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         this.drawCategoriesInSlide(guiGraphics);
         guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 - 97, 0, 0, 234, 42, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 + 77, 0, 174, 234, 32, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }
 
-    private void drawGuiContainerForegroundLayer(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+    private void drawGuiContainerForegroundLayer(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY) {
         this.drawArtifactName(guiGraphics, this.font);
     }
 
-    private void drawCategoriesInSlide(GuiGraphics guiGraphics) {
+    private void drawCategoriesInSlide(GuiGraphicsExtractor guiGraphics) {
         int infoSize = this.infoCollection.size();
         if (infoSize > 0) {
             int top = Math.max(0, this.slideTop / 24);
@@ -182,7 +182,7 @@ public final class EditPropertiesScreen extends Screen {
         } else {
             MutableComponent next = Component.translatable("area_control.screen.no_properties.hints");
             int x1 = this.width / 2 - 7, dx1 = this.font.width(next) / 2, y1 = this.height / 2 + 15;
-            guiGraphics.drawString(this.font, next, x1 - dx1, y1, HINT_COLOR, false);
+            guiGraphics.text(this.font, next, x1 - dx1, y1, HINT_COLOR, false);
 
             guiGraphics.pose().pushMatrix();
             float scale = ARTIFACT_SCALE_FACTOR;
@@ -190,23 +190,23 @@ public final class EditPropertiesScreen extends Screen {
 
             MutableComponent prev = Component.translatable("area_control.screen.no_properties");
             int x2 = this.width / 2 - 7, dx2 = this.font.width(prev) / 2, y2 = this.height / 2 - 9;
-            guiGraphics.drawString(this.font, prev, (int) (x2 / scale - dx2), (int) (y2 / scale), HINT_COLOR, false);
+            guiGraphics.text(this.font, prev, (int) (x2 / scale - dx2), (int) (y2 / scale), HINT_COLOR, false);
 
             guiGraphics.pose().popMatrix();
         }
     }
 
-    private void drawArtifactName(GuiGraphics guiGraphics, Font font) {
+    private void drawArtifactName(GuiGraphicsExtractor guiGraphics, Font font) {
         guiGraphics.pose().pushMatrix();
         float scale = ARTIFACT_SCALE_FACTOR;
         guiGraphics.pose().scale(scale);
         int x3 = this.width / 2 + 1, y3 = this.height / 2 - 82, dx = font.width(this.areaName) / 2;
-        guiGraphics.drawString(font, this.areaName, (int) (x3 / scale - dx), (int) (y3 / scale), TEXT_COLOR, false);
+        guiGraphics.text(font, this.areaName, (int) (x3 / scale - dx), (int) (y3 / scale), TEXT_COLOR, false);
         guiGraphics.pose().popMatrix();
     }
 
     // Copied from AbstractWidget::drawScrollingString, modified to not dropping shadow
-    private static void drawScrollingString(GuiGraphics guiGraphics, Font font, Component text, int minX, int minY, int maxX, int maxY, int color) {
+    private static void drawScrollingString(GuiGraphicsExtractor guiGraphics, Font font, Component text, int minX, int minY, int maxX, int maxY, int color) {
         int textWidth = font.width(text);
         int renderY = (minY + maxY - 9) / 2 + 1;
         int allowedWidth = maxX - minX;
@@ -217,10 +217,10 @@ public final class EditPropertiesScreen extends Screen {
             double phase = Math.sin((Math.PI / 2D) * Math.cos((Math.PI * 2D) * time / cappedOverflow)) / 2.0D + 0.5D;
             double diff = Mth.lerp(phase, 0.0, overflow);
             guiGraphics.enableScissor(minX, minY, maxX, maxY);
-            guiGraphics.drawString(font, text, minX - (int) diff, renderY, color, false);
+            guiGraphics.text(font, text, minX - (int) diff, renderY, color, false);
             guiGraphics.disableScissor();
         } else {
-            guiGraphics.drawString(font, text, (minX + maxX) / 2 - font.width(text) / 2, renderY, color, false);
+            guiGraphics.text(font, text, (minX + maxX) / 2 - font.width(text) / 2, renderY, color, false);
         }
 
     }
@@ -234,14 +234,14 @@ public final class EditPropertiesScreen extends Screen {
         }
 
         @Override
-        public void renderContents(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        public void extractContents(@NotNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
             // render button texture
             int u0 = (this.isRed ? 7 : 60) + (this.isHovered ? 106 : 0), v0 = 234;
             guiGraphics.blit(TEXTURE, this.getX(), this.getY(), u0, v0, this.width, this.height, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
             // render button text
             float dx = EditPropertiesScreen.this.font.width(this.getMessage()) / 2F;
             float x = this.getX() + (this.width + 1) / 2F - dx, y = this.getY() + (this.height - 8) / 2F;
-            guiGraphics.drawString(EditPropertiesScreen.this.font, this.getMessage(), (int) x, (int) y, BUTTON_TEXT_COLOR, false);
+            guiGraphics.text(EditPropertiesScreen.this.font, this.getMessage(), (int) x, (int) y, BUTTON_TEXT_COLOR, false);
         }
     }
 
@@ -275,7 +275,7 @@ public final class EditPropertiesScreen extends Screen {
         }
 
         @Override
-        public void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        public void extractWidgetRenderState(@NotNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
             double dx = mouseX - this.getX(), dy = mouseY - this.getY() - this.slideCenter;
             int x0 = this.getX() + 192, y0 = Math.toIntExact(Math.round(mouseY - dy));
             int v0 = this.isHovered && dx >= 192 && dy < this.halfSliderHeight && dy >= -this.halfSliderHeight ? 133 : 4;

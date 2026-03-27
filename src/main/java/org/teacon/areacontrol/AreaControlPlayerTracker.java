@@ -91,7 +91,7 @@ public enum AreaControlPlayerTracker {
             if (prevArea != currentArea) {
                 status.currentArea = currentArea;
                 if (currentArea != null && AreaProperties.getBoolOptional(currentArea, AreaProperties.SHOW_WELCOME).orElse(Boolean.FALSE)) {
-                        player.displayClientMessage(Component.translatable("area_control.claim.welcome", currentArea.name), true);
+                    player.sendOverlayMessage(Component.translatable("area_control.claim.welcome", currentArea.name));
                 }
             }
 
@@ -108,7 +108,7 @@ public enum AreaControlPlayerTracker {
             // Seize vehicles if disallowed
             var riding = player.getVehicle();
             if (riding != null && !AreaChecks.checkPropFor(currentArea, player, AreaProperties.ALLOW_RIDE, BuiltInRegistries.ENTITY_TYPE.getKey(riding.getType()), AreaControlConfig.allowRideEntity)) {
-                player.displayClientMessage(Component.translatable("area_control.notice.ride_disabled", riding.getDisplayName()), true);
+                player.sendOverlayMessage(Component.translatable("area_control.notice.ride_disabled", riding.getDisplayName()));
                 player.stopRiding();
             }
 
@@ -138,8 +138,8 @@ public enum AreaControlPlayerTracker {
                 // 自动为该领地/野外清除 Bypass 模式，
                 iterator.remove();
                 // 并发送消息。
-                p.displayClientMessage(Component.translatable("area_control.bypass.area.passive_off", areaObj.name), false);
-                p.displayClientMessage(HOW_TO_TURN_ON, false);
+                p.sendSystemMessage(Component.translatable("area_control.bypass.area.passive_off", areaObj.name));
+                p.sendSystemMessage(HOW_TO_TURN_ON);
             }
         }
         var currArea = status.currentArea;
@@ -150,15 +150,15 @@ public enum AreaControlPlayerTracker {
                 if (prevArea == null && AreaMath.distanceFromInteriorToBoundary(currArea, p.xo, p.yo, p.zo) >= doubleReachDistance) {
                     // 若已远离，则关闭野外的 Bypass
                     status.wildnessBypassMode = false;
-                    p.displayClientMessage(Component.translatable("area_control.bypass.wildness.passive_off"), false);
-                    p.displayClientMessage(HOW_TO_TURN_ON, false);
+                    p.sendSystemMessage(Component.translatable("area_control.bypass.wildness.passive_off"));
+                    p.sendSystemMessage(HOW_TO_TURN_ON);
                 }
                 // 玩家如果是切换后领地/野外的 Builder，或者拥有 area_control.command.admin 权限（注意野外）
                 if (AreaChecks.isACtrlAreaBuilder((ServerPlayer) p, currArea)) {
                     // 则自动为该领地/野外开启 Bypass 模式（若还没有），并发送消息
                     if (exemptedAreas.add(currArea.uid)) {
-                        p.displayClientMessage(Component.translatable("area_control.bypass.area.passive_on", currArea.name), false);
-                        p.displayClientMessage(HOW_TO_TURN_OFF, false);
+                        p.sendSystemMessage(Component.translatable("area_control.bypass.area.passive_on", currArea.name));
+                        p.sendSystemMessage(HOW_TO_TURN_OFF);
                     }
                 }
             } else {
@@ -167,8 +167,8 @@ public enum AreaControlPlayerTracker {
                     // 则自动为该领地/野外开启 Bypass 模式（若还没有），并发送消息
                     if (!status.wildnessBypassMode) {
                         status.wildnessBypassMode = true;
-                        p.displayClientMessage(Component.translatable("area_control.bypass.wildness.passive_on"), false);
-                        p.displayClientMessage(HOW_TO_TURN_OFF, false);
+                        p.sendSystemMessage(Component.translatable("area_control.bypass.wildness.passive_on"));
+                        p.sendSystemMessage(HOW_TO_TURN_OFF);
                     }
                 }
             }
@@ -178,20 +178,20 @@ public enum AreaControlPlayerTracker {
     public void sendNearbyAreasToClient(ResourceKey<Level> dim, ServerPlayer requester, double radius, boolean permanent) {
         LOGGER.debug(MARKER, "Player {} has requested nearby area. Center: {}, radius: {}", requester.getGameProfile().name(), requester.blockPosition(), radius);
         var nearbyAreas = AreaManager.INSTANCE.getAreaSummariesSurround(dim, requester.blockPosition(), radius);
-        requester.displayClientMessage(Component.translatable("area_control.claim.nearby", nearbyAreas.size()), false);
+        requester.sendSystemMessage(Component.translatable("area_control.claim.nearby", nearbyAreas.size()), false);
         LOGGER.debug(MARKER, "Nearby area count: {}", nearbyAreas.size());
         var summaries = new ArrayList<Area.Summary>();
         for (var nearbyArea : nearbyAreas) {
             LOGGER.debug(MARKER, "Nearby area: {}", nearbyArea.uid);
             var summary = new Area.Summary(nearbyArea);
             summaries.add(summary);
-            requester.displayClientMessage(Util.describe(nearbyArea, requester.level()), false);
+            requester.sendSystemMessage(Util.describe(nearbyArea, requester.level()), false);
         }
         if (thisPlayerHasClientExt(requester)) {
             var expire = permanent ? Long.MAX_VALUE : System.currentTimeMillis() + 60000;
             ACNetworking.send(requester, new ACSendNearbyArea(summaries, expire));
         } else {
-            requester.displayClientMessage(Component.translatable("area_control.claim.nearby.visual"), false);
+            requester.sendSystemMessage(Component.translatable("area_control.claim.nearby.visual"), false);
         }
         LOGGER.debug(MARKER, "End of the request");
     }
@@ -232,31 +232,31 @@ public enum AreaControlPlayerTracker {
         if (global) {
             status.globalBypassMode = true;
             if (!AreaChecks.isACtrlAreaBuilder(p, area, false)) {
-                p.displayClientMessage(Component.translatable("area_control.error.insufficient_permission_for_bypass"), false);
+                p.sendSystemMessage(Component.translatable("area_control.error.insufficient_permission_for_bypass"), false);
                 return;
             }
             if (area == null) {
                 status.wildnessBypassMode = true;
-                p.displayClientMessage(Component.translatable("area_control.bypass.global.wildness.on"), false);
-                p.displayClientMessage(HOW_TO_TURN_OFF, false);
+                p.sendSystemMessage(Component.translatable("area_control.bypass.global.wildness.on"), false);
+                p.sendSystemMessage(HOW_TO_TURN_OFF, false);
             } else {
                 exemptedArea.add(area.uid);
-                p.displayClientMessage(Component.translatable("area_control.bypass.global.area.on", area.name), false);
-                p.displayClientMessage(HOW_TO_TURN_OFF, false);
+                p.sendSystemMessage(Component.translatable("area_control.bypass.global.area.on", area.name), false);
+                p.sendSystemMessage(HOW_TO_TURN_OFF, false);
             }
         } else {
             if (!AreaChecks.isACtrlAreaBuilder(p, area, false)) {
-                p.displayClientMessage(Component.translatable("area_control.error.insufficient_permission_for_bypass"), false);
+                p.sendSystemMessage(Component.translatable("area_control.error.insufficient_permission_for_bypass"), false);
                 return;
             }
             if (area == null) {
                 status.wildnessBypassMode = true;
-                p.displayClientMessage(Component.translatable("area_control.bypass.local.wildness.on"), false);
-                p.displayClientMessage(HOW_TO_TURN_OFF, false);
+                p.sendSystemMessage(Component.translatable("area_control.bypass.local.wildness.on"), false);
+                p.sendSystemMessage(HOW_TO_TURN_OFF, false);
             } else {
                 exemptedArea.add(area.uid);
-                p.displayClientMessage(Component.translatable("area_control.bypass.local.area.on", area.name), false);
-                p.displayClientMessage(HOW_TO_TURN_OFF, false);
+                p.sendSystemMessage(Component.translatable("area_control.bypass.local.area.on", area.name), false);
+                p.sendSystemMessage(HOW_TO_TURN_OFF, false);
             }
         }
 
@@ -270,29 +270,29 @@ public enum AreaControlPlayerTracker {
             if (previouslyExempted != null) {
                 for (var areaId : previouslyExempted) {
                     var area = AreaManager.INSTANCE.findBy(areaId);
-                    p.displayClientMessage(Component.translatable("area_control.bypass.global.area.off", area.name), false);
-                    p.displayClientMessage(HOW_TO_TURN_ON, false);
+                    p.sendSystemMessage(Component.translatable("area_control.bypass.global.area.off", area.name), false);
+                    p.sendSystemMessage(HOW_TO_TURN_ON, false);
                 }
                 status.areaIdsWithBypassModeOn.clear();
             }
             status.globalBypassMode = false;
             status.wildnessBypassMode = false;
-            p.displayClientMessage(Component.translatable("area_control.bypass.global.wildness.off"), false);
-            p.displayClientMessage(HOW_TO_TURN_ON, false);
+            p.sendSystemMessage(Component.translatable("area_control.bypass.global.wildness.off"), false);
+            p.sendSystemMessage(HOW_TO_TURN_ON, false);
         } else {
             // This can happen if player disconnected before its first tick.
             if (previouslyExempted != null) {
                 for (var areaId : previouslyExempted) {
                     var areaName = AreaManager.INSTANCE.findBy(areaId).name;
-                    p.displayClientMessage(Component.translatable("area_control.bypass.local.area.off", areaName), false);
-                    p.displayClientMessage(HOW_TO_TURN_ON, false);
+                    p.sendSystemMessage(Component.translatable("area_control.bypass.local.area.off", areaName), false);
+                    p.sendSystemMessage(HOW_TO_TURN_ON, false);
                 }
                 status.areaIdsWithBypassModeOn.clear();
             }
             status.globalBypassMode = false;
             status.wildnessBypassMode = false;
-            p.displayClientMessage(Component.translatable("area_control.bypass.local.wildness.off"), false);
-            p.displayClientMessage(HOW_TO_TURN_ON, false);
+            p.sendSystemMessage(Component.translatable("area_control.bypass.local.wildness.off"), false);
+            p.sendSystemMessage(HOW_TO_TURN_ON, false);
         }
 
     }

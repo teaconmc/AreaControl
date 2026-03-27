@@ -3,7 +3,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.139'
+    id 'net.neoforged.moddev' version '2.0.141'
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -38,14 +38,6 @@ group = 'org.teacon'
 repositories {
     // mavenLocal()
     // mavenCentral()
-    maven {
-        name = "Maven for PR #2879" // https://github.com/neoforged/NeoForge/pull/2879
-        url = uri("https://prmaven.neoforged.net/NeoForge/pr2879")
-        content {
-            includeModule("net.neoforged", "neoforge")
-            includeModule("net.neoforged", "testframework")
-        }
-    }
     maven {
         name = 'BlueMap'
         url = 'https://repo.bluecolored.de/releases'

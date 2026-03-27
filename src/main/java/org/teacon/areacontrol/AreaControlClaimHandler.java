@@ -37,7 +37,7 @@ public final class AreaControlClaimHandler {
                 if (AreaChecks.isACtrlAreaBuilder(player, currentArea) || PermissionAPI.getPermission(player, AreaControlPermissions.AC_CLAIMER)) {
                     final BlockPos clicked = event.getPos();
                     pushRecord(player, event.getLevel().dimension(), clicked.immutable());
-                    player.displayClientMessage(Component.translatable("area_control.claim.marked", Util.toGreenText(clicked)), true);
+                    player.sendSystemMessage(Component.translatable("area_control.claim.marked", Util.toGreenText(clicked)), true);
                 }
             }
         }
