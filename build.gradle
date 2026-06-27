@@ -95,8 +95,10 @@ dependencies {
 
     testImplementation platform('org.junit:junit-bom:5.10.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.mockito:mockito-core:5.11.0'
-    testImplementation 'org.mockito:mockito-junit-jupiter:5.12.0'
+    testImplementation 'org.junit.platform:junit-platform-launcher'
+    testImplementation platform("org.mockito:mockito-bom:5.23.0")
+    testImplementation "org.mockito:mockito-core"
+    testImplementation "org.mockito:mockito-junit-jupiter"
     testImplementation 'com.google.jimfs:jimfs:1.3.0'
 }
 
@@ -135,7 +137,7 @@ publishing {
             groupId = "org.teacon"
             artifactId = "AreaControl-NeoForge-26.1"
 
-            artifact jar
+            from components.java
             pom {
                 name = 'AreaControl for Minecraft 26.1'
                 description = 'Comprehensive (eventually) plot management mod'

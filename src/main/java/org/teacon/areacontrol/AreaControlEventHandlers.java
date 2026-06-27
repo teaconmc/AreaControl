@@ -218,6 +218,7 @@ public final class AreaControlEventHandlers {
         var allowed = AreaChecks.checkPropFor(targetArea, placer, AreaProperties.ALLOW_PLACE_BLOCK, blockId, AreaControlConfig.allowPlaceBlock);
         if (!allowed) {
             // TODO Client will falsely report item being consumed; however it will return to normal if you click again in inventory GUI
+            //      To fully address this, we need to send permission data to client so that client can actually act accordingly...
             event.setCanceled(true);
             if (placer instanceof ServerPlayer p) {
                 p.sendSystemMessage(Component.translatable("area_control.notice.place_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
@@ -278,7 +279,7 @@ public final class AreaControlEventHandlers {
     public static void onTeleport(EntityTeleportEvent event) { // We need to subscribe all teleport events
         var targetBlockPos = BlockPos.containing(event.getTargetX(), event.getTargetY(), event.getTargetZ());
         var actor = event.getEntity();
-        var level = actor.level();
+        var level = event.getTargetLevel(); // See NeoForged/NeoForge-1526, 1531, 2942 for more details.
         var targetArea = AreaManager.INSTANCE.findBy(level, targetBlockPos);
         var entityTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(actor.getType());
         if (!AreaChecks.checkPropFor(targetArea, actor, "move_in", entityTypeId, () -> true)) {

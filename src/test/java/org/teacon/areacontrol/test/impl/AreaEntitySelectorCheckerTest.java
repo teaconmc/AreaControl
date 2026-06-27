@@ -40,13 +40,13 @@ public class AreaEntitySelectorCheckerTest {
 
     @Mock
     private MinecraftServer mockServer;
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     private ServerLevel mockLevel;
     @Mock
     private ServerPlayer mockPlayer;
     @Mock
     private BaseCommandBlock mockCmdBlock;
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     private Entity mockEntity;
 
     @BeforeAll
