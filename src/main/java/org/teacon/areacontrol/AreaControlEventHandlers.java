@@ -23,6 +23,7 @@ import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
@@ -132,7 +133,7 @@ public final class AreaControlEventHandlers {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onBreakBlock(BlockEvent.BreakEvent event) {
+    public static void onBreakBlock(BreakBlockEvent event) {
         if (event.getLevel().isClientSide()) {
             return;
         }
