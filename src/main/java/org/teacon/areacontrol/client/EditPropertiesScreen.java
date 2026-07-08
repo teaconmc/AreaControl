@@ -147,11 +147,12 @@ public final class EditPropertiesScreen extends Screen {
         // Courtesy to the author of Lanfasie Benderson (TeaCon 2026) for digging this out.
         // The parameters used here are in the order of x, y, u, v, w, h, textureWidth, textureHeight
         // Should Mojang changes the meaning of the parameters, we might end up calling the wrong method
-        // (like what they once did to AxisAlignedBB#grow), creating unexpected behavior.
+        // (like what kashike once did to AxisAlignedBB#grow), creating unexpected behavior.
         // Without specifying RenderPipelines.GUI_TEXTURED at beginning, we end up calling an overload
         // that actually means x0, x1, y0, y1, u0, y1, v0, v1 - notice the same # of parameters and types.
         //
         // tl;dr: we are hitting this again, but for GuiGraphicsExtractor#blit
+        // https://github.com/ModCoderPack/MCPBot-Issues/issues/302
         // https://www.reddit.com/r/feedthebeast/comments/6yi8l0/psa_modders_axisalignedbb_method_renames_causing/
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.width / 2 - 111, this.height / 2 - 55, 0, 42, 234, 132, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         this.drawCategoriesInSlide(guiGraphics);
