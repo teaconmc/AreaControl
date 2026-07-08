@@ -16,6 +16,7 @@ import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -143,10 +144,19 @@ public final class EditPropertiesScreen extends Screen {
     }
 
     private void drawGuiContainerBackgroundLayer(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 - 55, 0, 42, 234, 132, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        // Courtesy to the author of Lanfasie Benderson (TeaCon 2026) for digging this out.
+        // The parameters used here are in the order of x, y, u, v, w, h, textureWidth, textureHeight
+        // Should Mojang changes the meaning of the parameters, we might end up calling the wrong method
+        // (like what they once did to AxisAlignedBB#grow), creating unexpected behavior.
+        // Without specifying RenderPipelines.GUI_TEXTURED at beginning, we end up calling an overload
+        // that actually means x0, x1, y0, y1, u0, y1, v0, v1 - notice the same # of parameters and types.
+        //
+        // tl;dr: we are hitting this again, but for GuiGraphicsExtractor#blit
+        // https://www.reddit.com/r/feedthebeast/comments/6yi8l0/psa_modders_axisalignedbb_method_renames_causing/
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.width / 2 - 111, this.height / 2 - 55, 0, 42, 234, 132, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         this.drawCategoriesInSlide(guiGraphics);
-        guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 - 97, 0, 0, 234, 42, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-        guiGraphics.blit(TEXTURE, this.width / 2 - 111, this.height / 2 + 77, 0, 174, 234, 32, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.width / 2 - 111, this.height / 2 - 97, 0, 0, 234, 42, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.width / 2 - 111, this.height / 2 + 77, 0, 174, 234, 32, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }
 
     private void drawGuiContainerForegroundLayer(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY) {
@@ -162,7 +172,7 @@ public final class EditPropertiesScreen extends Screen {
                 int offset = i * 24 - this.slideTop;
                 int x0 = this.width / 2 - 103, y0 = this.height / 2 - 55 + offset;
                 // draw button group background
-                guiGraphics.blit(TEXTURE, x0, y0, 8, 256, 192, 24, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x0, y0, 8, 256, 192, 24, TEXTURE_WIDTH, TEXTURE_HEIGHT);
                 ACShowPropEditScreen.Info info = this.infoCollection.get(i);
                 // draw property name
                 int y1 = y0 + 8;
@@ -170,13 +180,13 @@ public final class EditPropertiesScreen extends Screen {
                 Boolean state = this.states.get(info.prop());
                 if (state == null) {
                     // Unset is selected
-                    guiGraphics.blit(TEXTURE, x0 + 130, y0 + 4, 138, 284, 28, 16, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                    guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x0 + 130, y0 + 4, 138, 284, 28, 16, TEXTURE_WIDTH, TEXTURE_HEIGHT);
                 } else if (state) {
                     // Allow is selected
-                    guiGraphics.blit(TEXTURE, x0 + 159, y0 + 4, 167, 284, 28, 16, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                    guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x0 + 159, y0 + 4, 167, 284, 28, 16, TEXTURE_WIDTH, TEXTURE_HEIGHT);
                 } else {
                     // Deny is selected
-                    guiGraphics.blit(TEXTURE, x0 + 101, y0 + 4, 109, 284, 28, 16, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                    guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x0 + 101, y0 + 4, 109, 284, 28, 16, TEXTURE_WIDTH, TEXTURE_HEIGHT);
                 }
             }
         } else {
@@ -237,7 +247,7 @@ public final class EditPropertiesScreen extends Screen {
         public void extractContents(@NotNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
             // render button texture
             int u0 = (this.isRed ? 7 : 60) + (this.isHovered ? 106 : 0), v0 = 234;
-            guiGraphics.blit(TEXTURE, this.getX(), this.getY(), u0, v0, this.width, this.height, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.getX(), this.getY(), u0, v0, this.width, this.height, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
             // render button text
             float dx = EditPropertiesScreen.this.font.width(this.getMessage()) / 2F;
             float x = this.getX() + (this.width + 1) / 2F - dx, y = this.getY() + (this.height - 8) / 2F;
@@ -279,9 +289,9 @@ public final class EditPropertiesScreen extends Screen {
             double dx = mouseX - this.getX(), dy = mouseY - this.getY() - this.slideCenter;
             int x0 = this.getX() + 192, y0 = Math.toIntExact(Math.round(mouseY - dy));
             int v0 = this.isHovered && dx >= 192 && dy < this.halfSliderHeight && dy >= -this.halfSliderHeight ? 133 : 4;
-            guiGraphics.blit(TEXTURE, x0, y0 - this.halfSliderHeight, 239, v0, 13, this.halfSliderHeight - 8, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
-            guiGraphics.blit(TEXTURE, x0, y0 - 8, 239, v0 + 52, 13, 16, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
-            guiGraphics.blit(TEXTURE, x0, y0 + 8, 239, v0 + 128 - this.halfSliderHeight, 13, this.halfSliderHeight - 8, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x0, y0 - this.halfSliderHeight, 239, v0, 13, this.halfSliderHeight - 8, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x0, y0 - 8, 239, v0 + 52, 13, 16, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x0, y0 + 8, 239, v0 + 128 - this.halfSliderHeight, 13, this.halfSliderHeight - 8, EditPropertiesScreen.TEXTURE_WIDTH, EditPropertiesScreen.TEXTURE_HEIGHT);
         }
 
         @Override
