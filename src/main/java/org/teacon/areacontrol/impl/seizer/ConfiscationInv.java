@@ -10,6 +10,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.common.util.ValueIOSerializable;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Collections;
 
@@ -69,7 +70,16 @@ public class ConfiscationInv implements ValueIOSerializable {
 
     @Override
     public void deserialize(ValueInput input) {
-        input.read("seized_items", INV_LIST_CODEC).ifPresent(items -> this.seizedItems = items);
+        input.read("seized_items", INV_LIST_CODEC).ifPresent(items -> {
+            // NonNullList.codecOf will create a list using NonNullList.copyOf, which in turn uses List.copyOf.
+            // The List returned by List.copyOf is immutable: calling #set on it will throw UnsupportedOperationException.
+            // So, we have to create a mutable version for our usage.
+            NonNullList<@NonNull ItemStack> mutableItemList = NonNullList.withSize(items.size(), ItemStack.EMPTY);
+            for (int i = 0; i < items.size(); i++) {
+                mutableItemList.set(i, items.get(i));
+            }
+            this.seizedItems = mutableItemList;
+        });
     }
 
     final class ContainerWrapper implements Container {
