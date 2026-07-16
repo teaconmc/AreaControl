@@ -91,7 +91,7 @@ dependencies {
     // Yes you see this right, LuckPerms.
     // This is for our custom ContextCalculator support.
     compileOnly 'net.luckperms:api:5.4'
-    compileOnly 'de.bluecolored.bluemap:BlueMapAPI:2.7.2'
+    compileOnly 'de.bluecolored:bluemap-api:2.8.0'
 
     testImplementation platform('org.junit:junit-bom:5.10.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'

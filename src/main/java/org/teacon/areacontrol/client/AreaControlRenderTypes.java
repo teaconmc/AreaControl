@@ -1,6 +1,7 @@
 package org.teacon.areacontrol.client;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -14,7 +15,7 @@ public class AreaControlRenderTypes {
     
     public static final RenderType BORDER = RenderType.create("area_control_border",
             RenderSetup.builder(ACPipelines.BORDER)
-                    .withTexture("Sampler0",Identifier.withDefaultNamespace("textures/misc/forcefield.png"))
+                    .withTexture("Sampler0",Identifier.fromNamespaceAndPath("area_control", "textures/misc/forcefield.png"))
                     .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
                     .createRenderSetup()
             );
@@ -28,7 +29,7 @@ public class AreaControlRenderTypes {
                 .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
                 .withUniform("Projection", UniformType.UNIFORM_BUFFER)
                 .withSampler("Sampler0")
-                // .withBlend(BlendFunction.TRANSLUCENT) // FIXME Translucent
+                .withColorTargetState(new ColorTargetState(BlendFunction.OVERLAY))
                 .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
                 .withCull(false)
                 .build();
