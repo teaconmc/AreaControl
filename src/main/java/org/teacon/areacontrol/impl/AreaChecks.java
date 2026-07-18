@@ -7,6 +7,10 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityEquipment;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -78,17 +82,20 @@ public class AreaChecks {
         return isACtrlAdmin(p);
     }
 
-    public static void checkInv(List<ItemStack> inv, @Nullable Area currentArea, Player player) {
+    public static void checkInv(Inventory inv, @Nullable Area currentArea, Player player) {
         // If bypass mode is on, then this check can be skipped.
         if (AreaControlPlayerTracker.hasBypassModeOnForArea(player, currentArea)) {
             return;
         }
         ConfiscationInv seizedInv = player.getData(AreaControlBorderControl.CONFISCATION_INV);
-        var invSize = inv.size();
+        // 41 - the index right after OFF_HAND slot (index 40).
+        // For player inventory, index >= 36 are for armor and off-hand slots.
+        // Doing so ensures that this method also covers armor inventory.
+        var invSize = Inventory.SLOT_BODY_ARMOR;
         for (int i = 0; i < invSize; i++) {
-            var item = inv.get(i);
+            var item = inv.getItem(i);
             if (!item.isEmpty() && !checkPossess(currentArea, item.getItem())) {
-                ItemStack seized = inv.set(i, ItemStack.EMPTY);
+                ItemStack seized = inv.removeItemNoUpdate(i);
                 seizedInv.add(seized);
                 player.sendOverlayMessage(Component.translatable("area_control.notice.possess_disabled_item", item.getHoverName()));
             }

@@ -97,9 +97,7 @@ public enum AreaControlPlayerTracker {
 
             // Seize items if disallowed
             var mainInv = player.getInventory();
-            AreaChecks.checkInv(mainInv.getNonEquipmentItems(), currentArea, player);
-            // FIXME[3TUSK]: EntityEquipment
-            // AreaChecks.checkInv(mainInv.armor, currentArea, player);
+            AreaChecks.checkInv(mainInv, currentArea, player);
             var extraInv = player.getCapability(CuriosCapability.CURIO_INV);
             if (extraInv != null) {
                 AreaChecks.checkInv(extraInv, currentArea, player);
