@@ -622,12 +622,14 @@ public final class AreaControlCommand {
         final var server = src.getServer();
         final var profileCache = server.services().nameToIdCache();
         final var playerList = server.getPlayerList();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         if (area == null) {
-            src.sendSuccess(ERROR_WILD, true);
-            return 0;
+            // src.sendSuccess(ERROR_WILD, true);
+            // return 0;
+            area = Objects.requireNonNull(AreaManager.INSTANCE.findBy(AreaControlAPI.WILDNESS), "Wildness pseudo-area does not exist - should never happen");
         }
-        src.sendSuccess(() -> Component.translatable("area_control.claim.builder.list.header", area.name), false);
+        final String areaName = area.name;
+        src.sendSuccess(() -> Component.translatable("area_control.claim.builder.list.header", areaName), false);
         final var builders = area.builders;
         for (var builder : builders) {
             src.sendSuccess(() -> Component.translatable("area_control.claim.builder.list.entry", Util.getPlayerDisplayName(builder, profileCache, playerList)), false);
@@ -638,18 +640,21 @@ public final class AreaControlCommand {
 
     private static int addBuilder(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
         if (area == null) {
-            src.sendSuccess(ERROR_WILD, true);
-            return 0;
-        } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
+            // src.sendSuccess(ERROR_WILD, true);
+            // return 0;
+            area = Objects.requireNonNull(AreaManager.INSTANCE.findBy(AreaControlAPI.WILDNESS), "Wildness pseudo-area does not exist - should never happen");
+        }
+        if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final var profiles = GameProfileArgument.getGameProfiles(context, "player");
             int count = 0;
             for (var profile : profiles) {
                 var uid = profile.id();
                 String message = !area.owners.contains(uid) && area.builders.add(uid) ? "area_control.claim.builder.added" : "area_control.claim.builder.existed";
-                src.sendSuccess(() -> Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
+                final String areaName = area.name;
+                src.sendSuccess(() -> Component.translatable(message, areaName, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
             }
             return count;
         } else {
@@ -678,12 +683,14 @@ public final class AreaControlCommand {
 
     private static int removeBuilder(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         final var player = src.getPlayerOrException();
         if (area == null) {
-            src.sendSuccess(ERROR_WILD, true);
-            return 0;
-        } else if (AreaChecks.isACtrlAreaOwner(player, area)) {
+            // src.sendSuccess(ERROR_WILD, true);
+            // return 0;
+            area = Objects.requireNonNull(AreaManager.INSTANCE.findBy(AreaControlAPI.WILDNESS), "Wildness pseudo-area does not exist - should never happen");
+        }
+        if (AreaChecks.isACtrlAreaOwner(player, area)) {
             final var profiles = GameProfileArgument.getGameProfiles(context, "player");
             int count = 0;
             for (var profile : profiles) {
@@ -694,7 +701,8 @@ public final class AreaControlCommand {
                 } else {
                     message = "area_control.claim.builder.not_yet";
                 }
-                src.sendSuccess(() -> Component.translatable(message, area.name, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
+                String areaName = area.name;
+                src.sendSuccess(() -> Component.translatable(message, areaName, Util.getOwnerName(profile, src.getServer().getPlayerList())), false);
             }
             return count;
         } else {
