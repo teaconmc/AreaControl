@@ -26,6 +26,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.permission.PermissionAPI;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaControlAPI;
+import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
 import org.teacon.areacontrol.impl.command.arguments.DirectionArgument;
@@ -199,8 +200,15 @@ public final class AreaControlCommand {
     }
 
     private static int openConfiscatedItemInv(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        var player = context.getSource().getPlayerOrException();
-        player.openMenu(new ConfiscationInvMenuProvider());
+        var src = context.getSource();
+        var player = src.getPlayerOrException();
+        var server = src.getServer();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        if (AreaChecks.checkPropFor(area, player, server, AreaProperties.ALLOW_OPEN_SAFE, null, AreaControlConfig.allowOpenSafe)) {
+            player.openMenu(new ConfiscationInvMenuProvider());
+        } else {
+            player.sendSystemMessage(Component.translatable("area_control.notice.open_safe_disabled"), true);
+        }
         return Command.SINGLE_SUCCESS;
     }
 

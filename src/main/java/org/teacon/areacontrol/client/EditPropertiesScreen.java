@@ -144,7 +144,7 @@ public final class EditPropertiesScreen extends Screen {
     }
 
     private void drawGuiContainerBackgroundLayer(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        // Courtesy to the author of Lanfasie Benderson (TeaCon 2026) for digging this out.
+        // Courtesy to cvrunmin, author of Lanfasie Benderson (TeaCon 2026) for digging this out.
         // The parameters used here are in the order of x, y, u, v, w, h, textureWidth, textureHeight
         // Should Mojang changes the meaning of the parameters, we might end up calling the wrong method
         // (like what kashike once did to AxisAlignedBB#grow), creating unexpected behavior.

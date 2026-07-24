@@ -20,6 +20,7 @@ public class AreaControlConfig {
     public static ModConfigSpec.BooleanValue allowEntitySelectingFromChild;
     public static ModConfigSpec.BooleanValue allowCBSelectingFromParent;
     public static ModConfigSpec.BooleanValue allowCBSelectingFromChild;
+    public static ModConfigSpec.BooleanValue allowOpenSafe;
 
     public static ModConfigSpec setup(ModConfigSpec.Builder configSpec) {
         disableInSinglePlayer = configSpec.comment("Disable nearly all protection measures when in singleplayer.")
@@ -93,6 +94,8 @@ public class AreaControlConfig {
         allowCBSelectingFromChild = configSpec.comment("Default value for select_from_child_area_by_command_block")
                 .translation("area_control.config.global_default_properties.select_from_child_area_by_command_block")
                 .define("allowCommandBlockUseEntitySelectorToSelectEntitiesFromChildArea", true);
+        allowOpenSafe = configSpec.comment("Default value for open_safe")
+                .define("allowOpenSafe", true);
         configSpec.pop();
         return configSpec.build();
     }
