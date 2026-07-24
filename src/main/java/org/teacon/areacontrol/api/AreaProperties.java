@@ -37,6 +37,7 @@ public final class AreaProperties {
     public static final String ALLOW_EXPLOSION_AFFECT_ENTITIES = register("explosion_affect_entities");
     public static final String ALLOW_FIRE_SPREAD = register("fire_spread");
     public static final String ALLOW_OPEN_SAFE = register("open_safe");
+    public static final String ALLOW_ACTIVE_EFFECT = register("active_effect");
 
     public static final String ALLOW_ENTITY_USE_SELECTOR_FROM_CHILD = register("select_from_child_area_by_entity");
     public static final String ALLOW_ENTITY_USE_SELECTOR_FROM_PARENT = register("select_from_parent_area_by_entity");

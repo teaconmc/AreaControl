@@ -2,6 +2,7 @@ package org.teacon.areacontrol;
 
 import net.minecraft.ChatFormatting;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -9,6 +10,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -18,6 +20,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -33,6 +36,7 @@ import org.teacon.areacontrol.network.ACSendNearbyArea;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -107,6 +111,18 @@ public enum AreaControlPlayerTracker {
             if (riding != null && !AreaChecks.checkPropFor(currentArea, player, AreaProperties.ALLOW_RIDE, BuiltInRegistries.ENTITY_TYPE.getKey(riding.getType()), AreaControlConfig.allowRideEntity)) {
                 player.sendOverlayMessage(Component.translatable("area_control.notice.ride_disabled", riding.getDisplayName()));
                 player.stopRiding();
+            }
+            // Clear disallowed effects
+            for (Holder<@NonNull MobEffect> effectId : List.copyOf(player.getActiveEffectsMap().keySet())) {
+                var regKey = effectId.getKey();
+                if (regKey == null) {
+                    // This is impossible - no effect should lack registry id at runtime, unless it is unregistered.
+                    continue;
+                }
+                if (!AreaChecks.checkPropFor(currentArea, player, AreaProperties.ALLOW_ACTIVE_EFFECT, regKey.identifier(), AreaControlConfig.allowActiveEffect)) {
+                    player.removeEffect(effectId);
+                    player.sendOverlayMessage(Component.translatable("area_control.notice.clear_effect", effectId.value().getDisplayName()));
+                }
             }
 
             // 检查玩家的 Bypass 状态并更新。
