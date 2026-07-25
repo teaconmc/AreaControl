@@ -8,6 +8,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.core.DefaultedRegistry;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.fml.ModList;
 import org.teacon.areacontrol.api.AreaProperties;
@@ -29,6 +30,7 @@ public class AreaPropertyArgument implements ArgumentType<String> {
     private static final List<String> SUGGEST_ITEM = List.of(AreaProperties.ALLOW_USE_ITEM, AreaProperties.ALLOW_POSSESS);
     private static final List<String> SUGGEST_ENTITY = List.of(AreaProperties.ALLOW_PVE, AreaProperties.ALLOW_INTERACT_ENTITY,
             AreaProperties.ALLOW_SPAWN, AreaProperties.ALLOW_RIDE);
+    private static final List<String> SUGGEST_EFFECT = List.of(AreaProperties.ALLOW_ACTIVE_EFFECT);
 
     public static AreaPropertyArgument areaProperty() {
         return new AreaPropertyArgument();
@@ -54,6 +56,8 @@ public class AreaPropertyArgument implements ArgumentType<String> {
                     fillSuggestions(current, prop, BuiltInRegistries.ITEM, builder);
                 } else if (SUGGEST_ENTITY.contains(prop)) {
                     fillSuggestions(current, prop, BuiltInRegistries.ENTITY_TYPE, builder);
+                } else if (SUGGEST_EFFECT.contains(prop)) {
+                    fillSuggestions(current, prop, BuiltInRegistries.MOB_EFFECT, builder);
                 }
             } else if (prop.startsWith(current)) {
                 builder.suggest(prop);
@@ -62,7 +66,7 @@ public class AreaPropertyArgument implements ArgumentType<String> {
         return builder.buildFuture();
     }
 
-    private static void fillSuggestions(String current, String prop, DefaultedRegistry<?> registry, SuggestionsBuilder builder) {
+    private static void fillSuggestions(String current, String prop, Registry<?> registry, SuggestionsBuilder builder) {
         String sub = current.substring(prop.length());
         if (sub.startsWith(".")) {
             for (var mod : ModList.get().getMods()) {
