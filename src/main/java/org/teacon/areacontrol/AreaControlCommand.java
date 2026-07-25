@@ -409,7 +409,9 @@ public final class AreaControlCommand {
 
     private static int mark(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         var rawPos = Vec3Argument.getVec3(context, "pos");
-        BlockPos marked = new BlockPos((int) rawPos.x, (int) rawPos.y, (int) rawPos.z);
+        // LocusAzzurro claims that, if blindly cast the raw pos from double to int, x/z will be off by one.
+        // To counter that, we use the BlockPos#containing to get the correct axis-aligned position.
+        BlockPos marked = BlockPos.containing(rawPos);
         var dimension = context.getSource().getLevel().dimension();
         AreaControlClaimHandler.pushRecord(context.getSource().getPlayerOrException(), dimension, marked);
         context.getSource().sendSuccess(() -> Component.translatable("area_control.claim.marked", Util.toGreenText(marked)), true);
