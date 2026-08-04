@@ -209,6 +209,16 @@ public enum AreaControlPlayerTracker {
         LOGGER.debug(MARKER, "End of the request");
     }
 
+    public void sendCurrentAreaToClient(ServerPlayer requester, Area current, boolean permanent) {
+        var summaries = List.of(new Area.Summary(current));
+        if (thisPlayerHasClientExt(requester)) {
+            var expire = permanent ? Long.MAX_VALUE : System.currentTimeMillis() + 60000;
+            ACNetworking.send(requester, new ACSendNearbyArea(summaries, expire));
+        } else {
+            requester.sendSystemMessage(Component.translatable("area_control.claim.nearby.visual"), false);
+        }
+    }
+
     public void sendCurrentSelectionToClient(ServerPlayer receiver, AreaControlClaimHandler.RectangleRegion region) {
         if (thisPlayerHasClientExt(receiver)) {
             ACNetworking.send(receiver, ACSendCurrentSelection.of(false, region.start(), region.end()));

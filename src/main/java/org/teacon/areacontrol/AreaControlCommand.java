@@ -401,6 +401,10 @@ public final class AreaControlCommand {
             if (enclosingArea != null) {
                 src.sendSuccess(() -> Component.translatable("area_control.claim.current.line.enclosed", enclosingArea.name), true);
             }
+            var player = src.getPlayer();
+            if (player != null) {
+                AreaControlPlayerTracker.INSTANCE.sendCurrentAreaToClient(player, area, false);
+            }
         } else {
             src.sendSuccess(ERROR_WILD, true);
         }
