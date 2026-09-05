@@ -780,7 +780,7 @@ public final class AreaControlCommand {
             if (value == null) {
                 msg = Component.translatable("area_control.claim.property.single.unset.wildness", prop);
             } else {
-                msg = Component.translatable("area_control.claim.property.single.unset.wildness", prop, value);
+                msg = Component.translatable("area_control.claim.property.single.wildness", prop, value);
             }
             src.sendSuccess(() -> msg, false);
             return Command.SINGLE_SUCCESS;
