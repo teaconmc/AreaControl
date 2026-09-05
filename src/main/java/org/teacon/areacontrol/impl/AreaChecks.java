@@ -115,6 +115,7 @@ public class AreaChecks {
                 try (Transaction xact = Transaction.openRoot()) {
                     int seizedAmount = inv.extract(i, item, Integer.MAX_VALUE, xact);
                     seizedInv.add(item, seizedAmount);
+                    xact.commit();
                 }
                 player.sendOverlayMessage(Component.translatable("area_control.notice.possess_disabled_item", item.getHoverName()));
             }
