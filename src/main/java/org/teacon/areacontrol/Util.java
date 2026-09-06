@@ -12,6 +12,7 @@ import net.minecraft.server.players.UserNameToIdResolver;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.Vec3;
 import org.teacon.areacontrol.api.Area;
 
 import java.util.UUID;
@@ -21,6 +22,11 @@ public final class Util {
 
     public static Component toGreenText(BlockPos pos) {
         return Component.translatable("area_control.claim.pos", pos.getX(), pos.getY(), pos.getZ())
+                .withStyle(ChatFormatting.GREEN);
+    }
+
+    public static Component toGreenText(Vec3 pos) {
+        return Component.translatable("area_control.claim.pos", pos.x, pos.y, pos.z)
                 .withStyle(ChatFormatting.GREEN);
     }
 

@@ -88,6 +88,9 @@
   "area_control.claim.nearby.visual": "你的客户端看上去没有 AreaControl，所以无法使用领地可视化增强。你仍然可以点击上面的“传送”快速传送到目标领地。",
 
   "area_control.claim.name.update": "已成功将当前领地名从 %1$s 改为 %2$s",
+  "area_control.claim.range.show": "领地 '%1$s' 范围：从 %2$s 到 %3$s",
+  "area_control.claim.range.test.success": "坐标 %1$s 位于领地 '%2$s' 内。",
+  "area_control.claim.range.test.failure": "坐标 %1$s 位于领地 '%2$s' 外！",
   "area_control.claim.range.update.success": "已成功将当前领地的范围改为从 %1$s 到 %2$s",
   "area_control.claim.owner.list.header": "------ 领地 %1$s 的声明者列表 ------",
   "area_control.claim.owner.list.entry": "  - %s",

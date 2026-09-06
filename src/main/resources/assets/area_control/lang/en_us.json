@@ -89,6 +89,9 @@
   "area_control.claim.nearby.visual": "Your client does not seem to have AreaControl installed, so enhanced area visualizer is not used. You can still use the short-cut to teleport there.",
 
   "area_control.claim.name.update": "Successfully changed current area name from %1$s to %2$s",
+  "area_control.claim.range.show": "Range of area '%1$s': %2$s to %3$s",
+  "area_control.claim.range.test.success": "Coordinate %1$s is inside area '%2$s'",
+  "area_control.claim.range.test.failure": "Coordinate %1$s is NOT inside area '%2$s'",
   "area_control.claim.range.update.success": "Successfully changed current area range, now from %1$s to %2$s",
   "area_control.claim.owner.list.header": "------ List of owners for %1$s ------",
   "area_control.claim.owner.list.entry": "  - %s",

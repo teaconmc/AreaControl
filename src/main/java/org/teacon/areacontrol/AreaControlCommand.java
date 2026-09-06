@@ -28,6 +28,7 @@ import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaControlAPI;
 import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.impl.AreaChecks;
+import org.teacon.areacontrol.impl.AreaMath;
 import org.teacon.areacontrol.impl.command.arguments.AreaPropertyArgument;
 import org.teacon.areacontrol.impl.command.arguments.DirectionArgument;
 import org.teacon.areacontrol.impl.command.arguments.GroupArgument;
@@ -120,7 +121,11 @@ public final class AreaControlCommand {
                                                 .then(Commands.literal("expand").requires(OWNER_OR_ADMIN)
                                                         .then(Commands.argument("direction", DirectionArgument.direction())
                                                                 .then(Commands.argument("amount", IntegerArgumentType.integer())
-                                                                        .executes(AreaControlCommand::changeAreaRange)))))
+                                                                        .executes(AreaControlCommand::changeAreaRange))))
+                                                .then(Commands.literal("test")
+                                                        .then(Commands.argument("position", Vec3Argument.vec3())
+                                                                .executes(AreaControlCommand::testInRange)))
+                                                .executes(AreaControlCommand::showAreaRange))
                                         .then(Commands.literal("claimer")
                                                 .then(Commands.literal("add").requires(OWNER_OR_ADMIN)
                                                         .then(Commands.literal("player")
@@ -503,6 +508,37 @@ public final class AreaControlCommand {
         } else {
             src.sendFailure(Component.translatable("area_control.error.cannot_set_property", area.name));
             return -1;
+        }
+    }
+
+    private static int showAreaRange(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        if (area != null) {
+            src.sendSuccess(() -> Component.translatable("area_control.claim.range.show",
+                    area.name,
+                    Util.toGreenText(new BlockPos(area.minX, area.minY, area.minZ)),
+                    Util.toGreenText(new BlockPos(area.maxX, area.maxY, area.maxZ))), true);
+            var player = src.getPlayer();
+            if (player != null) {
+                AreaControlPlayerTracker.INSTANCE.sendCurrentAreaToClient(player, area, false);
+            }
+        }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int testInRange(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final var src = context.getSource();
+        final var level = src.getLevel();
+        final var pos = src.getPosition();
+        final var area = AreaManager.INSTANCE.findBy(level, pos);
+        final var targetPos = Vec3Argument.getVec3(context, "position");
+        if (AreaMath.isPointIn(area, targetPos.x, targetPos.y, targetPos.z)) {
+            src.sendSuccess(() -> Component.translatable("area_control.claim.range.test.success", Util.toGreenText(targetPos), area.name), true);
+            return Command.SINGLE_SUCCESS;
+        } else {
+            src.sendFailure(Component.translatable("area_control.claim.range.test.failure", Util.toGreenText(targetPos), area.name));
+            return 0;
         }
     }
 
