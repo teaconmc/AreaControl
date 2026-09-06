@@ -117,6 +117,7 @@
   "area_control.claim.property.unset": "AreaControl: property '%2$s' in area '%1$s' has been removed (was '%3$s')",
   "area_control.claim.property.unset.wildness": "AreaControl: property '%1$s' in wildness has been removed (was '%2$s')",
 
+  "area_control.bypass.auto_on": "WARN: Global Bypass Mode is now auto-on.",
   "area_control.bypass.global.wildness.on": "You have turned on Global Bypass Mode for wildness. ",
   "area_control.bypass.global.wildness.off": "You have turned off Global Bypass Mode for wildness. ",
   "area_control.bypass.global.area.on": "You have turned on Global Bypass Mode for area '%s'. ",

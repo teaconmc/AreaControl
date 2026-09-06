@@ -116,6 +116,7 @@
   "area_control.claim.property.unset": "已将领地 '%1$s' 的属性 '%2$s' 清除（此前为 '%3$s'）",
   "area_control.claim.property.unset.wildness": "已将野外的属性 '%1$s' 清除（此前为 '%2$s'）",
 
+  "area_control.bypass.auto_on": "警告：全局 Bypass 已自动开启",
   "area_control.bypass.global.wildness.on": "您已开启野外的全局 Bypass 模式。",
   "area_control.bypass.global.wildness.off": "您已清除野外的全局 Bypass 模式。",
   "area_control.bypass.global.area.on": "您已开启领地 %s 的全局 Bypass 模式。",

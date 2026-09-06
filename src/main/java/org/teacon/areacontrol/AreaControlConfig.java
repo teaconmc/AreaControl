@@ -6,6 +6,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public class AreaControlConfig {
 
     public static ModConfigSpec.BooleanValue disableInSinglePlayer;
+    public static ModConfigSpec.BooleanValue grantBypassToCreativeModePlayerOnLogin;
 
     public static ModConfigSpec.ConfigValue<String> persistenceMode;
 
@@ -27,6 +28,9 @@ public class AreaControlConfig {
         disableInSinglePlayer = configSpec.comment("Disable nearly all protection measures when in singleplayer.")
                 .translation("area_control.config.disable_in_single_player")
                 .define("disableInSinglePlayer", true);
+        grantBypassToCreativeModePlayerOnLogin = configSpec.comment("If true, when a player log in, if that player is in creative mode, global bypass will be turned on automatically.")
+                .translation("area_control.config.grant_bypass_to_creative_mode_player_on_login")
+                .define("grantBypassToCreativeModePlayerOnLogin", true);
         persistenceMode = configSpec.comment("The format in which the area data are stored. Currently supports json and toml.")
                 .translation("area_control.config.persistence_mode")
                 .define("persistenceMode", "toml");

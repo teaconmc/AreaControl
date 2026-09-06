@@ -8,6 +8,8 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
@@ -77,6 +79,15 @@ public enum AreaControlPlayerTracker {
         var player = event.getEntity();
         var status = getFrom(player);
         status.currentArea = AreaManager.INSTANCE.findBy(player.level(), player.blockPosition());
+        // 如果这个玩家在创造模式，假定他是建筑师，并根据配置文件中的开关，决定是否为其自动开启全局 bypass 模式。
+        var gameMode = player.gameMode();
+        if (AreaControlConfig.grantBypassToCreativeModePlayerOnLogin.getAsBoolean() && gameMode != null && gameMode.isCreative() && player instanceof ServerPlayer sp) {
+            INSTANCE.setGlobalExempt(sp, true);
+            var titlePacket = new ClientboundSetTitleTextPacket(Component.empty());
+            var subTitlePacket = new ClientboundSetSubtitleTextPacket(Component.translatable("area_control.bypass.auto_on").withStyle(ChatFormatting.RED));
+            sp.connection.send(subTitlePacket);
+            sp.connection.send(titlePacket);
+        }
     }
 
     @SubscribeEvent
