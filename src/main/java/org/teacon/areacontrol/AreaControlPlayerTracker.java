@@ -259,6 +259,10 @@ public enum AreaControlPlayerTracker {
         }
     }
 
+    public static boolean hasVerbose(ServerPlayer sp) {
+        return getFrom(sp).verbose;
+    }
+
     public void setGlobalExempt(ServerPlayer p, boolean global) {
         var area = AreaManager.INSTANCE.findBy(p.level(), p.position());
         var status = getFrom(p);

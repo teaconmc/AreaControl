@@ -137,6 +137,10 @@
   "area_control.bypass.how_to_turn_on": "使用 %s 或 %s 命令重新开启。",
   "area_control.bypass.how_to_turn_off": "使用 %s 命令清除；退出游戏世界时也将自动清除。",
 
+  "area_control.verbose.on": "详细输出模式已启用。你将会在执行某些操作时，看到额外的调试日志输出。",
+  "area_control.verbose.off": "详细输出模式已禁用。",
+  "area_control.verbose.tracing": "检查：领地 '%1$s'，%2$s = %3$s",
+
   "area_control.notice.break_block_disabled": "AreaControl：该地禁止破坏方块；如果你是该地建筑师，请打开 Bypass 模式",
   "area_control.notice.click_block_disabled": "AreaControl：该地禁止点击方块；如果你是该地建筑师，请打开 Bypass 模式",
   "area_control.notice.activate_block_disabled": "AreaControl：该地禁止与方块交互；如果你是该地建筑师，请打开 Bypass 模式",

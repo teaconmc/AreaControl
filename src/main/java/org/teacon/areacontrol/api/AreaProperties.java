@@ -2,6 +2,7 @@ package org.teacon.areacontrol.api;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
@@ -55,16 +56,25 @@ public final class AreaProperties {
     }
 
     public static boolean getBool(@Nullable Area area, String key) {
-        return getBool(area, key, true);
+        return getBool(area, key, true, AreaLookupTracker.NO_OP);
+    }
+
+    public static boolean getBool(@Nullable Area area, String key, @NonNull AreaLookupTracker tracker)  {
+        return getBool(area, key, true, tracker);
     }
 
     public static boolean getBool(@Nullable Area area, String key, boolean recursive) {
+        return getBool(area, key, recursive, AreaLookupTracker.NO_OP);
+    }
+
+    public static boolean getBool(@Nullable Area area, String key, boolean recursive, @NonNull AreaLookupTracker tracker) {
         if (area == null) {
             area = AreaControlAPI.areaLookup.findWildness();
             recursive = false;
         }
 
         Object o = area.properties.get(key);
+        tracker.track(area, key, o);
         if (o == null || "null".equals(o)) {
             if (recursive && !AreaControlAPI.WILDNESS.equals(area.uid)) {
                 var parent = Objects.requireNonNullElse(area.resolveParent(), AreaControlAPI.areaLookup.findWildness());
@@ -81,16 +91,25 @@ public final class AreaProperties {
      * @return null if the property is not specified by AC, so you can seek it in gameRule.
      */
     public static Optional<Boolean> getBoolOptional(@Nullable Area area, String key) {
-        return getBoolOptional(area, key, true);
+        return getBoolOptional(area, key, true, AreaLookupTracker.NO_OP);
+    }
+
+    public static Optional<Boolean> getBoolOptional(@Nullable Area area, String key, @NonNull AreaLookupTracker tracker) {
+        return getBoolOptional(area, key, true, tracker);
     }
 
     public static Optional<Boolean> getBoolOptional(@Nullable Area area, String key, boolean recursive) {
+        return getBoolOptional(area, key, recursive, AreaLookupTracker.NO_OP);
+    }
+
+    public static Optional<Boolean> getBoolOptional(@Nullable Area area, String key, boolean recursive, @NonNull AreaLookupTracker tracker) {
         if (area == null) {
             area = AreaControlAPI.areaLookup.findWildness();
             recursive = false;
         }
 
         Object o = area.properties.get(key);
+        tracker.track(area, key, o);
         if (o == null || "null".equals(o)) {
             if (recursive && !AreaControlAPI.WILDNESS.equals(area.uid)) {
                 var parent = Objects.requireNonNullElse(area.resolveParent(), AreaControlAPI.areaLookup.findWildness());

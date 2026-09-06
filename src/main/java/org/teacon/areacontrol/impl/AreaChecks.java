@@ -7,9 +7,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityEquipment;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -26,11 +23,12 @@ import org.teacon.areacontrol.AreaControlPermissions;
 import org.teacon.areacontrol.AreaControlPlayerTracker;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaControlAPI;
+import org.teacon.areacontrol.api.AreaLookupTracker;
 import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.impl.seizer.AreaControlBorderControl;
 import org.teacon.areacontrol.impl.seizer.ConfiscationInv;
 
-import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -184,22 +182,34 @@ public class AreaChecks {
         if (AreaControl.singlePlayerServerChecker.test(currentServer)) {
             return true;
         }
+        AreaLookupTracker tracker = createTracker(actor);
         if (targetId != null) {
-            var objSpecific = AreaProperties.getBoolOptional(area, prop + "." + targetId);
+            var objSpecific = AreaProperties.getBoolOptional(area, prop + "." + targetId, tracker);
             if (objSpecific.isPresent()) {
                 return objSpecific.get();
             } else {
-                var modSpecific = AreaProperties.getBoolOptional(area, prop + "." + targetId.getNamespace());
+                var modSpecific = AreaProperties.getBoolOptional(area, prop + "." + targetId.getNamespace(), tracker);
                 if (modSpecific.isPresent()) {
                     return modSpecific.get();
                 }
             }
         }
         if (defaultValue != null) {
-            return AreaProperties.getBoolOptional(area, prop).orElseGet(defaultValue);
+            return AreaProperties.getBoolOptional(area, prop, tracker).orElseGet(defaultValue);
         } else {
-            return AreaProperties.getBool(area, prop);
+            return AreaProperties.getBool(area, prop, tracker);
         }
+    }
+
+    private static AreaLookupTracker createTracker(@Nullable Entity actor) {
+        AreaLookupTracker tracker = AreaLookupTracker.NO_OP;
+        if (actor instanceof ServerPlayer sp && AreaControlPlayerTracker.hasVerbose(sp)) {
+            tracker = (area, property, rawValue) -> {
+                String formatted = rawValue instanceof String strValue ? '"' + strValue + '"' : Objects.toString(rawValue);
+                sp.sendSystemMessage(Component.translatable("area_control.verbose.tracing", area.name, property, formatted));
+            };
+        }
+        return tracker;
     }
 
     public static void sendNotificationTo(@NotNull Player player, String translationKey, Object... args) {

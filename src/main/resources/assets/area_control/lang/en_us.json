@@ -138,6 +138,10 @@
   "area_control.bypass.how_to_turn_on": "Use %s or %s to turn on again.",
   "area_control.bypass.how_to_turn_off": "Use %s to turn off; quitting game will also automatically turn Bypass Mode off.",
 
+  "area_control.verbose.on": "Verbose mode is on. You will see extra debug outputs when performing certain actions.",
+  "area_control.verbose.off": "Verbose mode is off.",
+  "area_control.verbose.tracing": "Checked: area '%1$s', property %2$s = %3$s",
+
   "area_control.notice.break_block_disabled": "AreaControl: breaking blocks is disabled here; turn on bypass mode if you own this area",
   "area_control.notice.click_block_disabled": "AreaControl: clicking blocks is disabled here; turn on bypass mode if you own this area",
   "area_control.notice.activate_block_disabled": "AreaControl: block interaction is disabled here; turn on bypass mode if you own this area",

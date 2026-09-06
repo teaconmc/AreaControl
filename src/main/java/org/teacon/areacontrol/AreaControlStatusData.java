@@ -14,6 +14,8 @@ public class AreaControlStatusData {
 
     public boolean wildnessBypassMode = false;
 
+    public boolean verbose = false;
+
     public transient Area currentArea = null;
 
     public Set<UUID> areaIdsWithBypassModeOn = new HashSet<>();

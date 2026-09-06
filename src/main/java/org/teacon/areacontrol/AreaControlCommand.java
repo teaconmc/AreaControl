@@ -80,7 +80,10 @@ public final class AreaControlCommand {
                                 .then(Commands.literal("about").executes(AreaControlCommand::about))
                                 .then(Commands.literal("admin").requires(ADMIN)
                                         .then(Commands.literal("rebuild").executes(AreaControlCommand::rebuildAreaModel))
-                                )
+                                ).then(Commands.literal("verbose")
+                                        .then(Commands.literal("on").executes(context -> AreaControlCommand.toggleVerbose(context, true)))
+                                        .then(Commands.literal("off").executes(context -> AreaControlCommand.toggleVerbose(context, false)))
+                                        .executes(AreaControlCommand::showVerboseMode))
                                 .then(Commands.literal("nearby")
                                         .then(Commands.literal("on").executes(context -> AreaControlCommand.nearby(context, true)))
                                         .then(Commands.literal("off").executes(AreaControlCommand::nearbyClear))
@@ -196,6 +199,22 @@ public final class AreaControlCommand {
             }, result.left().toString(), result.right().toString()), true);
             return -1;
         }
+    }
+
+    private static int showVerboseMode(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        var player = context.getSource().getPlayerOrException();
+        var currentVerboseStatus = AreaControlPlayerTracker.getFrom(player).verbose;
+        var message = currentVerboseStatus ? Component.translatable("area_control.verbose.on") : Component.translatable("area_control.verbose.off");
+        context.getSource().sendSuccess(() -> message, false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int toggleVerbose(CommandContext<CommandSourceStack> context, boolean newStatus) throws CommandSyntaxException {
+        var player = context.getSource().getPlayerOrException();
+        AreaControlPlayerTracker.getFrom(player).verbose = newStatus;
+        var message = newStatus ? Component.translatable("area_control.verbose.on") : Component.translatable("area_control.verbose.off");
+        context.getSource().sendSuccess(() -> message, false);
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int clearConfiscatedItemInv(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
