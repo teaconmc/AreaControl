@@ -38,7 +38,9 @@ import org.teacon.areacontrol.network.ACNetworking;
 import org.teacon.areacontrol.network.ACSendNearbyArea;
 import org.teacon.areacontrol.network.ACShowPropEditScreen;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -800,22 +802,18 @@ public final class AreaControlCommand {
 
     private static int listProperties(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         final var src = context.getSource();
-        final Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
+        Area area = AreaManager.INSTANCE.findBy(src.getLevel().dimension(), src.getPosition());
         if (area == null) {
-            final var properties = AreaControlAPI.areaLookup.findWildness().properties;
-            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.header", Component.translatable("area_control.wildness")), false);
-            for (var prop : properties.entrySet()) {
-                src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.entry", prop.getKey(), prop.getValue().toString()), false);
-            }
-            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.footer", properties.size()), false);
-        } else {
-            final var properties = area.properties;
-            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.header", area.name), false);
-            for (var prop : properties.entrySet()) {
-                src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.entry", prop.getKey(), prop.getValue().toString()), false);
-            }
-            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.footer", properties.size()), false);
+            area = AreaControlAPI.areaLookup.findWildness();
         }
+        final String areaName = area.name;
+        final var sortedProps = new ArrayList<>(area.properties.entrySet());
+        sortedProps.sort(Map.Entry.comparingByKey());
+        src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.header", areaName), false);
+        for (var prop : sortedProps) {
+            src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.entry", prop.getKey(), prop.getValue().toString()), false);
+        }
+        src.sendSuccess(() -> Component.translatable("area_control.claim.property.list.footer", sortedProps.size()), false);
         return Command.SINGLE_SUCCESS;
     }
 
