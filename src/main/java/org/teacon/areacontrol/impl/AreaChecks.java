@@ -204,7 +204,15 @@ public class AreaChecks {
     private static AreaLookupTracker createTracker(@Nullable Entity actor) {
         AreaLookupTracker tracker = AreaLookupTracker.NO_OP;
         if (actor instanceof ServerPlayer sp && AreaControlPlayerTracker.hasVerbose(sp)) {
+            var filter = AreaControlPlayerTracker.getFrom(sp).noTrackingPrefix;
             tracker = (area, property, rawValue) -> {
+                // Skip this tracking call if we find a prefix matches.
+                // Because we hold the same reference, it should take the latest data.
+                for (var prefix : filter) {
+                    if (property.startsWith(prefix)) {
+                        return;
+                    }
+                }
                 String formatted = rawValue instanceof String strValue ? '"' + strValue + '"' : Objects.toString(rawValue);
                 sp.sendSystemMessage(Component.translatable("area_control.verbose.tracing", area.name, property, formatted));
             };

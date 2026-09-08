@@ -140,6 +140,9 @@
   "area_control.verbose.on": "详细输出模式已启用。你将会在执行某些操作时，看到额外的调试日志输出。",
   "area_control.verbose.off": "详细输出模式已禁用。",
   "area_control.verbose.tracing": "检查：领地 '%1$s'，%2$s = %3$s",
+  "area_control.verbose.filter.show": "目前，有下列前缀的领地属性不会在详细输出模式中显示：",
+  "area_control.verbose.filter.add": "已添加新详细输出过滤器 '%1$s'。带此前缀的属性将不再显示。",
+  "area_control.verbose.filter.remove": "已移除详细输出过滤器 '%1$s'。带此前缀的属性将会再次显示。",
 
   "area_control.notice.break_block_disabled": "AreaControl：该地禁止破坏方块；如果你是该地建筑师，请打开 Bypass 模式",
   "area_control.notice.click_block_disabled": "AreaControl：该地禁止点击方块；如果你是该地建筑师，请打开 Bypass 模式",

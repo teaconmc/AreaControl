@@ -85,6 +85,14 @@ public final class AreaControlCommand {
                                 ).then(Commands.literal("verbose")
                                         .then(Commands.literal("on").executes(context -> AreaControlCommand.toggleVerbose(context, true)))
                                         .then(Commands.literal("off").executes(context -> AreaControlCommand.toggleVerbose(context, false)))
+                                        .then(Commands.literal("filter")
+                                                .then(Commands.literal("add")
+                                                        .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
+                                                                .executes(AreaControlCommand::addVerboseFilter)))
+                                                .then(Commands.literal("remove")
+                                                        .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
+                                                                .executes(AreaControlCommand::removeVerboseFilter)))
+                                                .executes(AreaControlCommand::showVerboseFilter))
                                         .executes(AreaControlCommand::showVerboseMode))
                                 .then(Commands.literal("nearby")
                                         .then(Commands.literal("on").executes(context -> AreaControlCommand.nearby(context, true)))
@@ -164,6 +172,9 @@ public final class AreaControlCommand {
                                                                         .executes(AreaControlCommand::removeBuilderGroup))))
                                                 .executes(AreaControlCommand::listBuilders))
                                         .then(Commands.literal("properties").requires(BUILDER_OR_ADMIN)
+                                                .then(Commands.literal("get")
+                                                        .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
+                                                                .executes(AreaControlCommand::displayProperty)))
                                                 .then(Commands.literal("set")
                                                         .then(Commands.argument("property", AreaPropertyArgument.areaProperty())
                                                                 .then(Commands.argument("value", StringArgumentType.greedyString())
@@ -217,6 +228,38 @@ public final class AreaControlCommand {
         var message = newStatus ? Component.translatable("area_control.verbose.on") : Component.translatable("area_control.verbose.off");
         context.getSource().sendSuccess(() -> message, false);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int showVerboseFilter(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        var player = context.getSource().getPlayerOrException();
+        var filters = AreaControlPlayerTracker.getFrom(player).noTrackingPrefix;
+        context.getSource().sendSuccess(() -> Component.translatable("area_control.verbose.filter.show"), false);
+        for (var prefix : filters) {
+            context.getSource().sendSuccess(() -> Component.literal(" • " + prefix), false);
+        }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int addVerboseFilter(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        var player = context.getSource().getPlayerOrException();
+        var filters = AreaControlPlayerTracker.getFrom(player).noTrackingPrefix;
+        var property = context.getArgument("property", String.class);
+        boolean success = filters.add(property);
+        if (success) {
+            context.getSource().sendSuccess(() -> Component.translatable("area_control.verbose.filter.add", property), false);
+        }
+        return success ? Command.SINGLE_SUCCESS : 0;
+    }
+
+    private static int removeVerboseFilter(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        var player = context.getSource().getPlayerOrException();
+        var filters = AreaControlPlayerTracker.getFrom(player).noTrackingPrefix;
+        var property = context.getArgument("property", String.class);
+        boolean success = filters.remove(property);
+        if (success) {
+            context.getSource().sendSuccess(() -> Component.translatable("area_control.verbose.filter.remove", property), false);
+        }
+        return success ? Command.SINGLE_SUCCESS : 0;
     }
 
     private static int clearConfiscatedItemInv(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
