@@ -4,10 +4,8 @@ import net.minecraft.ChatFormatting;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.Style;
+
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.resources.ResourceKey;
@@ -49,21 +47,6 @@ public enum AreaControlPlayerTracker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("AreaControl");
     private static final Marker MARKER = MarkerFactory.getMarker("PlayerTracker");
-
-    private static final Component HOW_TO_TURN_ON = Component.translatable("area_control.bypass.how_to_turn_on",
-            Component.literal("/ac current bypass global")
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.AQUA)
-                            .withHoverEvent(new HoverEvent.ShowText(Component.literal("/ac current bypass global")))
-                            .withClickEvent(new ClickEvent.RunCommand("/ac current bypass global"))),
-            Component.literal("/ac current bypass local")
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.AQUA)
-                            .withHoverEvent(new HoverEvent.ShowText(Component.literal("/ac current bypass local")))
-                            .withClickEvent(new ClickEvent.RunCommand("/ac current bypass local"))));
-    private static final Component HOW_TO_TURN_OFF = Component.translatable("area_control.bypass.how_to_turn_off",
-            Component.literal("/ac current bypass none")
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.AQUA)
-                            .withHoverEvent(new HoverEvent.ShowText(Component.literal("/ac current bypass none")))
-                            .withClickEvent(new ClickEvent.RunCommand("/ac current bypass none"))));
 
     // For future reference - if you need to backport, or port forward, or port to a different framework,
     // make sure you always get AreaControlStatusData from here, to minimize the workload.
@@ -162,8 +145,10 @@ public enum AreaControlPlayerTracker {
                 // 自动为该领地/野外清除 Bypass 模式，
                 iterator.remove();
                 // 并发送消息。
-                p.sendSystemMessage(Component.translatable("area_control.bypass.area.passive_off", areaObj.name));
-                p.sendSystemMessage(HOW_TO_TURN_ON);
+                p.sendOverlayMessage(Component.translatable("area_control.bypass.passive_off",
+                        Component.translatable("area_control.bypass.exit", Component.literal(areaObj.name).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.RED),
+                        Component.translatable("area_control.bypass.off")
+                        ));
             }
         }
         var currArea = status.currentArea;
@@ -174,15 +159,19 @@ public enum AreaControlPlayerTracker {
                 if (prevArea == null && AreaMath.distanceFromInteriorToBoundary(currArea, p.xo, p.yo, p.zo) >= doubleReachDistance) {
                     // 若已远离，则关闭野外的 Bypass
                     status.wildnessBypassMode = false;
-                    p.sendSystemMessage(Component.translatable("area_control.bypass.wildness.passive_off"));
-                    p.sendSystemMessage(HOW_TO_TURN_ON);
+                    p.sendOverlayMessage(Component.translatable("area_control.bypass.passive_off",
+                            Component.translatable("area_control.bypass.exit", Component.literal("野外").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.RED),
+                            Component.translatable("area_control.bypass.off")
+                    ));
                 }
                 // 玩家如果是切换后领地/野外的 Builder，或者拥有 area_control.command.admin 权限（注意野外）
                 if (AreaChecks.isACtrlAreaBuilder((ServerPlayer) p, currArea)) {
                     // 则自动为该领地/野外开启 Bypass 模式（若还没有），并发送消息
                     if (exemptedAreas.add(currArea.uid)) {
-                        p.sendSystemMessage(Component.translatable("area_control.bypass.area.passive_on", currArea.name));
-                        p.sendSystemMessage(HOW_TO_TURN_OFF);
+                        p.sendOverlayMessage(Component.translatable("area_control.bypass.passive_on",
+                                Component.translatable("area_control.bypass.enter", Component.literal(currArea.name).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN),
+                                Component.translatable("area_control.bypass.on")
+                        ));
                     }
                 }
             } else {
@@ -191,8 +180,10 @@ public enum AreaControlPlayerTracker {
                     // 则自动为该领地/野外开启 Bypass 模式（若还没有），并发送消息
                     if (!status.wildnessBypassMode) {
                         status.wildnessBypassMode = true;
-                        p.sendSystemMessage(Component.translatable("area_control.bypass.wildness.passive_on"));
-                        p.sendSystemMessage(HOW_TO_TURN_OFF);
+                        p.sendOverlayMessage(Component.translatable("area_control.bypass.passive_on",
+                                Component.translatable("area_control.bypass.enter", Component.literal("野外").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN),
+                                Component.translatable("area_control.bypass.on")
+                        ));
                     }
                 }
             }
@@ -275,12 +266,16 @@ public enum AreaControlPlayerTracker {
             }
             if (area == null) {
                 status.wildnessBypassMode = true;
-                p.sendSystemMessage(Component.translatable("area_control.bypass.global.wildness.on"), false);
-                p.sendSystemMessage(HOW_TO_TURN_OFF, false);
+                p.sendOverlayMessage(Component.translatable("area_control.bypass.passive_on",
+                        Component.translatable("area_control.bypass.enter", Component.literal("野外").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN),
+                        Component.translatable("area_control.bypass.on")
+                ));
             } else {
                 exemptedArea.add(area.uid);
-                p.sendSystemMessage(Component.translatable("area_control.bypass.global.area.on", area.name), false);
-                p.sendSystemMessage(HOW_TO_TURN_OFF, false);
+                p.sendOverlayMessage(Component.translatable("area_control.bypass.passive_on",
+                        Component.translatable("area_control.bypass.enter", Component.literal(area.name).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN),
+                        Component.translatable("area_control.bypass.on")
+                ));
             }
         } else {
             if (!AreaChecks.isACtrlAreaBuilder(p, area, false)) {
@@ -289,12 +284,16 @@ public enum AreaControlPlayerTracker {
             }
             if (area == null) {
                 status.wildnessBypassMode = true;
-                p.sendSystemMessage(Component.translatable("area_control.bypass.local.wildness.on"), false);
-                p.sendSystemMessage(HOW_TO_TURN_OFF, false);
+                p.sendOverlayMessage(Component.translatable("area_control.bypass.passive_on",
+                        Component.translatable("area_control.bypass.enter", Component.literal("野外").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN),
+                        Component.translatable("area_control.bypass.on")
+                ));
             } else {
                 exemptedArea.add(area.uid);
-                p.sendSystemMessage(Component.translatable("area_control.bypass.local.area.on", area.name), false);
-                p.sendSystemMessage(HOW_TO_TURN_OFF, false);
+                p.sendOverlayMessage(Component.translatable("area_control.bypass.passive_on",
+                        Component.translatable("area_control.bypass.enter", Component.literal(area.name).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN),
+                        Component.translatable("area_control.bypass.on")
+                ));
             }
         }
 
@@ -308,29 +307,37 @@ public enum AreaControlPlayerTracker {
             if (previouslyExempted != null) {
                 for (var areaId : previouslyExempted) {
                     var area = AreaManager.INSTANCE.findBy(areaId);
-                    p.sendSystemMessage(Component.translatable("area_control.bypass.global.area.off", area.name), false);
-                    p.sendSystemMessage(HOW_TO_TURN_ON, false);
+                    p.sendOverlayMessage(Component.translatable("area_control.bypass.passive_off",
+                            Component.translatable("area_control.bypass.exit", Component.literal(area.name).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.RED),
+                            Component.translatable("area_control.bypass.off")
+                    ));
                 }
                 status.areaIdsWithBypassModeOn.clear();
             }
             status.globalBypassMode = false;
             status.wildnessBypassMode = false;
-            p.sendSystemMessage(Component.translatable("area_control.bypass.global.wildness.off"), false);
-            p.sendSystemMessage(HOW_TO_TURN_ON, false);
+            p.sendOverlayMessage(Component.translatable("area_control.bypass.passive_off",
+                    Component.translatable("area_control.bypass.exit", Component.literal("野外").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.RED),
+                    Component.translatable("area_control.bypass.off")
+            ));
         } else {
             // This can happen if player disconnected before its first tick.
             if (previouslyExempted != null) {
                 for (var areaId : previouslyExempted) {
                     var areaName = AreaManager.INSTANCE.findBy(areaId).name;
-                    p.sendSystemMessage(Component.translatable("area_control.bypass.local.area.off", areaName), false);
-                    p.sendSystemMessage(HOW_TO_TURN_ON, false);
+                    p.sendOverlayMessage(Component.translatable("area_control.bypass.passive_off",
+                            Component.translatable("area_control.bypass.exit", Component.literal(areaName).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.RED),
+                            Component.translatable("area_control.bypass.off")
+                    ));
                 }
                 status.areaIdsWithBypassModeOn.clear();
             }
             status.globalBypassMode = false;
             status.wildnessBypassMode = false;
-            p.sendSystemMessage(Component.translatable("area_control.bypass.local.wildness.off"), false);
-            p.sendSystemMessage(HOW_TO_TURN_ON, false);
+            p.sendOverlayMessage(Component.translatable("area_control.bypass.passive_off",
+                    Component.translatable("area_control.bypass.exit", Component.literal("野外").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.RED),
+                    Component.translatable("area_control.bypass.off")
+            ));
         }
 
     }

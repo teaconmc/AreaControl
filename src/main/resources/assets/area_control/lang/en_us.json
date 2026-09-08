@@ -130,10 +130,18 @@
   "area_control.bypass.local.area.on": "You have turned on Local Bypass Mode for area '%s'. ",
   "area_control.bypass.local.area.off": "You have turned off Local Bypass Mode for area '%s'. ",
 
-  "area_control.bypass.wildness.passive_on": "You have entered wildness. Because Global Bypass Mode is on, we have turned on Bypass Mode for you. ",
-  "area_control.bypass.wildness.passive_off": "You have left wildness. We have turned off Bypass Mode for you. ",
-  "area_control.bypass.area.passive_on": "You have entered area '%s'. Because Global Bypass Mode is on, we have turned on Bypass Mode for you. ",
-  "area_control.bypass.area.passive_off": "You have left area '%s'. We have turned off Bypass Mode for you. ",
+  "area_control.bypass.on": {
+    "text": "ON",
+    "color": "green"
+  },
+  "area_control.bypass.off": {
+    "text": "OFF",
+    "color": "red"
+  },
+  "area_control.bypass.passive_on": "%1$s || Bypass: %2$s",
+  "area_control.bypass.passive_off": "%1$s || Bypass: %2$s",
+  "area_control.bypass.enter": "→ [ %s ]",
+  "area_control.bypass.exit": "← [ %s ] ",
 
   "area_control.bypass.how_to_turn_on": "Use %s or %s to turn on again.",
   "area_control.bypass.how_to_turn_off": "Use %s to turn off; quitting game will also automatically turn Bypass Mode off.",
