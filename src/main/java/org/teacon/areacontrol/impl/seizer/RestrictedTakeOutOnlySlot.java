@@ -4,6 +4,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import org.teacon.areacontrol.AreaControlPlayerTracker;
 import org.teacon.areacontrol.AreaManager;
 import org.teacon.areacontrol.impl.AreaChecks;
 
@@ -30,6 +31,7 @@ public class RestrictedTakeOutOnlySlot extends Slot {
     @Override
     public boolean mayPickup(Player player) {
         var currentArea = AreaManager.INSTANCE.findBy(player.level(), player.blockPosition());
-        return AreaChecks.checkPossess(currentArea, this.getItem().getItem());
+        // Can only take out items if 1. bypass mode is on or 2. that item is allowed
+        return AreaControlPlayerTracker.hasBypassModeOnForArea(player, currentArea) || AreaChecks.checkPossess(currentArea, this.getItem().getItem());
     }
 }
