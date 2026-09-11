@@ -28,6 +28,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.teacon.areacontrol.api.Area;
 import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.impl.AreaChecks;
+import org.teacon.areacontrol.impl.PlayerUtil;
 
 @EventBusSubscriber(modid = "area_control")
 public final class AreaControlEventHandlers {
@@ -143,7 +144,7 @@ public final class AreaControlEventHandlers {
         final var blockId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
         var allowed = AreaChecks.checkPropFor(targetArea, p, AreaProperties.ALLOW_BREAK, blockId, AreaControlConfig.allowBreakBlock);
         if (!allowed) {
-            p.sendOverlayMessage(Component.translatable("area_control.notice.break_block_disabled", ObjectArrays.EMPTY_ARRAY));
+            PlayerUtil.showOverlayMessageWithDebug(p, "area_control.notice.break_block_disabled", ObjectArrays.EMPTY_ARRAY);
             event.setCanceled(true);
         }
     }
@@ -159,7 +160,7 @@ public final class AreaControlEventHandlers {
         final var blockId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
         var allowed = AreaChecks.checkPropFor(targetArea, p, AreaProperties.ALLOW_CLICK, blockId, AreaControlConfig.allowClickBlock);
         if (!allowed) {
-            p.sendOverlayMessage(Component.translatable("area_control.notice.click_block_disabled", ObjectArrays.EMPTY_ARRAY));
+            PlayerUtil.showOverlayMessageWithDebug(p, "area_control.notice.click_block_disabled", ObjectArrays.EMPTY_ARRAY);
             event.setCanceled(true);
         }
     }
@@ -175,7 +176,7 @@ public final class AreaControlEventHandlers {
         final var blockId = BuiltInRegistries.BLOCK.getKey(block.getBlock());
         var allowed = AreaChecks.checkPropFor(targetArea, player, AreaProperties.ALLOW_ACTIVATE, blockId, AreaControlConfig.allowActivateBlock);
         if (!allowed) {
-            player.sendOverlayMessage(Component.translatable("area_control.notice.activate_block_disabled", ObjectArrays.EMPTY_ARRAY));
+            PlayerUtil.showOverlayMessageWithDebug(player, "area_control.notice.activate_block_disabled", ObjectArrays.EMPTY_ARRAY);
             event.setCanceled(true);
         }
     }
@@ -191,7 +192,7 @@ public final class AreaControlEventHandlers {
         final var itemId = BuiltInRegistries.ITEM.getKey(theItem);
         var allowed = AreaChecks.checkPropFor(targetArea, p, AreaProperties.ALLOW_USE_ITEM, itemId, AreaControlConfig.allowUseItem);
         if (!allowed) {
-            p.sendOverlayMessage(Component.translatable("area_control.notice.use_item_disabled", ObjectArrays.EMPTY_ARRAY));
+            PlayerUtil.showOverlayMessageWithDebug(p, "area_control.notice.use_item_disabled", ObjectArrays.EMPTY_ARRAY);
             event.setCanceled(true);
         }
     }
@@ -222,7 +223,7 @@ public final class AreaControlEventHandlers {
             //      To fully address this, we need to send permission data to client so that client can actually act accordingly...
             event.setCanceled(true);
             if (placer instanceof ServerPlayer p) {
-                p.sendSystemMessage(Component.translatable("area_control.notice.place_block_disabled", ObjectArrays.EMPTY_ARRAY), true);
+                PlayerUtil.showOverlayMessageWithDebug(p, "area_control.notice.place_block_disabled", ObjectArrays.EMPTY_ARRAY);
             }
         }
     }
@@ -269,7 +270,7 @@ public final class AreaControlEventHandlers {
             var rider = event.getEntityMounting();
             if (!AreaChecks.checkPropFor(area, rider, AreaProperties.ALLOW_RIDE, entityId, AreaControlConfig.allowRideEntity)) {
                 if (rider instanceof Player p) {
-                    p.sendOverlayMessage(Component.translatable("area_control.notice.ride_disabled", vehicle.getDisplayName()));
+                    PlayerUtil.showOverlayMessageWithDebug(p, "area_control.notice.ride_disabled", vehicle.getDisplayName());
                 }
                 event.setCanceled(true);
             }

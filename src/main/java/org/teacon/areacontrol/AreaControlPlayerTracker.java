@@ -30,6 +30,7 @@ import org.teacon.areacontrol.api.AreaProperties;
 import org.teacon.areacontrol.compat.curios.CuriosCapability;
 import org.teacon.areacontrol.impl.AreaChecks;
 import org.teacon.areacontrol.impl.AreaMath;
+import org.teacon.areacontrol.impl.PlayerUtil;
 import org.teacon.areacontrol.network.ACNetworking;
 import org.teacon.areacontrol.network.ACSendCurrentSelection;
 import org.teacon.areacontrol.network.ACSendNearbyArea;
@@ -103,7 +104,7 @@ public enum AreaControlPlayerTracker {
             // Seize vehicles if disallowed
             var riding = player.getVehicle();
             if (riding != null && !AreaChecks.checkPropFor(currentArea, player, AreaProperties.ALLOW_RIDE, BuiltInRegistries.ENTITY_TYPE.getKey(riding.getType()), AreaControlConfig.allowRideEntity)) {
-                player.sendOverlayMessage(Component.translatable("area_control.notice.ride_disabled", riding.getDisplayName()));
+                PlayerUtil.showOverlayMessageWithDebug(player, "area_control.notice.ride_disabled", riding.getDisplayName());
                 player.stopRiding();
             }
             // Clear disallowed effects
@@ -115,7 +116,7 @@ public enum AreaControlPlayerTracker {
                 }
                 if (!AreaChecks.checkPropFor(currentArea, player, AreaProperties.ALLOW_ACTIVE_EFFECT, regKey.identifier(), AreaControlConfig.allowActiveEffect)) {
                     player.removeEffect(effectId);
-                    player.sendOverlayMessage(Component.translatable("area_control.notice.clear_effect", effectId.value().getDisplayName()));
+                    PlayerUtil.showOverlayMessageWithDebug(player,"area_control.notice.clear_effect", effectId.value().getDisplayName());
                 }
             }
 
