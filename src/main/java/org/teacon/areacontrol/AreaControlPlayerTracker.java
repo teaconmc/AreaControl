@@ -94,6 +94,17 @@ public enum AreaControlPlayerTracker {
                 }
             }
 
+            // 检查玩家的 Bypass 状态并更新。
+            INSTANCE.updatePlayerExemptionStatus(player, status, prevArea);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        var subject = event.getEntity();
+        if (subject instanceof ServerPlayer player) {
+            var status = getFrom(player);
+            var currentArea = status.currentArea; // 我们已经在 PlayerTickEvent.Pre 中更新过了当前领地信息，此时的缓存结果理应为最新的。
             // Seize items if disallowed
             var mainInv = player.getInventory();
             AreaChecks.checkInv(mainInv, currentArea, player);
@@ -119,9 +130,6 @@ public enum AreaControlPlayerTracker {
                     PlayerUtil.showOverlayMessageWithDebug(player,"area_control.notice.clear_effect", effectId.value().getDisplayName());
                 }
             }
-
-            // 检查玩家的 Bypass 状态并更新。
-            INSTANCE.updatePlayerExemptionStatus(player, status, prevArea);
         }
     }
 
